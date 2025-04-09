@@ -68,7 +68,7 @@
       [style.--color-primary]="stats.options.colorPrimary"
       [style.--color-secondary]="stats.options.colorSecondary"
     >
-      <observed-location-form-report-component
+      <observed-location-form-report-content
         [rankOrder]="1000"
         [stats]="stats?.reportComponents?.[1000]"
         [data]="data"
@@ -84,9 +84,9 @@
         [isPrintingPDF]="false"
         [displayAttributesLocation]="stats.options.displayAttributes.location"
         [footerText]="stats.options.footerText"
-      ></observed-location-form-report-component>
+      ></observed-location-form-report-content>
 
-      <landing-form-report-component
+      <landing-form-report-content
         [rankOrder]="2000"
         [stats]="stats?.reportComponents?.[2000]"
         [data]="data?.landings"
@@ -110,10 +110,10 @@
         [dividerPmfm]="stats.landingTableDividerPmfm"
         [observedSpeciesByIds]="stats.observedSpeciesByIds"
         [footerText]="stats.options.footerText"
-      ></landing-form-report-component>
+      ></landing-form-report-content>
 
       @for (sale of stats.sales; track sale.id) {
-        <sale-form-report-component
+        <sale-form-report-content
           [rankOrder]="3000 + $index * 10"
           [stats]="stats?.reportComponents?.[3000 + $index * 10]"
           [data]="sale"
@@ -129,8 +129,8 @@
           [isPrintingPDF]="false"
           [displayAttributes]="stats.options.displayAttributes"
           [observedSpecie]="stats.observedSpeciesByIds | mapGet: (stats.mappings.saleIdToObservedSpeciesId | mapGet: sale.id)"
-        ></sale-form-report-component>
-        <batch-form-report-component
+        ></sale-form-report-content>
+        <batch-form-report-content
           [rankOrder]="3000 + $index * 10 + $index"
           [stats]="stats?.reportComponents?.[3000 + $index * 10 + $index]"
           [data]="sale.catchBatch"
@@ -152,7 +152,7 @@
           [saleLocation]="sale.saleLocation"
           [vesselSnapshot]="sale.vesselSnapshot"
           [footerText]="stats.options.footerText"
-        ></batch-form-report-component>
+        ></batch-form-report-content>
       }
 
       <report-appendix

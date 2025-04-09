@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, inject, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AppCoreModule } from '@app/core/core.module';
-import { ReportAppendixSection, ReportTips } from '@app/data/report/report-component.class';
+import { ReportAppendixSection, ReportTips } from '@app/data/report/report.content.class';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { IRevealExtendedOptions, RevealComponent } from '@app/shared/report/reveal/reveal.component';
 import { firstTruePromise, isNotEmptyArray, WaitForOptions } from '@sumaris-net/ngx-components';

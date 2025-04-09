@@ -2,13 +2,13 @@ import { Component, inject, Input } from '@angular/core';
 import { AppCoreModule } from '@app/core/core.module';
 import { IComputeStatsOpts } from '@app/data/report/base-report.class';
 import {
-  CommonReportComponentStats,
+  CommonReportContentStats,
   ReportAppendixSection,
   ReportPmfmsTipsByPmfmIds,
   ReportTips,
   TipsReportChunk,
-} from '@app/data/report/report-component.class';
-import { ReportTableComponent, ReportTableComponentPageDimension, TableHeadPmfmNameReportChunk } from '@app/data/report/report-table-component.class';
+} from '@app/data/report/report.content.class';
+import { ReportTableContent, ReportTableContentPageDimension, TableHeadPmfmNameReportChunk } from '@app/data/report/report-table.content.class';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { IDenormalizedPmfm } from '@app/referential/services/model/pmfm.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -21,7 +21,7 @@ import { Trip } from '../../trip.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 
-interface TripTableFormReportComponentPageDimension extends ReportTableComponentPageDimension {
+interface TripTableFormReportContentPageDimension extends ReportTableContentPageDimension {
   columnIdWidth: number;
   columnTripNumberWidth: number;
   columnObserversWidth: number;
@@ -30,7 +30,7 @@ interface TripTableFormReportComponentPageDimension extends ReportTableComponent
   columnCommentWidth: number;
 }
 
-export class TripTableFormReportComponentStats extends CommonReportComponentStats {
+export class TripTableFormReportContentStats extends CommonReportContentStats {
   options: {
     showObservers: boolean;
     showQualitativeValuesCheckBox: boolean;
@@ -71,15 +71,11 @@ export class TripTableFormReportComponentStats extends CommonReportComponentStat
 @Component({
   standalone: true,
   imports: [AppCoreModule, AppSharedReportModule, TipsReportChunk, TableHeadPmfmNameReportChunk, AppReferentialPipesModule, ReportChunkModule],
-  selector: 'trip-table-form-report-component',
-  templateUrl: './trip-table-from.report-component.html',
+  selector: 'trip-table-form-report-content',
+  templateUrl: './trip-table-from.report.content.html',
   styleUrls: ['../../../../data/report/base-form-report.scss'],
 })
-export class TripTableFromReportComponent extends ReportTableComponent<
-  Trip[],
-  TripTableFormReportComponentStats,
-  TripTableFormReportComponentPageDimension
-> {
+export class TripTableFromReportContent extends ReportTableContent<Trip[], TripTableFormReportContentStats, TripTableFormReportContentPageDimension> {
   public static NB_LINE_PEER_PAGE = 9;
 
   @Input() footerText: string;
@@ -88,7 +84,7 @@ export class TripTableFromReportComponent extends ReportTableComponent<
   protected readonly referentialRefService = inject(ReferentialRefService);
 
   constructor() {
-    super(Array<Trip>, TripTableFormReportComponentStats);
+    super(Array<Trip>, TripTableFormReportContentStats);
   }
 
   computeAppendixBlocks(): ReportAppendixSection[] {
@@ -101,7 +97,7 @@ export class TripTableFromReportComponent extends ReportTableComponent<
     ];
   }
 
-  protected computePageDimensions(): TripTableFormReportComponentPageDimension {
+  protected computePageDimensions(): TripTableFormReportContentPageDimension {
     return {
       ...this._computePageDimensions(),
       columnIdWidth: 30,
@@ -115,15 +111,15 @@ export class TripTableFromReportComponent extends ReportTableComponent<
     };
   }
 
-  protected async computeStats(data: Trip[], _?: IComputeStatsOpts<TripTableFormReportComponentStats>): Promise<TripTableFormReportComponentStats> {
-    const stats = new TripTableFormReportComponentStats();
+  protected async computeStats(data: Trip[], _?: IComputeStatsOpts<TripTableFormReportContentStats>): Promise<TripTableFormReportContentStats> {
+    const stats = new TripTableFormReportContentStats();
 
     stats.options = {
       showObservers: this.program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE),
       showQualitativeValuesCheckBox: this.program.getPropertyAsBoolean(ProgramProperties.TRIP_REPORT_FORM_BLANK_SHOW_QUALITATIVE_VALUES_CHECK_BOX),
     };
 
-    stats.nbLinesPeerPage = TripTableFromReportComponent.NB_LINE_PEER_PAGE;
+    stats.nbLinesPeerPage = TripTableFromReportContent.NB_LINE_PEER_PAGE;
 
     // Compute stats PMFM
     stats.pmfms = isNotNil(this.strategy.id)

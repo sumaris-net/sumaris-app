@@ -6,11 +6,11 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { IReferentialRef, isNotNil, SharedPipesModule } from '@sumaris-net/ngx-components';
 import { IReportData, IReportI18nContext } from './base-report.class';
 import { CommonReportOptions, CommonReportStats } from './common-report.class';
-import { ReportComponent, ReportPmfmsTipsByPmfmIds, ReportTips } from './report-component.class';
+import { ReportContent, ReportPmfmsTipsByPmfmIds, ReportTips } from './report.content.class';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 
-export class ReportTableComponentPageDimension {
+export class ReportTableContentPageDimension {
   columnPmfmWidth: number;
   columnPmfmWidthCompact: number;
   columnPmfmBooleanWidth: number;
@@ -56,13 +56,13 @@ export class TableHeadPmfmNameReportChunk {
 }
 
 @Directive()
-export abstract class ReportTableComponent<
+export abstract class ReportTableContent<
   T extends IReportData | IReportData[],
   S extends CommonReportStats,
-  D extends ReportTableComponentPageDimension,
+  D extends ReportTableContentPageDimension,
   O extends CommonReportOptions = CommonReportOptions,
-> extends ReportComponent<T, S, O> {
-  protected logPrefix = '[report-table-component] ';
+> extends ReportContent<T, S, O> {
+  protected logPrefix = '[report-table-content] ';
   protected pageDimensions: D;
   protected readonly pmfmsIdToShortCutTips = [PmfmIds.SEA_STATE];
   protected readonly programRefService = inject(ProgramRefService);
@@ -82,7 +82,7 @@ export abstract class ReportTableComponent<
     return (a.index || '').localeCompare(b.index || '');
   };
 
-  protected _computePageDimensions(): ReportTableComponentPageDimension {
+  protected _computePageDimensions(): ReportTableContentPageDimension {
     return {
       columnPmfmWidth: 90,
       columnPmfmWidthCompact: 30,

@@ -6,7 +6,7 @@ import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.
 import { AppCoreModule } from '@app/core/core.module';
 import { BaseReportStats, IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { ReportChunkModule } from '@app/data/report/form/report-chunk.module';
-import { ReportAppendixSection, ReportComponent } from '@app/data/report/report-component.class';
+import { ReportAppendixSection, ReportContent } from '@app/data/report/report.content.class';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
@@ -24,7 +24,7 @@ import { IsActiveList } from '../../calendar/calendar.component';
 import { ActivityCalendar } from '../../model/activity-calendar.model';
 import { ActivityCalendarFormsReportStats } from './activity-calendar-form.report';
 
-export interface ActivityCalendarFormReportComponentPageDimensions {
+export interface ActivityCalendarFormReportContentPageDimensions {
   marginTop: number;
   marginBottom: number;
   headerHeight: number;
@@ -39,7 +39,7 @@ export interface ActivityCalendarFormReportComponentPageDimensions {
   investigationQualificationSectionHeight: number;
 }
 
-export class ActivityCalendarFormReportComponentStats extends BaseReportStats {
+export class ActivityCalendarFormReportContentStats extends BaseReportStats {
   subtitle?: string;
   activityMonth?: ActivityMonth[];
   activityMonthColspan?: number[][];
@@ -53,10 +53,10 @@ export class ActivityCalendarFormReportComponentStats extends BaseReportStats {
   };
   filteredAndOrderedGpf?: (GearPhysicalFeatures | GearUseFeatures)[];
 
-  static fromObject(source: any): ActivityCalendarFormReportComponentStats {
+  static fromObject(source: any): ActivityCalendarFormReportContentStats {
     if (!source) return source;
-    if (source instanceof ActivityCalendarFormReportComponentStats) return source as ActivityCalendarFormReportComponentStats;
-    const target = new ActivityCalendarFormReportComponentStats();
+    if (source instanceof ActivityCalendarFormReportContentStats) return source as ActivityCalendarFormReportContentStats;
+    const target = new ActivityCalendarFormReportContentStats();
     target.fromObject(source);
     return target;
   }
@@ -102,19 +102,19 @@ export class ActivityCalendarFormReportComponentStats extends BaseReportStats {
 @Component({
   standalone: true,
   imports: [AppCoreModule, AppSharedReportModule, ReportChunkModule, AppReferentialPipesModule, AppDataEntityPipesModule],
-  selector: 'app-activity-calendar-form-report-component',
-  templateUrl: './activity-calendar-form.report-component.html',
-  styleUrls: ['../../../data/report/base-form-report.scss', './activity-calendar-form.report-component.scss'],
+  selector: 'app-activity-calendar-form-report-content',
+  templateUrl: './activity-calendar-form.report.content.html',
+  styleUrls: ['../../../data/report/base-form-report.scss', './activity-calendar-form.report.content.scss'],
   providers: [],
   encapsulation: ViewEncapsulation.None,
 })
-export class ActivityCalendarFormReportComponent extends ReportComponent<ActivityCalendar, ActivityCalendarFormReportComponentStats> {
+export class ActivityCalendarFormReportContent extends ReportContent<ActivityCalendar, ActivityCalendarFormReportContentStats> {
   readonly pmfmIdsMap = PmfmIds;
 
   protected readonly nbOfNonPmfmRowInEffortTable = 2;
 
-  protected logPrefix = 'activity-calendar-form-report-component';
-  protected pageDimensions: ActivityCalendarFormReportComponentPageDimensions;
+  protected logPrefix = 'activity-calendar-form-report-content';
+  protected pageDimensions: ActivityCalendarFormReportContentPageDimensions;
 
   protected readonly vesselOwnerService: VesselOwnerService = inject(VesselOwnerService);
   protected readonly vesselOwnerPeridodService: VesselOwnerPeridodService = inject(VesselOwnerPeridodService);
@@ -132,7 +132,7 @@ export class ActivityCalendarFormReportComponent extends ReportComponent<Activit
   @Input({ required: true }) parentStats: ActivityCalendarFormsReportStats;
 
   constructor() {
-    super(ActivityCalendar, ActivityCalendarFormReportComponentStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.PMFM.' });
+    super(ActivityCalendar, ActivityCalendarFormReportContentStats, { i18nPmfmPrefix: 'ACTIVITY_CALENDAR.REPORT.PMFM.' });
   }
 
   async ngOnStart(opts?: any): Promise<void> {
@@ -151,9 +151,9 @@ export class ActivityCalendarFormReportComponent extends ReportComponent<Activit
 
   protected async computeStats(
     data: ActivityCalendar,
-    opts?: IComputeStatsOpts<ActivityCalendarFormReportComponentStats>
-  ): Promise<ActivityCalendarFormReportComponentStats> {
-    const stats = new ActivityCalendarFormReportComponentStats();
+    opts?: IComputeStatsOpts<ActivityCalendarFormReportContentStats>
+  ): Promise<ActivityCalendarFormReportContentStats> {
+    const stats = new ActivityCalendarFormReportContentStats();
 
     stats.activityMonth = ActivityMonthUtils.fromActivityCalendar(data, {
       fillEmptyGuf: true,
@@ -213,7 +213,7 @@ export class ActivityCalendarFormReportComponent extends ReportComponent<Activit
     return stats;
   }
 
-  protected computeActivityMonthColspan(stats: ActivityCalendarFormReportComponentStats): ActivityCalendarFormReportComponentStats {
+  protected computeActivityMonthColspan(stats: ActivityCalendarFormReportContentStats): ActivityCalendarFormReportContentStats {
     stats.activityMonthColspan = stats.activityMonth.reduce((acc, month) => {
       const result = {};
       month.gearUseFeatures.forEach((_, idx) => (result[idx] = 1));
@@ -247,7 +247,7 @@ export class ActivityCalendarFormReportComponent extends ReportComponent<Activit
     return stats;
   }
 
-  protected computeMetierTableChunk(stats: ActivityCalendarFormReportComponentStats) {
+  protected computeMetierTableChunk(stats: ActivityCalendarFormReportContentStats) {
     stats.metierTableChunks = [];
 
     const metierChunks: { metierIndex: number; fishingAreasIndexes: number[] }[] = stats.activityMonth[0].gearUseFeatures.map((guf, index) => {
@@ -315,7 +315,7 @@ export class ActivityCalendarFormReportComponent extends ReportComponent<Activit
     }
   }
 
-  protected computePageDimensions(): ActivityCalendarFormReportComponentPageDimensions {
+  protected computePageDimensions(): ActivityCalendarFormReportContentPageDimensions {
     return {
       marginTop: 16,
       marginBottom: 16,

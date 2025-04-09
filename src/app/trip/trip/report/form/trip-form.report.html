@@ -109,7 +109,7 @@
             </ion-row>
           </ion-grid>
         </section>
-        <trip-table-form-report-component
+        <trip-table-form-report-content
           [rankOrder]="10"
           [stats]="stats?.reportComponents?.[10]"
           [data]="stats.tripLines"
@@ -126,7 +126,7 @@
           [titleComplement]="stats.hasPmfm.cameraUsed ? 'TRIP.REPORT.FORM.WITH_OR_WITHOUT_CAMERA' : undefined"
           [footerText]="stats.options.footerText"
           [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
-        ></trip-table-form-report-component>
+        ></trip-table-form-report-content>
       } @else {
         <!-- TODO: Move this section in it own component -->
         <!-- Trip card -->
@@ -422,7 +422,7 @@
 
       <!-- Physical gears -->
       @if (data.gears | isNotEmptyArray) {
-        <physicalgear-report-component
+        <physicalgear-report-content
           [rankOrder]="20"
           [stats]="stats?.reportComponents?.[20]"
           [data]="data.gears"
@@ -443,14 +443,14 @@
           [parentPageDimensions]="pageDimensions"
           [operations]="data.operations"
           [titleComplement]="stats.hasPmfm.cameraUsed ? 'TRIP.REPORT.FORM.WITH_OR_WITHOUT_CAMERA' : undefined"
-        ></physicalgear-report-component>
+        ></physicalgear-report-content>
       }
 
       <!-- Operations table -->
       @if (stats.options.multiTrip) {
         <!-- TODO: when call with child or not -->
         @if (isBlankForm) {
-          <operation-with-child-form-report-component
+          <operation-with-child-form-report-content
             [rankOrder]="30"
             [stats]="stats?.reportComponents?.[30]"
             [data]="data.operations"
@@ -473,11 +473,11 @@
             [enablePosition]="stats.options.enablePosition"
             [useColumnGearNumber]="stats.options.gearHasLabel"
             [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
-          ></operation-with-child-form-report-component>
+          ></operation-with-child-form-report-content>
 
           <!-- Add one more page, without camera-->
           @if (stats.hasPmfm.cameraUsed) {
-            <operation-with-child-form-report-component
+            <operation-with-child-form-report-content
               [rankOrder]="30"
               [stats]="stats?.reportComponents?.[30]"
               [data]="data.operations"
@@ -500,10 +500,10 @@
               [hideComments]="false"
               [useColumnGearNumber]="stats.options.gearHasLabel"
               [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
-            ></operation-with-child-form-report-component>
+            ></operation-with-child-form-report-content>
           }
         } @else {
-          <operation-with-child-form-report-component
+          <operation-with-child-form-report-content
             [rankOrder]="30"
             [stats]="stats?.reportComponents?.[30]"
             [data]="data.operations"
@@ -524,10 +524,10 @@
             [cameraUsed]="stats.options.cameraUsed"
             [enablePosition]="stats.options.enablePosition"
             [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
-          ></operation-with-child-form-report-component>
+          ></operation-with-child-form-report-content>
         }
       } @else {
-        <operation-form-report-component
+        <operation-form-report-content
           [rankOrder]="30"
           [stats]="stats?.reportComponents?.[30]"
           [data]="data.operations"
@@ -547,12 +547,12 @@
           [parentPageDimensions]="pageDimensions"
           [enablePosition]="stats.options.enablePosition"
           [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
-        ></operation-form-report-component>
+        ></operation-form-report-content>
       }
 
       <!-- DenormalizedBatch by operations -->
       @if (stats.options.enableBatch) {
-        <denormalized-batch-form-report-component
+        <denormalized-batch-form-report-content
           [rankOrder]="40"
           [stats]="stats?.reportComponents?.[40]"
           [tripId]="data.id"
@@ -569,11 +569,11 @@
           [departureDateTime]="data.departureDateTime"
           [vesselName]="data.vesselSnapshot?.name"
           [revealOptions]="revealOptions"
-        ></denormalized-batch-form-report-component>
+        ></denormalized-batch-form-report-content>
       }
 
       <!-- Sample by operation -->
-      <sample-form-report-component
+      <sample-form-report-content
         [rankOrder]="50"
         [stats]="stats?.reportComponents?.[50]"
         [data]="data.operations"
@@ -592,7 +592,7 @@
         [vesselName]="data.vesselSnapshot?.name"
         [revealOptions]="revealOptions"
         [parentPageDimensions]="pageDimensions"
-      ></sample-form-report-component>
+      ></sample-form-report-content>
 
       <report-appendix
         [isPrintingPDF]="isPrintingPDF"

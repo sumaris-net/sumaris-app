@@ -1,17 +1,17 @@
-import { booleanAttribute, Component, inject, Input, OnInit } from '@angular/core';
+import { Component, inject, Input } from '@angular/core';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppDataModule } from '@app/data/data.module';
 import { MeasurementFormValues, MeasurementUtils } from '@app/data/measurement/measurement.model';
 import { IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { ReportChunkModule } from '@app/data/report/form/report-chunk.module';
 import {
-  CommonReportComponentStats,
+  CommonReportContentStats,
   ReportAppendixSection,
   ReportPmfmsTipsByPmfmIds,
   ReportTips,
   TipsReportChunk,
-} from '@app/data/report/report-component.class';
-import { ReportTableComponent, ReportTableComponentPageDimension, TableHeadPmfmNameReportChunk } from '@app/data/report/report-table-component.class';
+} from '@app/data/report/report.content.class';
+import { ReportTableContent, ReportTableContentPageDimension, TableHeadPmfmNameReportChunk } from '@app/data/report/report-table.content.class';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
@@ -22,16 +22,9 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { arrayPluck } from '@app/shared/functions';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { Operation } from '@app/trip/trip/trip.model';
-import {
-  EntityAsObjectOptions,
-  isNotNil,
-  LatLongPattern,
-  LocalSettingsService,
-  removeDuplicatesFromArray,
-  splitById,
-} from '@sumaris-net/ngx-components';
+import { arrayDistinct, EntityAsObjectOptions, isNil, isNotNil, LatLongPattern, LocalSettingsService, splitById } from '@sumaris-net/ngx-components';
 
-interface OperationWithChildFormReportComponentPageDimension extends ReportTableComponentPageDimension {
+interface OperationFormReportContentPageDimension extends ReportTableContentPageDimension {
   columnNumOpWidth: number;
   columnIndividualMeasureWidth: number;
   columnTripProgressWidth: number;
@@ -41,46 +34,44 @@ interface OperationWithChildFormReportComponentPageDimension extends ReportTable
   columnTripNumberWidth: number;
 }
 
-export class OperationWithChildFromReportComponentStats extends CommonReportComponentStats {
+export class OperationFromReportContentStats extends CommonReportContentStats {
   options: {
-    showFishingStartDate: boolean;
-    showFishingEndDate: boolean;
     showEndDate: boolean;
+    allowParentOperation: boolean;
     latLongPattern: LatLongPattern;
     fishingAreaDisplayAttributes: string[];
+    commentsHelpText: string;
     enableVesselAssociation: boolean;
-    onePosition?: boolean;
-    commentsHelpText?: string;
-    allowParentOperation?: boolean;
   };
-  parentPmfms: IDenormalizedPmfm[];
+  pmfms: IDenormalizedPmfm[];
   pmfmsById: { [key: number]: IPmfm };
   childPmfms: IDenormalizedPmfm[];
   childPmfmsById: { [key: number]: IPmfm };
-  tableHeadColspanLeft: number;
-  tableHeadColspanParent: number;
-  tableHeadColspanChild: number;
+  tableHeadColspan: number;
+  hasPmfm: {
+    hasIndividualMeasure: boolean;
+    tripProgress: boolean;
+  };
   pmfmsTipsByPmfmIdByTableParts: ReportPmfmsTipsByPmfmIds[];
   measurementValues: MeasurementFormValues[];
   tipsByTablePart: ReportTips[][];
-  pmfmTablePart: number[][];
+  pmfmsTablePart: number[][];
   pmfmsColumnWidthByPmfmsIds: { [key: number]: number };
   nbOperationByPage: number;
   dummyOps: Operation[];
 
   fromObject(source: any): void {
     this.options = source.options;
-    this.parentPmfms = source.pmfms.map(DenormalizedPmfmStrategy.fromObject);
-    this.pmfmsById = splitById(this.parentPmfms);
+    this.pmfms = source.pmfms.map(DenormalizedPmfmStrategy.fromObject);
+    this.pmfmsById = splitById(this.pmfms);
     this.childPmfms = source.childPmfms.map(DenormalizedPmfmStrategy.fromObject);
     this.childPmfmsById = splitById(this.childPmfms);
-    this.tableHeadColspanLeft = source.tableHeadColspanLeft;
-    this.tableHeadColspanChild = source.tableHeadColspanChild;
-    this.tableHeadColspanParent = source.tableHeadColspanParent;
+    this.tableHeadColspan = source.tableHeadColspan;
+    this.hasPmfm = source.hasPmfm;
     this.pmfmsTipsByPmfmIdByTableParts = source.pmfmsTipsByPmfmIdByTableParts;
     this.measurementValues = source.measurementValues;
     this.tipsByTablePart = source.tipsByTablePart;
-    this.pmfmTablePart = source.parentPmfmTablePart;
+    this.pmfmsTablePart = source.pmfmsTablePart;
     this.pmfmsColumnWidthByPmfmsIds = source.pmfmsColumnWidthByPmfmsIds;
     this.nbOperationByPage = source.nbOperationByPage;
     this.dummyOps = source.dummyOps?.map(Operation.fromObject);
@@ -89,14 +80,13 @@ export class OperationWithChildFromReportComponentStats extends CommonReportComp
   asObject(opts?: EntityAsObjectOptions): any {
     return {
       options: this.options,
-      pmfms: this.parentPmfms.map((pmfm) => pmfm.asObject(opts)),
+      pmfms: this.pmfms.map((pmfm) => pmfm.asObject(opts)),
       childPmfms: this.childPmfms?.map((pmfm) => pmfm.asObject(opts)),
-      tableHeadColspanLeft: this.tableHeadColspanLeft,
-      tableHeadColspanChild: this.tableHeadColspanChild,
-      tableHeadColspanParent: this.tableHeadColspanParent,
+      tableHeadColspan: this.tableHeadColspan,
+      hasPmfm: this.hasPmfm,
       pmfmsTipsByPmfmIdByTableParts: this.pmfmsTipsByPmfmIdByTableParts,
       measurementValues: this.measurementValues,
-      parentPmfmTablePart: this.pmfmTablePart,
+      pmfmsTablePart: this.pmfmsTablePart,
       tipsByTablePart: this.tipsByTablePart,
       pmfmsColumnWidthByPmfmsIds: this.pmfmsColumnWidthByPmfmsIds,
       nbOperationByPage: this.nbOperationByPage,
@@ -113,51 +103,31 @@ export class OperationWithChildFromReportComponentStats extends CommonReportComp
     AppReferentialModule,
     AppDataModule,
     ReportChunkModule,
-    TableHeadPmfmNameReportChunk,
     TipsReportChunk,
+    TableHeadPmfmNameReportChunk,
   ],
-  selector: 'operation-with-child-form-report-component',
-  templateUrl: './operation-with-child-form.report-component.html',
-  styleUrls: ['./operation-form.report-component.scss', '../../../../data/report/base-form-report.scss'],
+  selector: 'operation-form-report-content',
+  templateUrl: './operation-form.report.content.html',
+  styleUrls: ['./operation-form.report.content.scss', '../../../../data/report/base-form-report.scss'],
 })
-export class OperationWithChildFormReportComponent
-  extends ReportTableComponent<Operation[], OperationWithChildFromReportComponentStats, OperationWithChildFormReportComponentPageDimension>
-  implements OnInit
-{
+export class OperationFormReportContent extends ReportTableContent<
+  Operation[],
+  OperationFromReportContentStats,
+  OperationFormReportContentPageDimension
+> {
+  readonly pmfmIdsMap = PmfmIds;
+
+  @Input({ required: true }) enablePosition: boolean;
+  @Input({ required: true }) multiTrip: boolean;
   public static NB_LINE_PEER_PAGE = 10;
 
   protected readonly referentialRefService = inject(ReferentialRefService);
-  protected readonly programRefService = inject(ProgramRefService);
-  protected logPrefix = '[operation-with-child-form-report] ';
 
-  @Input({ required: true }) enablePosition: boolean;
-  @Input({ required: true }) cameraUsed: boolean;
-  @Input({ required: true }) multiTrip: boolean;
-  @Input({ transform: booleanAttribute }) hideComments: boolean = false;
-  @Input({ transform: booleanAttribute }) useColumnGearNumber = false;
-  @Input() defaultPmfmColumnWidthByPmfmId: { [key: number]: number };
+  protected logPrefix = '[operation-form-report] ';
+  protected programRefService: ProgramRefService = inject(ProgramRefService);
 
   constructor(protected settings: LocalSettingsService) {
-    super(Array<Operation>, OperationWithChildFromReportComponentStats);
-  }
-
-  ngOnInit() {
-    super.ngOnInit();
-
-    // Set defaults
-    this.i18nContext = {
-      ...this.i18nContext,
-      pmfmPrefix: 'TRIP.OPERATION.PMFM.',
-    };
-  }
-
-  async ngOnStart(opts?: any): Promise<void> {
-    // Set defaults
-    this.defaultPmfmColumnWidthByPmfmId = this.defaultPmfmColumnWidthByPmfmId ?? {
-      [PmfmIds.HAS_ACCIDENTAL_CATCHES]: 40,
-    };
-
-    return super.ngOnStart(opts);
+    super(Array<Operation>, OperationFromReportContentStats);
   }
 
   computeAppendixBlocks(): ReportAppendixSection[] {
@@ -170,56 +140,51 @@ export class OperationWithChildFormReportComponent
     ];
   }
 
-  protected computePageDimensions(): OperationWithChildFormReportComponentPageDimension {
+  protected computePageDimensions(): OperationFormReportContentPageDimension {
     return {
       ...super._computePageDimensions(),
       columnNumOpWidth: 30,
       columnIndividualMeasureWidth: 30,
       columnTripProgressWidth: 30,
-      columnGearSpeciesWidth: 60,
-      columnDateWidth: this.cameraUsed ? 160 : 80,
-      columnLatLongWidth: 80,
+      columnGearSpeciesWidth: 430,
+      columnDateWidth: 90,
+      columnLatLongWidth: 140,
       columnTripNumberWidth: 30,
     };
   }
 
-  protected async computeStats(
-    data: Operation[],
-    _?: IComputeStatsOpts<OperationWithChildFromReportComponentStats>
-  ): Promise<OperationWithChildFromReportComponentStats> {
-    const stats = new OperationWithChildFromReportComponentStats();
+  protected async computeStats(data: Operation[], _?: IComputeStatsOpts<OperationFromReportContentStats>): Promise<OperationFromReportContentStats> {
+    const stats = new OperationFromReportContentStats();
 
     const strategyId = this.strategy?.id;
 
     stats.options = {
-      showFishingStartDate: this.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE),
-      showFishingEndDate: this.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE),
-      showEndDate: this.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE),
+      showEndDate:
+        this.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE) ||
+        this.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE),
+      allowParentOperation: this.program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION),
       latLongPattern: this.settings.latLongFormat,
       fishingAreaDisplayAttributes: this.settings.getFieldDisplayAttributes('fishingArea', ['label', 'name']),
-      enableVesselAssociation: this.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_ENABLE_VESSEL_ASSOCIATION),
-      onePosition: true, // TODO add program option
       commentsHelpText: this.program.getProperty(ProgramProperties.TRIP_REPORT_FORM_OPERATION_COMMENT_HELP_TEXT),
+      enableVesselAssociation: this.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_ENABLE_VESSEL_ASSOCIATION),
     };
 
-    if (stats.options.onePosition) {
-      this.pageDimensions.columnDateWidth += 20;
-      this.pageDimensions.columnLatLongWidth += 20;
+    stats.nbOperationByPage = OperationFormReportContent.NB_LINE_PEER_PAGE;
+    // In the case the header will be more hight, so we have less place du display lines
+    if (stats.options.allowParentOperation) {
+      stats.nbOperationByPage--;
     }
 
-    stats.nbOperationByPage = OperationWithChildFormReportComponent.NB_LINE_PEER_PAGE;
-    // In the case the header will be more hight, so we have less place du display lines
-
-    const parentPmfms = isNotNil(strategyId)
-      ? await this.programRefService.loadProgramPmfms(this.program.label, {
-          acquisitionLevel: AcquisitionLevelCodes.OPERATION,
-          strategyId,
-        })
+    stats.pmfms = isNotNil(strategyId)
+      ? (
+          await this.programRefService.loadProgramPmfms(this.program.label, {
+            acquisitionLevel: AcquisitionLevelCodes.OPERATION,
+            strategyId,
+          })
+        ).filter((pmfm) => !this.hiddenPmfms.includes(pmfm.id))
       : [];
-
-    stats.parentPmfms = parentPmfms.filter((pmfm) => !this.hiddenPmfms.includes(pmfm.id));
-
-    const childPmfms = isNotNil(strategyId)
+    stats.pmfmsById = splitById(stats.pmfms);
+    stats.childPmfms = isNotNil(strategyId)
       ? (
           await this.programRefService.loadProgramPmfms(this.program.label, {
             acquisitionLevel: AcquisitionLevelCodes.CHILD_OPERATION,
@@ -227,57 +192,69 @@ export class OperationWithChildFormReportComponent
           })
         ).filter((pmfm) => !this.hiddenPmfms.includes(pmfm.id))
       : [];
+    stats.pmfmsById = splitById(stats.childPmfms);
 
-    stats.childPmfms = childPmfms.filter((pmfm) => !this.hiddenPmfms.includes(pmfm.id));
+    // In case of allowParentOperation, also display child pmfm in it own
+    // header line for operation table. We also need each array (parent and
+    // child pmfms) has the same size to be displayed correctly as table column
+    if (stats.options.allowParentOperation) {
+      const nbOperationPmfms = stats.pmfms.filter(this.filterPmfmForOperationTable).length;
+      const nbChildOperationPmfms = stats.childPmfms.filter(this.filterPmfmForOperationTable).length;
+      if (nbOperationPmfms > nbChildOperationPmfms) {
+        const diff = nbOperationPmfms - nbChildOperationPmfms;
+        stats.childPmfms = [...stats.childPmfms, ...Array(diff - 1).fill(DenormalizedPmfmStrategy.fromObject({}))];
+      } else if (nbChildOperationPmfms > nbOperationPmfms) {
+        const diff = nbChildOperationPmfms - nbOperationPmfms;
+        stats.pmfms = [...stats.pmfms, ...Array(diff - 1).fill(DenormalizedPmfmStrategy.fromObject({}))];
+      }
+    }
 
-    const allPmfms = removeDuplicatesFromArray([...stats.parentPmfms, ...stats.childPmfms], 'id');
-    stats.pmfmsById = splitById(allPmfms);
+    stats.hasPmfm = {
+      hasIndividualMeasure: isNotNil(stats.pmfmsById?.[this.pmfmIdsMap.HAS_INDIVIDUAL_MEASURES]),
+      tripProgress: isNotNil(stats.pmfmsById?.[this.pmfmIdsMap.TRIP_PROGRESS]),
+    };
 
-    stats.pmfmsColumnWidthByPmfmsIds = this.computePmfmColumnsWidthByPmfmIds(
-      allPmfms,
-      true, // FIXME DO we need a NOT compact mode ?
-      !this.isBlankForm,
-      this.defaultPmfmColumnWidthByPmfmId
-    );
-
-    stats.tableHeadColspanLeft = 3 + (this.multiTrip ? 1 : 0);
-    stats.tableHeadColspanParent = (this.cameraUsed ? 1 : 2 + (stats.options.showFishingStartDate ? 2 : 0)) + stats.parentPmfms.length;
-    stats.tableHeadColspanChild =
-      (this.cameraUsed ? 1 : 2 + (stats.options.showFishingEndDate ? 1 : 0) + (stats.options.showEndDate ? 1 : 0)) + stats.childPmfms.length;
+    stats.tableHeadColspan = 2 + Object.values(stats.hasPmfm).filter((v) => v).length + (this.multiTrip ? 1 : 0);
 
     // Get all needed measurement values in suitable format
     stats.measurementValues = data.map((op) => MeasurementUtils.toMeasurementValues(op.measurements));
 
-    // TODO: for now all is in one page, pmfmTablePart is not use in the template
-    stats.pmfmTablePart = this.computeTablePart(
-      allPmfms,
-      stats.pmfmsColumnWidthByPmfmsIds,
+    const tableLeftColumnsWidth =
+      this.pageDimensions.columnNumOpWidth +
+      (stats.hasPmfm.hasIndividualMeasure ? this.pageDimensions.columnIndividualMeasureWidth : 0) +
+      (stats.hasPmfm.tripProgress ? this.pageDimensions.columnTripProgressWidth : 0) +
+      this.pageDimensions.columnGearSpeciesWidth +
+      this.pageDimensions.columnDateWidth +
+      this.pageDimensions.columnLatLongWidth + // start date
+      (stats.options.showEndDate ? this.pageDimensions.columnDateWidth + this.pageDimensions.columnLatLongWidth : 0);
+    const tableRightColumnsWidth = 0;
+
+    stats.pmfmsTablePart = this.computeTablePart(
+      stats.pmfms,
+      null,
       this.parentPageDimensions.availableWidthForTableLandscape,
-      this.parentPageDimensions.availableWidthForTableLandscape, // TODO False value : compute it
-      0
+      tableLeftColumnsWidth,
+      tableRightColumnsWidth
     );
 
-    stats.pmfmsTipsByPmfmIdByTableParts = this.computeReportPmfmsTips(stats.pmfmTablePart, allPmfms, this.limitTipsToShowOnAppendix);
+    const allPmfms = arrayDistinct(stats.pmfms.concat(stats.childPmfms), 'id');
+    stats.pmfmsTipsByPmfmIdByTableParts = this.computeReportPmfmsTips(stats.pmfmsTablePart, allPmfms, this.limitTipsToShowOnAppendix);
     stats.tipsByTablePart = stats.pmfmsTipsByPmfmIdByTableParts.map((item) => Object.values(item));
-    // FIXME: add an program option to add set this help tip (e.g. 'sumaris.report.form.trip.operation.gear.helpTip')
-    if (!this.useColumnGearNumber) {
-      stats.tipsByTablePart[0].push({
-        index: '*',
-        showOnAppendix: false,
-        text: this.translate.instant('TRIP.REPORT.FORM.OPERATION.HELP.ONE_STAR'),
-      });
-    }
-
-    if ((!this.enablePosition || this.isBlankForm) && !this.cameraUsed && this.enablePosition) {
+    stats.tipsByTablePart[0].push({
+      index: '*',
+      showOnAppendix: false,
+      text: this.translate.instant('TRIP.REPORT.FORM.OPERATION.HELP.ONE_STAR'),
+    });
+    if (!this.enablePosition || this.isBlankForm) {
       const fishingAreaLocationLevelIds = this.program.getPropertyAsNumbers(ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS);
       const locationLevels = await this.referentialRefService.loadAllByIds(fishingAreaLocationLevelIds, 'LocationLevel');
       stats.tipsByTablePart[0].push({
-        index: this.useColumnGearNumber ? '*' : '**',
+        index: '**',
         showOnAppendix: false,
-        title: this.translate.instant('TRIP.REPORT.FORM.OPERATION.TABLE.FISHING_AREA'),
-        text: `${arrayPluck(locationLevels, 'name').join(', ')}`,
+        text: `${this.translate.instant('TRIP.REPORT.FORM.OPERATION.TABLE.FISHING_AREA')}${this.translate.instant('COMMON.COLON')} ${arrayPluck(locationLevels, 'name').join(', ')}`,
       });
     }
+
     // For each 4 line in tips remove one operation line in the page to keep
     // the place tu put all tips
     const maxTipsLength = Math.max(...stats.tipsByTablePart.map((item) => item.length));
@@ -326,6 +303,10 @@ export class OperationWithChildFormReportComponent
     return stats;
   }
 
+  protected filterPmfmForOperationTable(pmfm: IPmfm): boolean {
+    return isNil(pmfm) || ![PmfmIds.HAS_INDIVIDUAL_MEASURES, PmfmIds.TRIP_PROGRESS].includes(pmfm.id);
+  }
+
   protected markAsLoaded(opts = { emitEvent: true }) {
     if (this.loadingSubject.value) {
       this.loadingSubject.next(false);
@@ -335,7 +316,7 @@ export class OperationWithChildFormReportComponent
 
   protected computeTablePart(
     pmfms: IPmfm[],
-    columnWidthByPmfmsIds: { [key: number]: number } | null,
+    columnWidthByPmfmsIds: { [key: number]: number } | undefined,
     availableWidthForTable: number,
     leftPartWidth: number,
     rightPartWidth: number

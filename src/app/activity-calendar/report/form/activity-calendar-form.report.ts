@@ -38,7 +38,7 @@ import {
   splitById,
   StatusIds,
 } from '@sumaris-net/ngx-components';
-import { ActivityCalendarFormReportComponent } from './activity-calendar-form.report-component';
+import { ActivityCalendarFormReportContent } from './activity-calendar-form.report.content';
 import { GearPhysicalFeatures } from '@app/activity-calendar/model/gear-physical-features.model';
 import { Metier } from '@app/referential/metier/metier.model';
 import { GearUseFeatures } from '@app/activity-calendar/model/gear-use-features.model';
@@ -113,7 +113,7 @@ export class ActivityCalendarFormsReportStats extends BaseReportStats {
 
 @Component({
   standalone: true,
-  imports: [AppCoreModule, AppSharedReportModule, AppDataModule, AppReferentialModule, SharedModule, ActivityCalendarFormReportComponent],
+  imports: [AppCoreModule, AppSharedReportModule, AppDataModule, AppReferentialModule, SharedModule, ActivityCalendarFormReportContent],
   selector: 'app-activity-calendar-form-report',
   templateUrl: './activity-calendar-form.report.html',
   styleUrls: ['../../../data/report/base-form-report.scss', './activity-calendar-form.report.scss'],

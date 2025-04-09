@@ -4,16 +4,11 @@ import { MatTableDataSource } from '@angular/material/table';
 import { AppCoreModule } from '@app/core/core.module';
 import { IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { ReportChunkModule } from '@app/data/report/form/report-chunk.module';
-import {
-  CommonReportComponentStats,
-  ReportAppendixSection,
-  ReportPmfmsTipsByPmfmIds,
-  TipsReportChunk,
-} from '@app/data/report/report-component.class';
-import { ReportTableComponent, ReportTableComponentPageDimension, TableHeadPmfmNameReportChunk } from '@app/data/report/report-table-component.class';
+import { ReportTableContent, ReportTableContentPageDimension, TableHeadPmfmNameReportChunk } from '@app/data/report/report-table.content.class';
+import { CommonReportContentStats, ReportAppendixSection, ReportPmfmsTipsByPmfmIds, TipsReportChunk } from '@app/data/report/report.content.class';
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
-import { IDenormalizedPmfm, IPmfm } from '@app/referential/services/model/pmfm.model';
+import { IDenormalizedPmfm } from '@app/referential/services/model/pmfm.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { EntityAsObjectOptions, ReferentialRef, isNotEmptyArray, isNotNil, referentialToString } from '@sumaris-net/ngx-components';
@@ -24,7 +19,7 @@ import { BatchUtils } from '../batch.utils';
 
 type TreeComponent = 'blank' | 'trunc' | 'last-leaf' | 'leaf';
 
-export interface BatchFormReportPageDimension extends ReportTableComponentPageDimension {
+export interface BatchFormReportPageDimension extends ReportTableContentPageDimension {
   headerHeight: number;
   footerHeight: number;
   tableTitleHeight: number;
@@ -42,7 +37,7 @@ export interface BatchFormReportPageDimension extends ReportTableComponentPageDi
   colWidthBlank: number;
 }
 
-export class BatchFormReportComponentStats extends CommonReportComponentStats {
+export class BatchFormReportComponentStats extends CommonReportContentStats {
   options: {
     blankFormLineNumberSuite: string[];
   };
@@ -72,12 +67,12 @@ export class BatchFormReportComponentStats extends CommonReportComponentStats {
     AppBatchModule,
     TipsReportChunk,
   ],
-  selector: 'batch-form-report-component',
-  templateUrl: './batch-form.report-component.html',
-  styleUrls: ['./batch-form.report-component.scss', '../../../../data/report/base-report.scss', '../../../../data/report/base-form-report.scss'],
+  selector: 'batch-form-report-content',
+  templateUrl: './batch-form.report.content.html',
+  styleUrls: ['./batch-form.report.content.scss', '../../../../data/report/base-report.scss', '../../../../data/report/base-form-report.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class BatchFormReportComponent extends ReportTableComponent<Batch, BatchFormReportComponentStats, BatchFormReportPageDimension> {
+export class BatchFormReportComponent extends ReportTableContent<Batch, BatchFormReportComponentStats, BatchFormReportPageDimension> {
   protected treeIndentByBatchId: { [key: number]: TreeComponent[] } = {};
   protected sortingValueTextByBatchId: { [key: number]: string[] } = {};
   protected batchWithCalculatedWeightById: { [key: number]: boolean } = {};

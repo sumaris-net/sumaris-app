@@ -10,6 +10,7 @@ import {
   EntityServiceListenChangesOptions,
   EntityServiceLoadOptions,
   EntityUtils,
+  ErrorCodes,
   FormErrors,
   FormErrorTranslateOptions,
   FormErrorTranslator,
@@ -74,11 +75,12 @@ import { ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { DataCommonFragments, DataFragments } from '@app/trip/common/data.fragments';
+import { DataCommonFragments, DataFragments, SaleFragments } from '@app/trip/common/data.fragments';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { DataStrategyResolution } from '@app/data/form/data-editor.utils';
 import { IMPORT_REFERENTIAL_ENTITIES, WEIGHT_CONVERSION_ENTITIES } from '@app/referential/services/referential-ref.service';
+import { DenormalizedSaleResult } from '../denormalized-batch/denormalized-batch.model';
 
 export interface ObservedLocationSaveOptions extends RootDataEntitySaveOptions {
   withLanding?: boolean;
@@ -166,7 +168,7 @@ export const ObservedLocationFragments = {
 };
 
 // Load query
-const ObservedLocationQueries: BaseEntityGraphqlQueries & { countSamples: any } = {
+const ObservedLocationQueries: BaseEntityGraphqlQueries & { countSamples: any; denormalizeObservedLocation: any } = {
   load: gql`
     query ObservedLocation($id: Int!) {
       data: observedLocation(id: $id) {
@@ -217,6 +219,14 @@ const ObservedLocationQueries: BaseEntityGraphqlQueries & { countSamples: any } 
     query SamplesCountQuery($filter: SampleFilterVOInput!) {
       total: samplesCount(filter: $filter)
     }
+  `,
+  denormalizeObservedLocation: gql`
+    query DenormalizeObservedLocation($observedLocationId: Int!) {
+      data: denormalizeObservedLocation(id: $observedLocationId) {
+        ...DenormalizedSaleResult
+      }
+    }
+    ${SaleFragments.denormalizedSaleResult}
   `,
 };
 
@@ -1200,7 +1210,7 @@ export class ObservedLocationService
           { observedLocationId: entity.id },
           { fullLoad: false, computeRankOrder: false }
         );
-        for (let landing of landings) {
+        for (const landing of landings) {
           await this.landingService.terminateById(landing.id, { program: opts?.program });
         }
       }
@@ -1483,5 +1493,22 @@ export class ObservedLocationService
 
   protected async showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     return Toasts.show(this.toastController, this.translate, opts);
+  }
+
+  async denormalizeObservedLocation(observedLocationId: number): Promise<LoadResult<DenormalizedSaleResult>> {
+    if (this._debug) console.debug(this._logPrefix + `DenormalizeObservedLocation {${observedLocationId}}...`);
+
+    const variables = {
+      observedLocationId: observedLocationId,
+    };
+
+    const query = ObservedLocationQueries.denormalizeObservedLocation;
+    const { data } = await this.graphql.query<{ data: any }>({
+      query,
+      variables,
+      error: { code: ErrorCodes.LOAD_DATA_ERROR, message: 'ERROR.LOAD_DATA_ERROR' },
+    });
+
+    return data;
   }
 }

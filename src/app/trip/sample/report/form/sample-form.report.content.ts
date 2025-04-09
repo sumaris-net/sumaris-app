@@ -4,13 +4,13 @@ import { AppDataModule } from '@app/data/data.module';
 import { IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { ReportChunkModule } from '@app/data/report/form/report-chunk.module';
 import {
-  CommonReportComponentStats,
+  CommonReportContentStats,
   ReportAppendixSection,
   ReportPmfmsTipsByPmfmIds,
   ReportTips,
   TipsReportChunk,
-} from '@app/data/report/report-component.class';
-import { ReportTableComponent, ReportTableComponentPageDimension, TableHeadPmfmNameReportChunk } from '@app/data/report/report-table-component.class';
+} from '@app/data/report/report.content.class';
+import { ReportTableContent, ReportTableContentPageDimension, TableHeadPmfmNameReportChunk } from '@app/data/report/report-table.content.class';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
@@ -25,7 +25,7 @@ import { Operation } from '@app/trip/trip/trip.model';
 import { EntityAsObjectOptions, ImageAttachment, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, splitById } from '@sumaris-net/ngx-components';
 import { Sample } from '../../sample.model';
 
-interface SampleFormReportComponentPageDimension extends ReportTableComponentPageDimension {
+interface SampleFormReportContentPageDimension extends ReportTableContentPageDimension {
   columnRankOrderWidth: number;
   columnNumOpWidth: number;
   columnLabelWidth: number;
@@ -38,7 +38,7 @@ interface SampleFormReportComponentPageDimension extends ReportTableComponentPag
   columnSpeciesWidth: number;
 }
 
-export class SampleFromReportComponentStats extends CommonReportComponentStats {
+export class SampleFromReportContentStats extends CommonReportContentStats {
   options: {
     labelEnabled: boolean;
     multiOp: boolean;
@@ -143,15 +143,11 @@ export class SampleFromReportComponentStats extends CommonReportComponentStats {
     TipsReportChunk,
     TableHeadPmfmNameReportChunk,
   ],
-  selector: 'sample-form-report-component',
-  templateUrl: './sample-form.report-component.html',
-  styleUrls: ['./sample-form.report-component.scss', '../../../../data/report/base-form-report.scss'],
+  selector: 'sample-form-report-content',
+  templateUrl: './sample-form.report.content.html',
+  styleUrls: ['./sample-form.report.content.scss', '../../../../data/report/base-form-report.scss'],
 })
-export class SampleFormReportComponent extends ReportTableComponent<
-  Operation[],
-  SampleFromReportComponentStats,
-  SampleFormReportComponentPageDimension
-> {
+export class SampleFormReportContent extends ReportTableContent<Operation[], SampleFromReportContentStats, SampleFormReportContentPageDimension> {
   static NB_LINE_PEER_PAGE = 16;
 
   protected readonly programRefService = inject(ProgramRefService);
@@ -163,7 +159,7 @@ export class SampleFormReportComponent extends ReportTableComponent<
   @Input() defaultPmfmColumnWidthByPmfmId: { [key: number]: number };
 
   constructor() {
-    super(Array<Operation>, SampleFromReportComponentStats);
+    super(Array<Operation>, SampleFromReportContentStats);
   }
 
   async ngOnStart(opts?: any): Promise<void> {
@@ -190,7 +186,7 @@ export class SampleFormReportComponent extends ReportTableComponent<
     ];
   }
 
-  protected computePageDimensions(): SampleFormReportComponentPageDimension {
+  protected computePageDimensions(): SampleFormReportContentPageDimension {
     return {
       ...super._computePageDimensions(),
       columnPmfmWidth: this.multiTrip ? 60 : 90,
@@ -212,8 +208,8 @@ export class SampleFormReportComponent extends ReportTableComponent<
     };
   }
 
-  protected async computeStats(data: Operation[], _?: IComputeStatsOpts<SampleFromReportComponentStats>): Promise<SampleFromReportComponentStats> {
-    const stats = new SampleFromReportComponentStats();
+  protected async computeStats(data: Operation[], _?: IComputeStatsOpts<SampleFromReportContentStats>): Promise<SampleFromReportContentStats> {
+    const stats = new SampleFromReportContentStats();
     const strategyId = this.strategy?.id;
 
     // options
@@ -389,14 +385,14 @@ export class SampleFormReportComponent extends ReportTableComponent<
     }
 
     {
-      stats.nbIndividualSamplesPeerPage = SampleFormReportComponent.NB_LINE_PEER_PAGE - (stats.options.multiOp ? 0 : 1);
+      stats.nbIndividualSamplesPeerPage = SampleFormReportContent.NB_LINE_PEER_PAGE - (stats.options.multiOp ? 0 : 1);
       const maxTipsLength = Math.max(...stats.sampleTipsByTablePart.map((item) => item.length));
       if (maxTipsLength > 0) {
         stats.nbIndividualSamplesPeerPage -= Math.ceil((maxTipsLength - 1) / 3);
       }
     }
     {
-      stats.nbReleasedSamplesPeerPage = SampleFormReportComponent.NB_LINE_PEER_PAGE - (stats.options.multiOp ? 0 : 1);
+      stats.nbReleasedSamplesPeerPage = SampleFormReportContent.NB_LINE_PEER_PAGE - (stats.options.multiOp ? 0 : 1);
       const maxTipsLength = Math.max(...stats.releasedTipsByTablePart.map((item) => item.length));
       if (maxTipsLength > 0) {
         stats.nbReleasedSamplesPeerPage -= Math.ceil((maxTipsLength - 1) / 3);

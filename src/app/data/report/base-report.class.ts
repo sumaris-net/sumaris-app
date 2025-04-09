@@ -47,7 +47,7 @@ import { filter, first, map, takeUntil } from 'rxjs/operators';
 import { v4 as uuidv4 } from 'uuid';
 import { CommonReport, FormReportPageDimensions } from './common-report.class';
 import { ReportAppendix } from './report-appendix';
-import { ReportAppendixSection, ReportComponent } from './report-component.class';
+import { ReportAppendixSection, ReportContent } from './report.content.class';
 
 export const ReportDataPasteFlags = Object.freeze({
   NONE: 0,
@@ -73,7 +73,7 @@ export interface IReportData {
 
 export abstract class BaseReportStats {
   program: Program;
-  reportComponents?: { [key: number]: ReportComponent<any, any, any> };
+  reportComponents?: { [key: number]: ReportContent<any, any, any> };
 
   fromObject(source: any) {
     this.program = isNotNil(source.program) ? Program.fromObject(source.program) : undefined;
@@ -111,7 +111,7 @@ export abstract class AppBaseReport<
   implements OnInit, AfterViewInit, OnDestroy
 {
   protected logPrefix = 'base-report';
-  protected reportComponents: ReportComponent<any, any, any>[] = [];
+  protected reportComponents: ReportContent<any, any, any>[] = [];
   protected pageDimensions: FormReportPageDimensions;
   protected isPrintingPDF = false;
 
@@ -442,7 +442,7 @@ export abstract class AppBaseReport<
     }
   }
 
-  registerReportComponent(reportComponent: ReportComponent<any, any, any>) {
+  registerReportComponent(reportComponent: ReportContent<any, any, any>) {
     this.reportComponents.push(reportComponent);
   }
 

@@ -3,13 +3,13 @@ import { AppCoreModule } from '@app/core/core.module';
 import { MeasurementFormValues, MeasurementModelValues } from '@app/data/measurement/measurement.model';
 import { IComputeStatsOpts } from '@app/data/report/base-report.class';
 import {
-  CommonReportComponentStats,
+  CommonReportContentStats,
   ReportAppendixSection,
   ReportPmfmsTipsByPmfmIds,
   ReportTips,
   TipsReportChunk,
-} from '@app/data/report/report-component.class';
-import { ReportTableComponent, ReportTableComponentPageDimension, TableHeadPmfmNameReportChunk } from '@app/data/report/report-table-component.class';
+} from '@app/data/report/report.content.class';
+import { ReportTableContent, ReportTableContentPageDimension, TableHeadPmfmNameReportChunk } from '@app/data/report/report-table.content.class';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
@@ -22,14 +22,14 @@ import { arrayDistinct, EntityAsObjectOptions, isNil, isNotEmptyArray, isNotNil,
 import { ReportChunkModule } from '@app/data/report/form/report-chunk.module';
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
 
-interface PhysicalGearsReportFormComponentPageDimension extends ReportTableComponentPageDimension {
+interface PhysicalGearsReportFormContentPageDimension extends ReportTableContentPageDimension {
   columnGearCode: number;
   columnOpNum: number;
   columnComments: number;
   columnGearNum: number;
 }
 
-export class PhysicalGearsReportFormComponentStats extends CommonReportComponentStats {
+export class PhysicalGearsReportFormContentStats extends CommonReportContentStats {
   options: {
     showQualitativeValuesCheckBox: boolean;
     showByTable: boolean;
@@ -64,7 +64,7 @@ export class PhysicalGearsReportFormComponentStats extends CommonReportComponent
       this.table = {
         tipsByTablePart: source.table.tipsByTablePart,
         compactPmfmColumn: source.table.compactPmfmColumn,
-        allPmfms: PhysicalGearsReportFormComponent.flatPmfmsByGearIds(this.pmfmsByGearsId),
+        allPmfms: PhysicalGearsReportFormContent.flatPmfmsByGearIds(this.pmfmsByGearsId),
         nbLinesPeerPage: source.table.nbLinesPeerPage,
         pmfmsColumnsWidthByPmfmIds: source.table.pmfmsColumnsWidthByPmfmIds,
         tableParts: source.table.tableParts,
@@ -97,14 +97,14 @@ export class PhysicalGearsReportFormComponentStats extends CommonReportComponent
 @Component({
   standalone: true,
   imports: [AppCoreModule, AppSharedReportModule, ReportChunkModule, AppReferentialPipesModule, TipsReportChunk, TableHeadPmfmNameReportChunk],
-  selector: 'physicalgear-report-component',
-  templateUrl: './physicalgear-form.report-component.html',
+  selector: 'physicalgear-report-content',
+  templateUrl: './physicalgear-form.report.content.html',
   styleUrls: ['../../../../data/report/base-form-report.scss'],
 })
-export class PhysicalGearsReportFormComponent extends ReportTableComponent<
+export class PhysicalGearsReportFormContent extends ReportTableContent<
   PhysicalGear[],
-  PhysicalGearsReportFormComponentStats,
-  PhysicalGearsReportFormComponentPageDimension
+  PhysicalGearsReportFormContentStats,
+  PhysicalGearsReportFormContentPageDimension
 > {
   public static NB_LINE_PEER_PAGE = 10;
 
@@ -119,7 +119,7 @@ export class PhysicalGearsReportFormComponent extends ReportTableComponent<
   }
 
   constructor() {
-    super(Array<PhysicalGear>, PhysicalGearsReportFormComponentStats);
+    super(Array<PhysicalGear>, PhysicalGearsReportFormContentStats);
   }
 
   async ngOnStart(opts?: any): Promise<void> {
@@ -142,7 +142,7 @@ export class PhysicalGearsReportFormComponent extends ReportTableComponent<
     ];
   }
 
-  protected computePageDimensions(): PhysicalGearsReportFormComponentPageDimension {
+  protected computePageDimensions(): PhysicalGearsReportFormContentPageDimension {
     return {
       ...this._computePageDimensions(),
       columnPmfmWidth: 90,
@@ -156,9 +156,9 @@ export class PhysicalGearsReportFormComponent extends ReportTableComponent<
 
   protected async computeStats(
     data: PhysicalGear[],
-    _?: IComputeStatsOpts<PhysicalGearsReportFormComponentStats>
-  ): Promise<PhysicalGearsReportFormComponentStats> {
-    const stats = new PhysicalGearsReportFormComponentStats();
+    _?: IComputeStatsOpts<PhysicalGearsReportFormContentStats>
+  ): Promise<PhysicalGearsReportFormContentStats> {
+    const stats = new PhysicalGearsReportFormContentStats();
     const strategyId = this.strategy?.id;
 
     stats.options = {
@@ -200,7 +200,7 @@ export class PhysicalGearsReportFormComponent extends ReportTableComponent<
         }, {});
 
     if (stats.options.showByTable) {
-      const allPmfms = PhysicalGearsReportFormComponent.flatPmfmsByGearIds(stats.pmfmsByGearsId);
+      const allPmfms = PhysicalGearsReportFormContent.flatPmfmsByGearIds(stats.pmfmsByGearsId);
       const tableLeftColumnsWidth =
         this.pageDimensions.columnGearCode + (this.isBlankForm ? this.pageDimensions.columnGearNum : this.pageDimensions.columnOpNum);
       const tableRightColumnsWidth = this.pageDimensions.columnComments;
@@ -242,7 +242,7 @@ export class PhysicalGearsReportFormComponent extends ReportTableComponent<
         tipsByTablePart,
         compactPmfmColumn: !this.isBlankForm,
         allPmfms,
-        nbLinesPeerPage: PhysicalGearsReportFormComponent.NB_LINE_PEER_PAGE - (maxTipsLength > 0 ? Math.ceil(maxTipsLength / 4) : 0),
+        nbLinesPeerPage: PhysicalGearsReportFormContent.NB_LINE_PEER_PAGE - (maxTipsLength > 0 ? Math.ceil(maxTipsLength / 4) : 0),
         pmfmsColumnsWidthByPmfmIds,
         tableParts,
       };

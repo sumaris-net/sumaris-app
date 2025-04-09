@@ -5,8 +5,8 @@ import { AppCoreModule } from '@app/core/core.module';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
 import { IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { ReportChunkModule } from '@app/data/report/form/report-chunk.module';
-import { CommonReportComponentStats, ReportAppendixSection } from '@app/data/report/report-component.class';
-import { ReportTableComponent, ReportTableComponentPageDimension, TableHeadPmfmNameReportChunk } from '@app/data/report/report-table-component.class';
+import { CommonReportContentStats, ReportAppendixSection } from '@app/data/report/report.content.class';
+import { ReportTableContent, ReportTableContentPageDimension, TableHeadPmfmNameReportChunk } from '@app/data/report/report-table.content.class';
 import { RootVesselEntityUtils } from '@app/data/services/model/root-vessel-entity.utils';
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
 import { PmfmIds, QualitativeValueIds, VesselIds } from '@app/referential/services/model/model.enum';
@@ -28,14 +28,14 @@ import { Landing } from '../../landing.model';
 import { LandingUtils } from '../../landing.utils';
 import { LandingsTable } from '../../landings.table';
 
-export interface LandingFormReportPageDimension extends ReportTableComponentPageDimension {
+export interface LandingFormReportContentPageDimension extends ReportTableContentPageDimension {
   headerHeight: number;
   footerHeight: number;
   fieldsHeight: number;
   rowHeight: number;
 }
 
-export class LandingFormReportComponentStats extends CommonReportComponentStats {
+export class LandingFormReportContentStats extends CommonReportContentStats {
   fieldsValues: {
     totalVesselSampled: number;
     numberOfSampledPrioritySpecies: number;
@@ -65,12 +65,12 @@ export class LandingFormReportComponentStats extends CommonReportComponentStats 
 @Component({
   standalone: true,
   imports: [AppCoreModule, AppSharedReportModule, AppReferentialPipesModule, ReportChunkModule, TableHeadPmfmNameReportChunk],
-  selector: 'landing-form-report-component',
-  templateUrl: './landing-form.report-component.html',
-  styleUrls: ['../../../../data/report/base-report.scss', '../../../../data/report/base-form-report.scss', './landing-form.report-component.scss'],
+  selector: 'landing-form-report-content',
+  templateUrl: './landing-form.report.content.html',
+  styleUrls: ['../../../../data/report/base-report.scss', '../../../../data/report/base-form-report.scss', './landing-form.report.content.scss'],
   encapsulation: ViewEncapsulation.None,
 })
-export class LandingFormReportComponent extends ReportTableComponent<Landing[], LandingFormReportComponentStats, LandingFormReportPageDimension> {
+export class LandingFormReportContent extends ReportTableContent<Landing[], LandingFormReportContentStats, LandingFormReportContentPageDimension> {
   readonly randomLandingsRankOrderOffset = LandingsTable.RANDOM_LANDINGS_RANK_ORDER_OFFSET;
   protected readonly nbLinesPeerPage = 12;
 
@@ -90,7 +90,7 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
   @Input({ required: true }) footerText: string;
 
   constructor() {
-    super(Array<Landing>, LandingFormReportComponentStats);
+    super(Array<Landing>, LandingFormReportContentStats);
   }
 
   async ngOnStart(opts?: any): Promise<void> {
@@ -103,8 +103,8 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
     return []; // There is no appendix blocks
   }
 
-  protected async computeStats(data: Landing[], _?: IComputeStatsOpts<LandingFormReportComponentStats>): Promise<LandingFormReportComponentStats> {
-    const stats = new LandingFormReportComponentStats();
+  protected async computeStats(data: Landing[], _?: IComputeStatsOpts<LandingFormReportContentStats>): Promise<LandingFormReportContentStats> {
+    const stats = new LandingFormReportContentStats();
     const datePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
 
     stats.headerItems = [
@@ -131,7 +131,7 @@ export class LandingFormReportComponent extends ReportTableComponent<Landing[], 
     return stats;
   }
 
-  protected computePageDimensions(): LandingFormReportPageDimension {
+  protected computePageDimensions(): LandingFormReportContentPageDimension {
     return {
       ...super._computePageDimensions(),
       columnPmfmBooleanWidth: 60,

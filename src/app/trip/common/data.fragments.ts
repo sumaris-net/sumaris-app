@@ -410,6 +410,17 @@ export const SaleFragments = {
     ${DataCommonFragments.referential}
     ${DataCommonFragments.location}
   `,
+  denormalizedSaleResult: gql`
+    fragment DenormalizedSaleResult on DenormalizedSaleResultVO {
+      saleCount
+      batchCount
+      saleErrorCount
+      invalidBatchCount
+      executionTime
+      message
+      status
+    }
+  `,
 };
 export const ExpectedSaleFragments = {
   lightExpectedSale: gql`

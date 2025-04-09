@@ -18,12 +18,12 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
-import { DenormalizedBatchFormReportComponent } from '@app/trip/denormalized-batch/report/form/denormalized-batch-form.report-component';
-import { OperationFormReportComponent } from '@app/trip/operation/report/form/operation-form.report-component';
-import { OperationWithChildFormReportComponent } from '@app/trip/operation/report/form/operation-with-child-form.report-component';
+import { DenormalizedBatchFormReportContent } from '@app/trip/denormalized-batch/report/form/denormalized-batch-form.report.content';
+import { OperationFormReportContent } from '@app/trip/operation/report/form/operation-form.report.content';
+import { OperationWithChildFormReportContent } from '@app/trip/operation/report/form/operation-with-child-form.report.content';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { PhysicalGearsReportFormComponent } from '@app/trip/physicalgear/report/form/physicalgear-form.report-component';
-import { SampleFormReportComponent } from '@app/trip/sample/report/form/sample-form.report-component';
+import { PhysicalGearsReportFormContent } from '@app/trip/physicalgear/report/form/physicalgear-form.report.content';
+import { SampleFormReportContent } from '@app/trip/sample/report/form/sample-form.report.content';
 import { environment } from '@environments/environment';
 import { DateUtils, EntityAsObjectOptions, isNil, isNotNil, LatLongPattern, splitById, StatusIds, toBoolean } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
@@ -31,7 +31,7 @@ import { Trip } from '../../trip.model';
 import { TripService } from '../../trip.service';
 import { TripReportService } from '../trip-report.service';
 import { TripFormReportService } from './trip-form-report.service';
-import { TripTableFromReportComponent } from './trip-table-from.report-component';
+import { TripTableFromReportContent } from './trip-table-from.report.content';
 
 export class TripFormReportStats extends BaseReportStats {
   readonly pmfmIdsMap = PmfmIds;
@@ -102,12 +102,12 @@ export class TripFormReportStats extends BaseReportStats {
     AppSharedReportModule,
     AppReferentialPipesModule,
     ReportChunkModule,
-    TripTableFromReportComponent,
-    SampleFormReportComponent,
-    DenormalizedBatchFormReportComponent,
-    OperationFormReportComponent,
-    PhysicalGearsReportFormComponent,
-    OperationWithChildFormReportComponent,
+    TripTableFromReportContent,
+    SampleFormReportContent,
+    DenormalizedBatchFormReportContent,
+    OperationFormReportContent,
+    PhysicalGearsReportFormContent,
+    OperationWithChildFormReportContent,
     ReportAppendix,
   ],
   selector: 'app-trip-form-report',
@@ -225,7 +225,7 @@ export class TripFormReport extends AppDataEntityReport<Trip, number, TripFormRe
     }
 
     if (stats.options.multiTrip) {
-      stats.tripLines = new Array(TripTableFromReportComponent.NB_LINE_PEER_PAGE).fill(null).map((_, index) => Trip.fromObject({ id: index }));
+      stats.tripLines = new Array(TripTableFromReportContent.NB_LINE_PEER_PAGE).fill(null).map((_, index) => Trip.fromObject({ id: index }));
     }
 
     // Compute stats PMFM

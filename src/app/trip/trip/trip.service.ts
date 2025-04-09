@@ -16,6 +16,7 @@ import {
   EntityServiceListenChangesOptions,
   EntityServiceLoadOptions,
   EntityUtils,
+  ErrorCodes,
   FormErrorTranslator,
   GraphqlService,
   IEntitiesService,
@@ -54,7 +55,7 @@ import { OperationService } from '../operation/operation.service';
 import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { IMPORT_REFERENTIAL_ENTITIES, ReferentialRefService, WEIGHT_CONVERSION_ENTITIES } from '@app/referential/services/referential-ref.service';
 import { TripValidatorOptions, TripValidatorService } from './trip.validator';
-import { Operation, OperationGroup, Trip } from './trip.model';
+import { DenormalizedTripResult, Operation, OperationGroup, Trip } from './trip.model';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { fillRankOrder, fillTreeRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { SortDirection } from '@angular/material/sort';
@@ -92,6 +93,7 @@ import {
   PhysicalGearFragments,
   SaleFragments,
 } from '@app/trip/common/data.fragments';
+import { DenormalizedBatchQueries } from '../denormalized-batch/denormalized-batch.service';
 
 export const TripFragments = {
   lightTrip: gql`
@@ -313,6 +315,18 @@ export const TripFragments = {
     ${DataFragments.fishingArea}
     ${OperationGroupFragment.operationGroup}
   `,
+  denormalizedTripResult: gql`
+    fragment DenormalizedTripResult on DenormalizedTripResultVO {
+      tripCount
+      operationCount
+      batchCount
+      tripErrorCount
+      invalidBatchCount
+      executionTime
+      message
+      status
+    }
+  `,
 };
 
 export interface TripLoadOptions extends EntityServiceLoadOptions {
@@ -344,7 +358,7 @@ export interface TripWatchOptions extends EntitiesServiceWatchOptions {
 
 export interface TripControlOptions extends TripValidatorOptions, IProgressionOptions {}
 
-const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any } = {
+const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any; denormalizeTrip: any } = {
   // Load a trip
   load: gql`
     query Trip($id: Int!) {
@@ -389,6 +403,14 @@ const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any } = {
     query TripCount($trash: Boolean, $filter: TripFilterVOInput) {
       total: tripsCount(filter: $filter, trash: $trash)
     }
+  `,
+  denormalizeTrip: gql`
+    query DenormalizeTrip($tripId: Int!) {
+      data: denormalizeTrip(id: $tripId) {
+        ...DenormalizedTripResult
+      }
+    }
+    ${TripFragments.denormalizedTripResult}
   `,
 };
 
@@ -2051,5 +2073,22 @@ export class TripService
 
     // Add vessel offline feature
     this.settings.markOfflineFeatureAsSync(VESSEL_FEATURE_NAME);
+  }
+
+  async denormalizeTrip(tripId: number): Promise<LoadResult<DenormalizedTripResult>> {
+    if (this._debug) console.debug(this._logPrefix + `DenormalizeTrip {${tripId}}...`);
+
+    const variables = {
+      tripId: tripId,
+    };
+
+    const query = TripQueries.denormalizeTrip;
+    const { data } = await this.graphql.query<{ data: any }>({
+      query,
+      variables,
+      error: { code: ErrorCodes.LOAD_DATA_ERROR, message: 'ERROR.LOAD_DATA_ERROR' },
+    });
+
+    return data;
   }
 }

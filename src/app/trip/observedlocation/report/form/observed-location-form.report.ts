@@ -7,7 +7,7 @@ import { FormReportPageDimensions } from '@app/data/report/common-report.class';
 import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
-import { IDenormalizedPmfm, IPmfm, Pmfm } from '@app/referential/services/model/pmfm.model';
+import { IDenormalizedPmfm, IPmfm } from '@app/referential/services/model/pmfm.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -16,20 +16,20 @@ import { arrayPluck } from '@app/shared/functions';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { Batch } from '@app/trip/batch/common/batch.model';
-import { BatchFormReportComponent } from '@app/trip/batch/common/report/batch-form.report-component';
+import { BatchFormReportComponent } from '@app/trip/batch/common/report/batch-form.report.content';
 import { Landing } from '@app/trip/landing/landing.model';
 import { LandingService } from '@app/trip/landing/landing.service';
 import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
-import { SaleFormReportComponent } from '@app/trip/sale/report/sale-form.report-component';
+import { SaleFormReportContent } from '@app/trip/sale/report/sale-form.report.content';
 import { Sale } from '@app/trip/sale/sale.model';
 import { SaleService } from '@app/trip/sale/sale.service';
 import { environment } from '@environments/environment';
 import { EntityAsObjectOptions, ReferentialRef, isEmptyArray, isNil, isNotNil, splitById } from '@sumaris-net/ngx-components';
 import { ReportChunkModule } from '../../../../data/report/form/report-chunk.module';
 import { ReportAppendix } from '../../../../data/report/report-appendix';
-import { LandingFormReportComponent } from '../../../landing/report/form/landing-form.report-component';
+import { LandingFormReportContent } from '../../../landing/report/form/landing-form.report.content';
 import { ObservedLocationService } from '../../observed-location.service';
-import { ObservedLocationFormReportComponent } from './observed-location-form.report-component';
+import { ObservedLocationFormReportContent } from './observed-location-form.report.content';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 export class ObservedLocationFormReportStats extends BaseReportStats {
@@ -128,9 +128,9 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
     AppCoreModule,
     AppSharedReportModule,
     ReportChunkModule,
-    ObservedLocationFormReportComponent,
-    LandingFormReportComponent,
-    SaleFormReportComponent,
+    ObservedLocationFormReportContent,
+    LandingFormReportContent,
+    SaleFormReportContent,
     BatchFormReportComponent,
     ReportAppendix,
   ],

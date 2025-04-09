@@ -84,7 +84,7 @@ export class TipsReportChunk {
   @Input({ required: true }) tips: ReportTips[];
 }
 
-export abstract class CommonReportComponentStats extends CommonReportStats {
+export abstract class CommonReportContentStats extends CommonReportStats {
   headerItems: string[];
   fromObject(source: any) {
     this.headerItems = source.headerItems;
@@ -97,12 +97,12 @@ export abstract class CommonReportComponentStats extends CommonReportStats {
 }
 
 @Directive()
-export abstract class ReportComponent<
+export abstract class ReportContent<
   T extends IReportData | IReportData[],
   S extends CommonReportStats,
   O extends CommonReportOptions = CommonReportOptions,
 > extends CommonReport<T, S, O> {
-  protected logPrefix = '[report-component] ';
+  protected logPrefix = '[report-content] ';
 
   protected translate = inject(TranslateService);
   protected translateContext = inject(TranslateContextService);

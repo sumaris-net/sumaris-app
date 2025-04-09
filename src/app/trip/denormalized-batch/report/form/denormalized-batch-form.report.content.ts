@@ -3,7 +3,7 @@ import { AppCoreModule } from '@app/core/core.module';
 import { AppDataModule } from '@app/data/data.module';
 import { IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { ReportChunkModule } from '@app/data/report/form/report-chunk.module';
-import { CommonReportComponentStats, ReportAppendixSection, ReportComponent } from '@app/data/report/report-component.class';
+import { CommonReportContentStats, ReportAppendixSection, ReportContent } from '@app/data/report/report.content.class';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
@@ -16,8 +16,9 @@ import { DenormalizedBatch } from '../../denormalized-batch.model';
 import { DenormalizedBatchModule } from '../../denormalized-batch.module';
 import { DenormalizedBatchService } from '../../denormalized-batch.service';
 import { DenormalizedBatchUtils } from '../../denormalized-batch.utils';
+import { TripService } from '@app/trip/trip/trip.service';
 
-export class DenormalizedBatchReportFormComponentStats extends CommonReportComponentStats {
+export class DenormalizedBatchReportFormContentStats extends CommonReportContentStats {
   pmfms: IPmfm[];
   pmfmsByIds: { [key: number]: IPmfm };
   denormalizedBatchByOp: {
@@ -59,18 +60,19 @@ export class DenormalizedBatchReportFormComponentStats extends CommonReportCompo
 @Component({
   standalone: true,
   imports: [AppCoreModule, AppSharedReportModule, AppReferentialModule, AppDataModule, ReportChunkModule, DenormalizedBatchModule],
-  selector: 'denormalized-batch-form-report-component',
-  templateUrl: './denormalized-batch-form.report-component.html',
-  styleUrls: ['./denormalized-batch-form.report-component.scss', '../../../../data/report/base-form-report.scss'],
+  selector: 'denormalized-batch-form-report-content',
+  templateUrl: './denormalized-batch-form.report.content.html',
+  styleUrls: ['./denormalized-batch-form.report.content.scss', '../../../../data/report/base-form-report.scss'],
 })
-export class DenormalizedBatchFormReportComponent extends ReportComponent<Operation[], DenormalizedBatchReportFormComponentStats> {
+export class DenormalizedBatchFormReportContent extends ReportContent<Operation[], DenormalizedBatchReportFormContentStats> {
   protected readonly denormalizedBatchService: DenormalizedBatchService = inject(DenormalizedBatchService);
+  protected readonly tripService: TripService = inject(TripService);
   protected readonly programRefService: ProgramRefService = inject(ProgramRefService);
 
   @Input({ required: true }) tripId: number;
 
   constructor() {
-    super(Array<Operation>, DenormalizedBatchReportFormComponentStats);
+    super(Array<Operation>, DenormalizedBatchReportFormContentStats);
   }
 
   dataAsObject(source: Operation[], opts?: EntityAsObjectOptions) {
@@ -84,9 +86,9 @@ export class DenormalizedBatchFormReportComponent extends ReportComponent<Operat
 
   protected async computeStats(
     data: Operation[],
-    _?: IComputeStatsOpts<DenormalizedBatchReportFormComponentStats>
-  ): Promise<DenormalizedBatchReportFormComponentStats> {
-    let stats = new DenormalizedBatchReportFormComponentStats();
+    _?: IComputeStatsOpts<DenormalizedBatchReportFormContentStats>
+  ): Promise<DenormalizedBatchReportFormContentStats> {
+    let stats = new DenormalizedBatchReportFormContentStats();
 
     const strategyId = this.strategy?.id;
 
@@ -131,12 +133,12 @@ export class DenormalizedBatchFormReportComponent extends ReportComponent<Operat
 
   private async computeDenormalizedBatchByOp(
     data: Operation[],
-    stats: DenormalizedBatchReportFormComponentStats
-  ): Promise<DenormalizedBatchReportFormComponentStats> {
+    stats: DenormalizedBatchReportFormContentStats
+  ): Promise<DenormalizedBatchReportFormContentStats> {
     stats.denormalizedBatchByOp = {};
 
     // Ensures that batches be denormalized for this trip before generate report
-    await this.denormalizedBatchService.denormalizeTrip(this.tripId);
+    await this.tripService.denormalizeTrip(this.tripId);
 
     for (const op of data) {
       const denormalizedBatches = (await this.denormalizedBatchService.loadAll(0, 1000, null, null, { operationId: op.id })).data;
