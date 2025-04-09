@@ -256,8 +256,22 @@
             </mat-autocomplete-field>
           </ion-col>
 
-          <ion-col size="12" size-lg="6">
-            <!-- Location -->
+          @if (!mobile) {
+            <ion-col size="12" size-lg="6">
+              <!-- Vessel Type -->
+              <mat-autocomplete-field
+                [placeholder]="'TRIP.TABLE.FILTER.VESSEL_TYPE' | translate"
+                formControlName="vesselType"
+                [config]="autocompleteFields.vesselType"
+                [clearable]="true"
+              >
+                <ion-icon matPrefix name="bookmark"></ion-icon>
+              </mat-autocomplete-field>
+            </ion-col>
+          }
+
+          <ion-col size="12" size-lg="">
+            <!-- Location (departure or return) -->
             <mat-autocomplete-field
               [placeholder]="'TRIP.TABLE.FILTER.LOCATION' | translate"
               formControlName="location"

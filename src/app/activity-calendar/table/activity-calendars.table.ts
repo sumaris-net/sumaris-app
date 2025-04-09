@@ -285,7 +285,6 @@ export class ActivityCalendarsTable
     // Vessel type
     this.registerAutocompleteField('vesselType', {
       attributes: ['name'],
-      service: this.referentialRefService,
       filter: {
         entityName: 'VesselType',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
@@ -769,8 +768,8 @@ export class ActivityCalendarsTable
     }
 
     return this.vesselSnapshotService.suggest(value, {
-      vesselTypeIds,
       ...filter,
+      vesselTypeIds,
     });
   }
 
