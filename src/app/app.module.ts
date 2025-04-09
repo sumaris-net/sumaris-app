@@ -115,6 +115,7 @@ import { NamedFilterService } from '@app/shared/service/named-filter.service';
 import { ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS } from '@app/activity-calendar/calendar/activity-month.validator';
 import { ACTIVITY_CALENDAR_VALIDATOR_I18N_ERROR_KEYS } from './activity-calendar/model/activity-calendar.validator';
 import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
+
 // import { TEST_USER_SETTINGS_OPTIONS } from '../../ngx-sumaris-components/src/app/core/services/testing/user-settings.config';
 
 @NgModule({
@@ -237,8 +238,13 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         },
         {
           key: 'es-ES',
-          value: 'Español',
+          value: 'Español (ES)',
           country: 'es',
+        },
+        {
+          key: 'pt-PT',
+          value: 'Português (PT)',
+          country: 'pt',
         },
       ],
     },
