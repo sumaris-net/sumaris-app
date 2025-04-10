@@ -83,6 +83,7 @@ import { RxState } from '@rx-angular/state';
 import { ExpenseForm } from '@app/trip/expense/expense.form';
 import { OperationType } from '@app/trip/operation/operation.form';
 import { expansionInOutAnimation } from '@app/shared/material/material.animations';
+import { AppFormArray } from 'ngx-sumaris-components/public_api';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -187,13 +188,18 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   //   return super.pending || this.saleForms?.some((form) => form.pending);
   // }
 
+  get saleAppFormArray() {
+    console.debug(this.logPrefix + 'saleAppFormArray()', this.tripForm.form.get('sales'));
+    return this.tripForm.form.get('sales') as AppFormArray<Sale, UntypedFormGroup>;
+  }
+
   get loading(): boolean {
-    console.debug(
-      this.logPrefix + 'loading()',
-      this.loadingSubject.value,
-      this.children?.filter((c) => c !== this.operationsTable).some((c) => c.loading),
-      this.children
-    );
+    // console.debug(
+    //   this.logPrefix + 'loading()',
+    //   this.loadingSubject.value,
+    //   this.children?.filter((c) => c !== this.operationsTable).some((c) => c.loading),
+    //   this.children
+    // );
 
     return (
       this.loadingSubject.value ||
@@ -301,15 +307,23 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
   addSale() {
     console.debug(this.logPrefix + 'addSale()');
+    this.saleAppFormArray.add();
+
+    console.debug(this.logPrefix + 'addSale()');
     if (!this.data?.sales) {
       this.data.sales = [];
     }
     this.data.sales.push(new Sale());
+
+    //this.tripForm.form.get('sales').form. .addAsyncValidators()
+
     this.markForCheck();
     // // TODO ici voir si saleForms est a jour et subscrire au changement de value si besoin ?
     // this.saleForms.last.value = [];
     // this.saleForms.last.markAsReady();
     //if (this._enabled)
+
+    console.debug(this.logPrefix + 'addSale() sales Eanblling !!!!!! ---- --- - -- - ', this.data.sales, this.saleForms);
     this.saleForms.last.enable();
 
     console.debug(this.logPrefix + 'addSale() sales', this.data.sales, this.saleForms);
@@ -379,7 +393,10 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.saleForms.forEach((saleForm) => {
       // set all as enabled
       saleForm.markAsReady();
-      if (this._enabled) saleForm.enable();
+      if (this._enabled) {
+        console.debug(this.logPrefix + 'refreshSaleForms() enable saleForm ---- enable saleForm ----', saleForm);
+        saleForm.enable();
+      }
     });
 
     // // on adding a new bait, prepare the new form
@@ -1045,17 +1062,53 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
   async save(event?: Event, opts?: any): Promise<boolean> {
     console.debug(this.logPrefix + 'save()', this.data, this.form, this.tripForm.value, this.saleForms);
-    console.debug(this.logPrefix + 'save() suite', this.saving, this.loading);
+    //console.debug(this.logPrefix + 'save() suite', this.saving, this.loading);
     if (this.saving || this.loading) return false;
 
     // Workaround to avoid the option menu to be selected
     if (this.mobile) await sleep(50);
 
-    // get saleForms values to put to tripForm.value
-    this.data.sales = this.saleForms.map((form) => form.value);
-    //this.tripForm.value.sales = this.saleForms.map((form => form.value));
+    //const crtvalue = await this.getValue();
 
-    console.debug(this.logPrefix + 'save() Just before super save', this.data, this.form, this.tripForm.value, this.saleForms);
+    // propagation of values to parent
+    // get saleForms values to put to tripForm.value
+    // const salesValue = this.saleForms.map((form) => ({progam: this.program, ...form.value}));
+    // //console.debug('--- truc ---', salesValue,crtvalue);
+
+    // this.data.sales = salesValue;
+    // this.tripForm.value.sales = salesValue;
+    // TODO OLM remove Fake to prevent Must supply a value for form control with name: 'program'
+    //(this.form.controls.sales as AppFormArray).setValue(salesValue);
+
+    // console.debug(this.logPrefix + 'save() Just before super save', salesValue, this.data, this.form, this.tripForm.value, this.saleForms);
+
+    // console.debug(this.logPrefix + 'save() VALUES', {
+    //   'data': this.data,
+    //   'form': this.form,
+    //   'form.value': this.form.value,
+    //   'tripForm.value': this.tripForm.value,
+    //   'saleForms': this.saleForms,
+    //   'form.get(\'sales\')': this.form.get('sales')
+    // });
+
+    // console.debug('Validity:', {
+    //   'tripForm.valid': this.tripForm.valid,
+    //   'tripForm.error': this.tripForm.error,
+    //   'tripForm.form.valid': this.tripForm.form.valid,
+    //   'tripForm.form.validator': this.tripForm.form.validator,
+    //   'tripForm.form.errors': this.tripForm.form.errors,
+    //   'tripForm.form.get(\'sales\')': this.tripForm.form.get('sales'), // <== ici les données ne sont pas à jour...
+    //   'this.form.controls.sales': this.form.controls.sales,// <== ici les données ne sont pas à jour... (meme objet)
+    // } );
+
+    // this.saleForms.forEach((form, index) => {
+    //   console.debug(`SaleForm #${index} Validity:`, {
+    //       'form.valid': form.valid,
+    //       'Errors': form.error,
+    //       'form.form.validator': form.form.validator,
+    //     });
+    //});
+
     return super.save(event, opts);
   }
 
@@ -1315,6 +1368,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     console.debug(this.logPrefix + 'enable()');
     const r = super.enable(opts);
+    console.debug(this.logPrefix + 'enable() all sales forms +++++++++', r);
     this.saleForms?.forEach((form) => form.enable(opts));
     return r;
   }

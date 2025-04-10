@@ -22,6 +22,7 @@ import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area
 import { TranslateService } from '@ngx-translate/core';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { Sale } from '../sale/sale.model';
+import { FocusMonitor } from '@angular/cdk/a11y';
 
 export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withSamplingStrata?: boolean;
@@ -53,6 +54,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     super(formBuilder, translate, settings);
   }
 
+  // Méthode pour créer un AppFormGroup global pour le Trip, de l'initialiser
   getFormGroup(data?: Trip, opts?: O): UntypedFormGroup {
     console.debug(this.logPrefix + `(${opts?.program?.id}) getFormGroup()`);
     opts = this.fillDefaultOptions(opts);
@@ -62,7 +64,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     // todo olm : manage sales
     // Add sale form
     if (opts.withSale) {
-      form.addControl('sales', this.getSalesArray(data?.sales));
+      form.addControl('sales', this.getSalesArray(data?.sales)); // ### TODO dedoublonner
       // form.addControl(
       //   'sale',
       //   this.saleValidator.getFormGroup(data?.sale, {
@@ -91,25 +93,25 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
   }
 
   // Méthode pour créer un AppFormArray pour les ventes
-  getSalesArray(data?: Sale[]): AppFormArray<Sale, UntypedFormGroup> {
+  getSalesArray(data?: Sale[], opts?: { required?: boolean }): AppFormArray<Sale, UntypedFormGroup> {
+    const required = !opts || opts.required !== false;
+    console.debug(this.logPrefix + `(${data?.[0]?.program?.id}) getSalesArray()`, data);
     if (!data) data = [new Sale()]; // Crée une vente vide si aucune donnée n'est fournie
 
     console.debug(this.logPrefix + `(${data?.[0]?.program?.id}) getSalesArray()`);
     const formArray = new AppFormArray<Sale, UntypedFormGroup>(
       (sale) => this.saleValidator.getFormGroup(sale), // Utilisation du SaleValidatorService pour chaque vente
-      (a, b) => a.id === b.id, // Comparaison des ventes
-      (a) => !!a.id, // Vérification si une vente est vide
+      (a, b) => a?.equals(b) /*a.id === b.id*/, // Comparaison des ventes
+      (a) => false /*!!a.id*/, // Vérification si une vente est vide
       {
-        allowEmptyArray: true, // Permet un tableau vide
-        validators: [
-          SharedFormArrayValidators.requiredArrayMinLength(1), // Validation pour s'assurer qu'il y a au moins une vente
-        ],
+        allowEmptyArray: true, // Permet un tableau vide TODO OLM enlever
+        validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : null, // Validation pour s'assurer qu'il y a au moins une vente
       }
     );
 
     // Initialiser les données si elles existent
     if (data) {
-      console.debug(this.logPrefix + `(${data?.[0]?.program?.id}) getSalesArray() patchValue`, data);
+      console.debug(this.logPrefix + `(${data?.[0]?.program?.id}) getSalesArray() patchValue Initialiser les données si elles existent`, data);
       formArray.patchValue(data);
     }
 
@@ -117,6 +119,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     return formArray;
   }
 
+  // configuration du formGroup
   getFormGroupConfig(data?: Trip, opts?: O): { [key: string]: any } {
     console.debug(this.logPrefix + `(${opts?.program?.id}) getFormGroupConfig()`);
     const formConfig = Object.assign(super.getFormGroupConfig(data, opts), {
@@ -147,6 +150,12 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
       formConfig.fishingAreas = this.getFishingAreasArray(data?.fishingAreas, { required: true });
     }
 
+    // todo olm : manage sales
+    if (opts.withSale) {
+      console.debug(this.logPrefix + `(${opts?.program?.id}) getFormGroupConfig() before`, opts, data?.sales);
+      formConfig.sales = this.getSalesArray(data?.sales);
+    }
+
     return formConfig;
   }
 
@@ -170,6 +179,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     };
   }
 
+  //mise à jour du formGroup dans le cas où les options sont modifiées (par exemple, si on passe d'un programme à un autre)
   updateFormGroup(form: UntypedFormGroup, opts?: O): UntypedFormGroup {
     console.debug(this.logPrefix + `(${opts?.program?.id}) updateFormGroup()`);
     opts = this.fillDefaultOptions(opts);
@@ -221,45 +231,19 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     // Sale array
     if (opts?.withSale) {
       console.debug(this.logPrefix + `(${opts?.program?.id}) updateFormGroup() before`, form.controls.sales);
-      if (!form.controls.sales) form.addControl('sales', this.getSalesArray(null));
-      if (enabled) form.controls.sales.enable();
-      else form.controls.sales.disable();
+      if (!form.controls.sales) form.addControl('sales', this.getSalesArray(null, { required: true })); // ### TODO dedoublonner
+      if (enabled) {
+        form.controls.sales.enable();
+        this.getSalesArray(null).forEach((sale) => {
+          sale.enable();
+        });
+      } else {
+        form.controls.sales.disable();
+      }
     } else {
       if (form.controls.sales) form.removeControl('sales');
     }
     console.debug(this.logPrefix + `(${opts?.program?.id}) updateFormGroup()`, form.controls.sales);
-
-    // opts.pmfms.forEach((pmfm) => {
-    //   const controlName = pmfm.id.toString();
-    //   const validator = PmfmValidators.create(pmfm, null, opts);
-    //   const defaultValue = PmfmValueUtils.fromModelValue(pmfm.defaultValue, pmfm) || null;
-
-    //   // Multiple acquisition: use form array
-    //   if (pmfm.isMultiple) {
-    //     const formArray = new AppFormArray((value) => this.formBuilder.control(value, validator), PmfmValueUtils.equals, PmfmValueUtils.isEmpty, {
-    //       allowEmptyArray: false,
-    //     });
-    //     // TODO set defaultValue
-
-    //     form.addControl(controlName, formArray, { emitEvent: opts?.emitEvent });
-    //   }
-
-    //   // Only one acquisition
-    //   else {
-    //     let control: AbstractControl = form.get(controlName);
-    //     // If new pmfm: add as control
-    //     if (!control) {
-    //       control = this.formBuilder.control(defaultValue, validator);
-    //       form.addControl(controlName, control, { emitEvent: opts?.emitEvent });
-    //     } else {
-    //       control.setValidators(validator);
-    //     }
-    //   }
-
-    //   // Remove from the remove list
-    //   const index = controlNamesToRemove.indexOf(controlName);
-    //   if (index !== -1) controlNamesToRemove.splice(index, 1);
-    // });
 
     // Observers
     if (opts?.withObservers) {
