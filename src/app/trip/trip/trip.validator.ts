@@ -23,6 +23,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { Sale } from '../sale/sale.model';
 import { FocusMonitor } from '@angular/cdk/a11y';
+import { FocusMonitor } from '@angular/cdk/a11y';
 
 export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withSamplingStrata?: boolean;
@@ -54,6 +55,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     super(formBuilder, translate, settings);
   }
 
+  // Méthode pour créer un AppFormGroup global pour le Trip, de l'initialiser
   getFormGroup(data?: Trip, opts?: O): UntypedFormGroup {
     console.debug(this.logPrefix + `(${opts?.program?.id}) getFormGroup()`);
     opts = this.fillDefaultOptions(opts);
@@ -63,7 +65,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     // todo olm : manage sales
     // Add sale form
     if (opts.withSale) {
-      form.addControl('sales', this.getSalesArray(data?.sales));
+      form.addControl('sales', this.getSalesArray(data?.sales)); // ### TODO dedoublonner
       // form.addControl(
       //   'sale',
       //   this.saleValidator.getFormGroup(data?.sale, {
@@ -93,24 +95,23 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
   // Méthode pour créer un AppFormArray pour les ventes
   getSalesArray(data?: Sale[], opts?: { required?: boolean }): AppFormArray<Sale, UntypedFormGroup> {
-    console.debug(this.logPrefix + `(${data?.[0]?.program?.id}) getSalesArray()`, data);
     const required = !opts || opts.required !== false;
+    console.debug(this.logPrefix + `(${data?.[0]?.program?.id}) getSalesArray()`, data);
+    if (!data) data = [new Sale()]; // Crée une vente vide si aucune donnée n'est fournie
 
     const formArray = new AppFormArray<Sale, UntypedFormGroup>(
-      (sale) => this.saleValidator.getFormGroup(sale, { ...opts, withProgram: false }), // Utilisation du SaleValidatorService pour chaque vente
+      (sale) => this.saleValidator.getFormGroup(sale), // Utilisation du SaleValidatorService pour chaque vente
       (a, b) => a?.equals(b) /*a.id === b.id*/, // Comparaison des ventes
       (a) => false /*!!a.id*/, // Vérification si une vente est vide
       {
-        allowEmptyArray: true, // Permet un tableau vide
-        validators: [
-          SharedFormArrayValidators.requiredArrayMinLength(1), // Validation pour s'assurer qu'il y a au moins une vente
-        ],
+        allowEmptyArray: true, // Permet un tableau vide TODO OLM enlever
+        validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : null, // Validation pour s'assurer qu'il y a au moins une vente
       }
     );
 
     // Initialiser les données si elles existent
     if (data) {
-      console.debug(this.logPrefix + `(${data?.[0]?.program?.id}) getSalesArray() patchValue`, data);
+      console.debug(this.logPrefix + `(${data?.[0]?.program?.id}) getSalesArray() patchValue Initialiser les données si elles existent`, data);
       formArray.patchValue(data);
     }
 
@@ -149,8 +150,9 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
       formConfig.fishingAreas = this.getFishingAreasArray(data?.fishingAreas, { required: true });
     }
 
-    // Add sales
+    // todo olm : manage sales
     if (opts.withSale) {
+      console.debug(this.logPrefix + `(${opts?.program?.id}) getFormGroupConfig() before`, opts, data?.sales);
       formConfig.sales = this.getSalesArray(data?.sales);
     }
 
