@@ -54,14 +54,11 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     super(formBuilder, translate, settings);
   }
 
-  // Méthode pour créer un AppFormGroup global pour le Trip, de l'initialiser
   getFormGroup(data?: Trip, opts?: O): UntypedFormGroup {
-    console.debug(this.logPrefix + `(${opts?.program?.id}) getFormGroup()`);
     opts = this.fillDefaultOptions(opts);
 
     const form = super.getFormGroup(data, opts);
 
-    // todo olm : manage sales
     // Add sale form
     if (opts.withSale) {
       form.addControl('sales', this.getSalesArray(data?.sales)); // ### TODO dedoublonner
@@ -119,7 +116,6 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
   // configuration du formGroup
   getFormGroupConfig(data?: Trip, opts?: O): { [key: string]: any } {
-    console.debug(this.logPrefix + `(${opts?.program?.id}) getFormGroupConfig()`);
     const formConfig = Object.assign(super.getFormGroupConfig(data, opts), {
       __typename: [Trip.TYPENAME],
       departureDateTime: [(data && data.departureDateTime) || null, !opts.departureDateTimeRequired ? null : Validators.required],
@@ -148,9 +144,8 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
       formConfig.fishingAreas = this.getFishingAreasArray(data?.fishingAreas, { required: true });
     }
 
-    // todo olm : manage sales
+    // Add sales
     if (opts.withSale) {
-      console.debug(this.logPrefix + `(${opts?.program?.id}) getFormGroupConfig() before`, opts, data?.sales);
       formConfig.sales = this.getSalesArray(data?.sales);
     }
 
@@ -179,7 +174,6 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
   //mise à jour du formGroup dans le cas où les options sont modifiées (par exemple, si on passe d'un programme à un autre)
   updateFormGroup(form: UntypedFormGroup, opts?: O): UntypedFormGroup {
-    console.debug(this.logPrefix + `(${opts?.program?.id}) updateFormGroup()`);
     opts = this.fillDefaultOptions(opts);
 
     const enabled = form.enabled;
@@ -327,7 +321,6 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     opts.minDurationInHours = toNumber(opts.minDurationInHours, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_MIN_DURATION_HOURS));
     opts.maxDurationInHours = toNumber(opts.maxDurationInHours, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_MAX_DURATION_HOURS));
 
-    console.debug(this.logPrefix + `(${opts?.program?.id}) fillDefaultOptions()`, opts);
     return opts;
   }
 
