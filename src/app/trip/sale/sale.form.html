@@ -13,36 +13,54 @@
     </ion-row>
 
     <!-- Program -->
-    <ion-row *ngIf="showProgram">
+    <ion-row [@expansionInOutAnimation]="showProgram ? 'expanded' : 'collapsed'">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
-      <ion-col>
-        <mat-autocomplete-field
-          formControlName="program"
-          [placeholder]="'SALE.EDIT.PROGRAM' | translateContext: i18nSuffix"
-          [config]="autocompleteFields.program"
-          [tabindex]="tabindex"
-          required
-        >
-          <ion-icon matPrefix name="contract"></ion-icon>
-        </mat-autocomplete-field>
+      <ion-col class="has-form-field">
+        @if (showProgram) {
+          <mat-autocomplete-field
+            formControlName="program"
+            [placeholder]="'SALE.EDIT.PROGRAM' | translateContext: i18nSuffix"
+            [config]="autocompleteFields.program"
+            [tabindex]="tabindex"
+            required
+          >
+            <ion-icon matPrefix name="contract"></ion-icon>
+            <app-data-favorite-button
+              matSuffix
+              controlName="program"
+              [equals]="autocompleteFields.program.equals"
+              [visibility]="true"
+            ></app-data-favorite-button>
+          </mat-autocomplete-field>
+        }
       </ion-col>
     </ion-row>
 
     <!-- Vessel -->
     <ion-row *ngIf="showVessel">
-      <ion-col offset="0" offset-md="2" offset-lg="3">
-        <mat-autocomplete-field
-          *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
-          [placeholder]="'SALE.VESSEL' | translate"
-          formControlName="vesselSnapshot"
-          [config]="autocompleteFields.vesselSnapshot"
-          [tabindex]="tabindex === -1 ? -1 : tabindex + 1"
-          required
-        >
-          <ion-icon matPrefix name="boat"></ion-icon>
-        </mat-autocomplete-field>
+      <ion-col offset="0" offset-md="2" offset-lg="3" class="has-form-field">
+        @if (autocompleteFields.vesselSnapshot) {
+          <mat-autocomplete-field
+            *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
+            [placeholder]="'SALE.VESSEL' | translate"
+            formControlName="vesselSnapshot"
+            [config]="autocompleteFields.vesselSnapshot"
+            [tabindex]="tabindex === -1 ? -1 : tabindex + 1"
+            required
+          >
+            <ion-icon matPrefix name="boat"></ion-icon>
+            @if (showFavorites) {
+              <app-data-favorite-button
+                matSuffix
+                controlName="vesselSnapshot"
+                pageId="sale"
+                [equals]="autocompleteFields.vesselSnapshot.equals"
+              ></app-data-favorite-button>
+            }
+          </mat-autocomplete-field>
+        }
       </ion-col>
     </ion-row>
 
@@ -60,6 +78,14 @@
           [required]="required || (form | formGetValue: 'saleLocation' | isNotEmptyReferential)"
         >
           <ion-icon matPrefix name="card"></ion-icon>
+          @if (showFavorites) {
+            <app-data-favorite-button
+              matSuffix
+              controlName="saleType"
+              pageId="sale"
+              [equals]="autocompleteFields.saleType.equals"
+            ></app-data-favorite-button>
+          }
         </mat-autocomplete-field>
       </ion-col>
     </ion-row>
@@ -76,6 +102,7 @@
             [tabindex]="tabindex === -1 ? -1 : tabindex + 6"
           >
             <mat-icon matPrefix>room</mat-icon>
+            <app-data-favorite-button matSuffix controlName="saleLocation" [equals]="autocompleteFields.location.equals"></app-data-favorite-button>
           </mat-autocomplete-field>
         </ion-col>
       </ion-row>
@@ -118,6 +145,7 @@
             [required]="required || (form | formGetValue: 'saleType' | isNotEmptyReferential)"
           >
             <mat-icon matPrefix>room</mat-icon>
+            <app-data-favorite-button matSuffix controlName="saleLocation" [equals]="autocompleteFields.location.equals"></app-data-favorite-button>
           </mat-autocomplete-field>
         </ion-col>
         <ion-col size="12" size-sm="auto">

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
+import { booleanAttribute, ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
 import { Moment } from 'moment';
 import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
 import { ObservedLocationValidatorOptions, ObservedLocationValidatorService } from '../observed-location.validator';
@@ -20,6 +20,8 @@ import {
   PersonUtils,
   ReferentialRef,
   ReferentialUtils,
+  RxStateProperty,
+  RxStateSelect,
   StatusIds,
   toBoolean,
   toDateISOString,
@@ -33,10 +35,10 @@ import { DateFilterFn } from '@angular/material/datepicker';
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { RxState } from '@rx-angular/state';
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER } from '@app/trip/trip.config';
-import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { Observable, of } from 'rxjs';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { expansionInOutAnimation } from '@app/shared/material/material.animations';
 
 export interface ObservedLocationFormState extends MeasurementsFormState {
   showObservers: boolean;
@@ -47,6 +49,7 @@ export interface ObservedLocationFormState extends MeasurementsFormState {
   templateUrl: './observed-location.form.html',
   styleUrls: ['./observed-location.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  animations: [expansionInOutAnimation],
   providers: [RxState],
 })
 export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation, ObservedLocationFormState> implements OnInit {
@@ -61,20 +64,21 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   protected isStartDateInTheFuture: boolean;
 
   @Input() locationLevelIds: number[];
-  @Input() required = true;
-  @Input() showError = true;
-  @Input() showEndDateTime = true;
-  @Input() showStartTime = true;
-  @Input() showEndTime = true;
-  @Input() showComment = true;
-  @Input() showButtons = true;
-  @Input() showProgram = true;
-  @Input() startDateDay: number = null;
+  @Input({ transform: booleanAttribute }) required = true;
+  @Input({ transform: booleanAttribute }) showError = true;
+  @Input({ transform: booleanAttribute }) showEndDateTime = true;
+  @Input({ transform: booleanAttribute }) showStartTime = true;
+  @Input({ transform: booleanAttribute }) showEndTime = true;
+  @Input({ transform: booleanAttribute }) showComment = true;
+  @Input({ transform: booleanAttribute }) showButtons = true;
+  @Input({ transform: booleanAttribute }) showProgram = true;
+  @Input({ transform: booleanAttribute }) showFavorites = false;
+  @Input({ transform: booleanAttribute }) startDateDay: number = null;
   @Input() forceDurationDays: number;
   @Input() timezone: string = null;
-  @Input() mobile = false;
+  @Input({ transform: booleanAttribute }) mobile = false;
 
-  @Input() set showSamplingStrata(value: boolean) {
+  @Input({ transform: booleanAttribute }) set showSamplingStrata(value: boolean) {
     if (this._showSamplingStrata !== value) {
       this._showSamplingStrata = value;
       if (!this.loading) this.updateFormGroup();
@@ -85,7 +89,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     return this._showSamplingStrata;
   }
 
-  @Input() set withEndDateRequired(value: boolean) {
+  @Input({ transform: booleanAttribute }) set withEndDateRequired(value: boolean) {
     if (this._withEndDateRequired !== value) {
       this._withEndDateRequired = value;
       if (!this.loading) this.updateFormGroup();
@@ -96,7 +100,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     return this._withEndDateRequired;
   }
 
-  @Input() @RxStateProperty() showObservers: boolean;
+  @Input({ transform: booleanAttribute }) @RxStateProperty() showObservers: boolean;
 
   get empty(): any {
     const value = this.value;

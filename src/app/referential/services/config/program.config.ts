@@ -186,6 +186,13 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_HELP_URL',
     type: 'string',
   },
+  TRIP_FAVORITES_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.favorites.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_FAVORITES_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
+
   TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.gears.columns.pmfmIds',
     label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS',
@@ -925,6 +932,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean',
   },
+  OBSERVED_LOCATION_FAVORITES_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.observedLocation.favorites.enable',
+    label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_FAVORITES_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean',
+  },
 
   OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.aggregatedLandings.enable',
@@ -1196,6 +1209,14 @@ export const ProgramProperties = Object.freeze({
     },
     defaultValue: LocationLevelIds.PORT.toString(),
   },
+
+  SALE_FAVORITES_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.sale.favorite.enable',
+    label: 'PROGRAM.OPTIONS.SALE_FAVORITES_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
+
   /* -- Landed trip options -- */
 
   LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{

@@ -49,6 +49,8 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     });
   }
 
+  samplingStrata: ReferentialRef = null;
+  samplingStrataIds: number[];
   vesselId: number = null;
   vesselSnapshot: VesselSnapshot = null;
   vesselIds: number[] = null;
@@ -72,6 +74,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
+    this.samplingStrata = ReferentialRef.fromObject(source.samplingStrata);
     this.vesselId = source.vesselId;
     this.vesselIds = source.vesselIds;
     this.vesselTypeId = source.vesselTypeId;
@@ -93,6 +96,10 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     const target = super.asObject(opts);
 
     if (opts?.minify) {
+      // Sampling strata
+      target.samplingStrataIds = (target.samplingStrataIds ?? isNotNil(this.samplingStrata?.id)) ? [this.samplingStrata.id] : undefined;
+      delete target.samplingStrata;
+
       // Vessel (prefer single vessel, for compatibility with pod < 2.9)
       target.vesselId = isNotNil(this.vesselId)
         ? this.vesselId

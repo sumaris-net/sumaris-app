@@ -1,0 +1,14 @@
+@let favorite = isFavorite;
+<button
+  matSuffix
+  mat-icon-button
+  type="button"
+  tabindex="-1"
+  [title]="(allowMultiple ? 'COMMON.BTN_ADD_TO_FAVORITES' : 'COMMON.BTN_SET_AS_FAVORITE') | translate"
+  (click)="toggleFavorite($event)"
+  [color]="favorite ? 'primary' : undefined"
+  [disabled]="control.invalid"
+  [hidden]="hidden"
+>
+  <mat-icon>{{ favorite ? 'star' : 'star_outline' }}</mat-icon>
+</button>

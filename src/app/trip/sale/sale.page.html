@@ -90,7 +90,15 @@
           <ion-row class="ion-no-padding">
             <ion-col class="ion-padding">
               <!-- sale form-->
-              <app-form-sale #saleForm [showError]="false" [showEndDateTime]="false" (onSubmit)="save($event)" [debug]="debug">
+              <app-form-sale
+                #saleForm
+                [showError]="false"
+                [showEndDateTime]="false"
+                [showFavorites]="showFavorites"
+                (onSubmit)="save($event)"
+                [debug]="debug"
+              >
+                <!-- fishing area form-->
                 <app-fishing-area-form
                   #fishingAreaForm
                   [showError]="true"

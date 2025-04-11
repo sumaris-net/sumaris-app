@@ -27,6 +27,9 @@ import {
   PersonService,
   PlatformService,
   ReferentialUtils,
+  RxStateProperty,
+  RxStateRegister,
+  RxStateSelect,
   toBoolean,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
@@ -45,7 +48,6 @@ import { AcquisitionLevelType } from '@app/referential/services/model/model.enum
 import { DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { environment } from '@environments/environment';
-import { RxStateProperty, RxStateRegister, RxStateSelect } from '@sumaris-net/ngx-components';
 import { ContextService } from '@app/shared/context.service';
 import { BaseDataService, IDataEntityService, IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';
 import { ExpertiseAreaService } from '@app/referential/expertise-area/expertise-area.service';
@@ -53,6 +55,7 @@ import { ExpertiseArea, IExpertiseAreaProperties } from '@app/referential/expert
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AppDataState } from '../data.class';
 import { ModalController } from '@ionic/angular';
+import { FavoriteService } from '@app/data/form/data-favorite-button/data-favorite.service';
 
 export abstract class AppDataEditorOptions extends AppEditorOptions {
   acquisitionLevel?: AcquisitionLevelType;
@@ -67,6 +70,7 @@ export interface AppDataEditorState extends AppDataState {
   requiredStrategy: boolean;
   strategy: Strategy;
   strategyFilter: Partial<StrategyFilter>;
+  showFavorites: boolean;
 }
 
 @Directive()
@@ -95,8 +99,8 @@ export abstract class AppDataEntityEditor<
   protected readonly expertiseAreaService = inject(ExpertiseAreaService);
   protected readonly platform = inject(PlatformService);
   protected readonly modalCtrl = inject(ModalController);
+  protected readonly favoriteService = inject(FavoriteService);
   protected readonly mobile: boolean;
-  protected readonly settingsId: string;
   protected readonly canUseExpertiseArea: boolean;
 
   protected logPrefix: string = null;
@@ -105,6 +109,7 @@ export abstract class AppDataEntityEditor<
   protected canSendMessage = false;
   protected helpUrl: string = null;
 
+  readonly settingsId: string;
   readonly canDebug: boolean;
   readonly canCopyLocally: boolean;
   devAutoFillData: boolean;
@@ -120,6 +125,7 @@ export abstract class AppDataEntityEditor<
   @RxStateSelect() availableExpertiseAreas$: Observable<ExpertiseArea[]>;
   @RxStateSelect() selectedExpertiseArea$: Observable<ExpertiseArea>;
   @RxStateSelect() expertiseAreaProperties$: Observable<IExpertiseAreaProperties>;
+  @RxStateSelect() showFavorites$: Observable<boolean>;
 
   @RxStateProperty() acquisitionLevel: AcquisitionLevelType;
   @RxStateProperty() programLabel: string;
@@ -132,6 +138,7 @@ export abstract class AppDataEntityEditor<
   @RxStateProperty() availableExpertiseAreas: ExpertiseArea[];
   @RxStateProperty() selectedExpertiseArea: ExpertiseArea;
   @RxStateProperty() expertiseAreaProperties: IExpertiseAreaProperties;
+  @RxStateProperty() showFavorites: boolean;
 
   protected constructor(injector: Injector, dataType: new () => T, dataService: S, options?: AppDataEditorOptions) {
     super(injector, dataType, dataService, {
@@ -495,6 +502,56 @@ export abstract class AppDataEntityEditor<
   protected async addToPageHistory(page: HistoryPageReference, opts?: AddToPageHistoryOptions) {
     page.subtitle = page.subtitle || this.programLabel;
     return super.addToPageHistory(page, opts);
+  }
+
+  protected getPageFavorites(): { [key: string]: any } {
+    if (!this.settingsId) return this.favoriteService.getDefaultFavorites();
+    return {
+      ...this.favoriteService.getDefaultFavorites(),
+      ...this.favoriteService.getPageFavorites(this.settingsId),
+    };
+  }
+
+  protected getFirstControlFavorite(
+    controlName: string | keyof Omit<Omit<T, 'fromObject'>, 'asObject'>,
+    options?: {
+      pageId?: string;
+      pageFavorites?: { [key: string]: any };
+      sortBy?: string;
+    }
+  ): any {
+    return this.getControlFavorites(controlName, { ...options, allowMultiple: false });
+  }
+
+  getControlFavorites(
+    controlName: string | keyof Omit<Omit<T, 'fromObject'>, 'asObject'>,
+    options?: {
+      pageId?: string;
+      pageFavorites?: { [key: string]: any };
+      allowMultiple?: boolean; // false by default
+      sortBy?: string;
+    }
+  ): any | any[] {
+    return this.favoriteService.getControlFavorites(controlName as string, {
+      pageId: this.settingsId,
+      ...options,
+    });
+  }
+
+  toggleControlFavorite(
+    controlName: string | keyof Omit<Omit<T, 'fromObject'>, 'asObject'>,
+    value: any,
+    options?: {
+      pageId?: string;
+      pageFavorites?: { [key: string]: any };
+      allowMultiple?: boolean; // true by default
+      emitEvent?: boolean;
+    }
+  ): any {
+    return this.favoriteService.toggleControlFavorite(controlName as string, value, {
+      pageId: this.settingsId,
+      ...options,
+    });
   }
 
   protected async onConfigLoaded(config: Configuration) {

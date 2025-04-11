@@ -43,6 +43,8 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
     });
   }
 
+  samplingStrata: ReferentialRef;
+  samplingStrataIds: number[];
   location?: ReferentialRef;
   locations?: ReferentialRef[];
   locationIds?: number[];
@@ -51,6 +53,7 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
+    this.samplingStrata = ReferentialRef.fromObject(source.samplingStrata);
     this.location = ReferentialRef.fromObject(source.location);
     this.locationIds = source.locationIds;
     this.observers = (source.observers && source.observers.map(Person.fromObject)) || [];
@@ -59,7 +62,11 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
-    if (opts && opts.minify) {
+    if (opts?.minify) {
+      // Sampling strata
+      target.samplingStrataIds = (target.samplingStrataIds ?? isNotNil(this.samplingStrata?.id)) ? [this.samplingStrata.id] : undefined;
+      delete target.samplingStrata;
+
       // Location
       target.locationIds = isNotNil(this.location?.id) ? [this.location.id] : (this.locations || []).map((l) => l.id).filter(isNotNil);
       delete target.location;

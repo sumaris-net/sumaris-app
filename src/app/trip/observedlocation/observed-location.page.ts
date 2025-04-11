@@ -556,6 +556,8 @@ export class ObservedLocationPage
       this.observedLocationContext.program = program;
     }
 
+    this.showFavorites = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_FAVORITES_ENABLE);
+
     try {
       this.observedLocationForm.showSamplingStrata = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE);
       this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
@@ -719,6 +721,29 @@ export class ObservedLocationPage
           )
           .subscribe()
       );
+    }
+
+    // Fill default, from favorites
+    const pageFavorites = this.getPageFavorites();
+    if (pageFavorites) {
+      // Program
+      const program = this.getFirstControlFavorite('program', {
+        pageFavorites,
+      });
+      if (!data.program && EntityUtils.isNotEmpty(program)) {
+        data.program = ReferentialRef.fromObject(program);
+        console.debug(this.logPrefix + 'Setting program from favorite:', data.program);
+      }
+
+      // Location
+      const location =
+        this.showFavorites &&
+        this.getFirstControlFavorite('location', {
+          pageFavorites,
+        });
+      if (!data.location && EntityUtils.isNotEmpty(location)) {
+        data.location = ReferentialRef.fromObject(location);
+      }
     }
 
     // Fill defaults, from table's filter. Implemented for all usage mode, to fix #IMAGINE-648

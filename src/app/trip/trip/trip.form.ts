@@ -1,7 +1,18 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output, ViewChild } from '@angular/core';
+import {
+  booleanAttribute,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Injector,
+  Input,
+  OnInit,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import { TripValidatorOptions, TripValidatorService } from './trip.validator';
 import { ModalController } from '@ionic/angular';
-import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 
 import {
   AppForm,
@@ -48,6 +59,7 @@ import { Moment } from 'moment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { SortDirection } from '@angular/material/sort';
 import { expansionInOutAnimation } from '@app/shared/material/material.animations';
+import { TRIP_FEATURE_DEFAULT_PROGRAM_FILTER } from '@app/trip/trip.config';
 
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
 
@@ -73,15 +85,16 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   protected canFilterMetier = false;
   protected readonly mobile = this.settings.mobile;
 
-  @Input() showComment = true;
-  @Input() allowAddNewVessel = true;
-  @Input() enableCopyLocation = true;
-  @Input() showError = true;
+  @Input({ transform: booleanAttribute }) showComment = true;
+  @Input({ transform: booleanAttribute }) showFavorites = false;
+  @Input({ transform: booleanAttribute }) allowAddNewVessel = true;
+  @Input({ transform: booleanAttribute }) enableCopyLocation = true;
+  @Input({ transform: booleanAttribute }) showError = true;
   @Input() vesselDefaultStatus = StatusIds.TEMPORARY;
   @Input() metierHistoryNbDays = 60;
   @Input() i18nSuffix = null;
 
-  @Input() set showSamplingStrata(value: boolean) {
+  @Input({ transform: booleanAttribute }) set showSamplingStrata(value: boolean) {
     if (this._showSamplingStrata !== value) {
       this._showSamplingStrata = value;
       if (!this.loading) this.updateFormGroup();
@@ -92,7 +105,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     return this._showSamplingStrata;
   }
 
-  @Input() set showObservers(value: boolean) {
+  @Input({ transform: booleanAttribute }) set showObservers(value: boolean) {
     if (this._showObservers !== value) {
       this._showObservers = value;
       if (!this.loading) this.updateFormGroup();
@@ -103,7 +116,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     return this._showObservers;
   }
 
-  @Input() set showMetiers(value: boolean) {
+  @Input({ transform: booleanAttribute }) set showMetiers(value: boolean) {
     if (this._showMetiers !== value) {
       this._showMetiers = value;
       if (!this.loading) this.updateFormGroup();
@@ -137,7 +150,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     return this._locationSuggestLengthThreshold;
   }
 
-  @Input() set returnFieldsRequired(value: boolean) {
+  @Input({ transform: booleanAttribute }) set returnFieldsRequired(value: boolean) {
     if (this._returnFieldsRequired !== value) {
       this._returnFieldsRequired = value;
       if (!this.loading) this.updateFormGroup();
@@ -228,10 +241,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     // Combo: programs
     this.registerAutocompleteField('program', {
       service: this.programRefService,
-      filter: {
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION],
-      },
+      filter: TRIP_FEATURE_DEFAULT_PROGRAM_FILTER,
       mobile: this.mobile,
       showAllOnFocus: this.mobile,
     });

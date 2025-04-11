@@ -35,6 +35,8 @@ import {
   PersonUtils,
   ReferentialRef,
   ReferentialUtils,
+  RxStateProperty,
+  RxStateSelect,
   SharedValidators,
   StatusIds,
   suggestFromArray,
@@ -52,7 +54,6 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { TranslateService } from '@ngx-translate/core';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
-import { FishingAreaValidatorService } from '@app/data/fishing-area/fishing-area.validator';
 import { Trip } from '@app/trip/trip/trip.model';
 import { TripValidatorService } from '@app/trip/trip/trip.validator';
 import { Metier } from '@app/referential/metier/metier.model';
@@ -69,7 +70,6 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyService } from '@app/referential/services/strategy.service';
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { expansionInOutAnimation } from '@app/shared/material/material.animations';
 
 const TRIP_FORM_EXCLUDED_FIELD_NAMES = [
@@ -219,7 +219,6 @@ export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState
     protected translate: TranslateService,
     protected modalCtrl: ModalController,
     protected tripValidatorService: TripValidatorService,
-    protected fishingAreaValidatorService: FishingAreaValidatorService,
     protected networkService: NetworkService,
     protected strategyService: StrategyService,
     protected dateAdapter: DateAdapter<Moment>
