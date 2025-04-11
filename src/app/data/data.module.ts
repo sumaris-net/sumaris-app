@@ -9,6 +9,7 @@ import { DevicePositionService } from '@app/data/position/device/device-position
 import { AppDataEntityPipesModule } from '@app/data/pipes/pipes.module';
 import { AppDataEditorDebugButtonComponent } from '@app/data/form/data-editor-debug-button/data-editor-debug-button.component';
 import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
+import { AppDataFavoriteModule } from '@app/data/form/data-favorite-button/data-favorite-button.module';
 
 @NgModule({
   imports: [
@@ -20,6 +21,7 @@ import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
     AppImageAttachmentModule,
     AppEntityQualityModule,
     AppDataEntityPipesModule,
+    AppDataFavoriteModule,
     AppMeasurementModule,
     MessageModule,
   ],
@@ -33,6 +35,7 @@ import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
     AppImageAttachmentModule,
     AppEntityQualityModule,
     AppDataEntityPipesModule,
+    AppDataFavoriteModule,
     AppMeasurementModule,
 
     // Components

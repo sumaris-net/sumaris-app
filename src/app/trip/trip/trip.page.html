@@ -187,7 +187,13 @@
           <ion-row>
             <ion-col class="ion-padding">
               <!-- trip -->
-              <app-form-trip #tripForm [showError]="false" [returnFieldsRequired]="usageMode | isOnDesk" (onSubmit)="save($event)">
+              <app-form-trip
+                #tripForm
+                [showError]="false"
+                [returnFieldsRequired]="usageMode | isOnDesk"
+                [showFavorites]="showFavorites"
+                (onSubmit)="save($event)"
+              >
                 <!-- sale -->
                 <div beforeObservers [@expansionInOutAnimation]="showSaleForm && (measurementsForm.readySubject | async) ? 'expanded' : 'collapsed'">
                   <app-form-sale
@@ -201,6 +207,7 @@
                     [required]="false"
                     [tabindex]="showSaleForm ? 10 : -1"
                     [minDate]="returnDateTime$ | async"
+                    [showFavorites]="false"
                     [debug]="debug"
                   ></app-form-sale>
                 </div>

@@ -69,6 +69,7 @@ export class ObservedLocationsPage
   @Input() showFilterProgram = true;
   @Input() showFilterLocation = true;
   @Input() showFilterPeriod = true;
+  @Input() showFilterSamplingStrata = false; // Can be override by setProgram() or resetProgram()
   @Input() showRecorder = true;
   @Input() showObservers = true;
   @Input() allowMultipleSelection = true;
@@ -120,6 +121,7 @@ export class ObservedLocationsPage
     this.i18nColumnPrefix = 'OBSERVED_LOCATION.TABLE.';
     this.filterForm = formBuilder.group({
       program: [null, SharedValidators.entity],
+      samplingStrata: [null],
       location: [null, SharedValidators.entity],
       startDate: [null, SharedValidators.validDate],
       endDate: [null, SharedValidators.validDate],
@@ -164,6 +166,21 @@ export class ObservedLocationsPage
     this.registerAutocompleteField('program', {
       service: this.programRefService,
       filter: OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER,
+      mobile: this.mobile,
+    });
+
+    // Sampling strata combo (filter)
+    this.registerAutocompleteField('samplingStrata', {
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, { ...filter, levelLabel: this.programLabel }, null, null, {
+          withProperties: true,
+        }),
+      filter: <Partial<ReferentialRefFilter>>{
+        entityName: 'DenormalizedSamplingStrata',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
+      attributes: ['label', 'properties.samplingSchemeLabel'],
+      columnNames: ['REFERENTIAL.LABEL', 'TRIP.SAMPLING_SCHEME_LABEL'],
       mobile: this.mobile,
     });
 
@@ -396,6 +413,7 @@ export class ObservedLocationsPage
 
     // Allow to filter on program, if user can access more than one program
     this.showFilterProgram = this.defaultShowFilterProgram && (this.isAdmin || !this.filter?.program?.label);
+    this.showFilterSamplingStrata = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE);
 
     // Hide program if cannot change it
     this.showProgramColumn = this.showFilterProgram;
@@ -412,9 +430,10 @@ export class ObservedLocationsPage
 
     this.showFilterProgram = this.defaultShowFilterProgram;
     this.showProgramColumn = this.defaultShowFilterProgram;
+    this.showFilterSamplingStrata = toBoolean(ProgramProperties.OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE.defaultValue, false);
 
     // Show endDateTime
-    this.showEndDateTimeColumn = false;
+    this.showEndDateTimeColumn = toBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE.defaultValue, false);
 
     // Title
     this.landingsTitle = LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE';

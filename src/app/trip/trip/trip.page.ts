@@ -397,6 +397,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.i18nContext.suffix = i18nSuffix;
     this.operationEditor = program.getProperty<OperationEditor>(ProgramProperties.TRIP_OPERATION_EDITOR);
     this.enableReport = program.getPropertyAsBoolean(ProgramProperties.TRIP_REPORT_ENABLE);
+    this.showFavorites = program.getPropertyAsBoolean(ProgramProperties.TRIP_FAVORITES_ENABLE);
 
     // Trip form
     this.tripForm.i18nSuffix = i18nSuffix;
@@ -559,6 +560,50 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
           )
           .subscribe()
       );
+    }
+
+    // Fill default, from favorites
+    const pageFavorites = this.getPageFavorites();
+    if (pageFavorites) {
+      // Program
+      const program = this.getFirstControlFavorite('program', {
+        pageFavorites,
+      });
+      if (!data.program && EntityUtils.isNotEmpty(program)) {
+        data.program = ReferentialRef.fromObject(program);
+      }
+
+      // Sampling strata
+      const samplingStrata =
+        this.showFavorites &&
+        this.tripForm?.showSamplingStrata &&
+        this.getFirstControlFavorite('samplingStrata', {
+          pageFavorites,
+        });
+      if (!data.samplingStrata && EntityUtils.isNotEmpty(samplingStrata)) {
+        data.samplingStrata = ReferentialRef.fromObject(samplingStrata);
+      }
+
+      // Vessel
+      const vesselSnapshot =
+        this.showFavorites &&
+        this.getFirstControlFavorite('vesselSnapshot', {
+          pageFavorites,
+        });
+      if (this.showFavorites && !data.vesselSnapshot && EntityUtils.isNotEmpty(vesselSnapshot)) {
+        data.vesselSnapshot = VesselSnapshot.fromObject(vesselSnapshot);
+      }
+
+      // Departure location
+      let departureLocation =
+        this.showFavorites &&
+        this.getFirstControlFavorite('departureLocation', {
+          pageFavorites,
+          sortBy: this.tripForm.autocompleteFields.location.attributes?.[0],
+        });
+      if (!data.departureLocation && EntityUtils.isNotEmpty(departureLocation)) {
+        data.departureLocation = ReferentialRef.fromObject(departureLocation);
+      }
     }
 
     // Fill defaults, from table's filter

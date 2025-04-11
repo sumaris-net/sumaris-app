@@ -155,6 +155,24 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
       if (form.controls.samplingStrata) form.removeControl('samplingStrata');
     }
 
+    // Add sale form
+    if (opts.withSale) {
+      if (!form.controls.sale) {
+        form.addControl(
+          'sale',
+          this.saleValidator.getFormGroup(null, {
+            required: false,
+            withVessel: false,
+            withProgram: false,
+          })
+        );
+      }
+      if (enabled) form.controls.sale.enable();
+      else form.controls.sale.disable();
+    } else {
+      if (form.controls.sale) form.removeControl('sale');
+    }
+
     // Metier array
     if (opts?.withMetiers) {
       if (!form.controls.metiers) {

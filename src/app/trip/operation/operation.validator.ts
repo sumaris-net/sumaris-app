@@ -1064,6 +1064,7 @@ export class OperationValidators {
     const vesselSnapshot = operationVesselAssociation?.vesselSnapshot;
     const isCatchOnOperationVessel = operationVesselAssociation?.isCatchOnOperationVessel;
     const empty = !vesselSnapshot && isNil(isCatchOnOperationVessel);
+    console.log('[operation-validator] Validating operation vessel association', operationVesselAssociation, empty);
     if (!empty && (isNil(vesselSnapshot?.id) || isNil(isCatchOnOperationVessel))) {
       return { invalidOrIncomplete: true };
     }

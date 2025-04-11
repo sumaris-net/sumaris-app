@@ -28,7 +28,7 @@
     <!-- Help button -->
     <button
       mat-icon-button
-      *ngIf="type.description || type.category === 'PRODUCT'"
+      *ngIf="type.description || type.docUrl || type.category === 'PRODUCT'"
       class="hidden-xs hidden-sm hidden-mobile"
       [title]="'COMMON.BTN_SHOW_HELP' | translate"
       (click)="openHelpModal($event)"

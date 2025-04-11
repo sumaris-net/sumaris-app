@@ -191,19 +191,35 @@
   >
     <form [formGroup]="filterForm" class="form-container ion-padding-top" (ngSubmit)="onRefresh.emit()">
       <ion-grid>
-        @if (showFilterProgram) {
+        @if (showFilterProgram || showFilterSamplingStrata) {
           <ion-row>
-            <ion-col>
-              <!-- Program -->
-              <mat-autocomplete-field
-                [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.PROGRAM' | translate"
-                formControlName="program"
-                [config]="autocompleteFields.program"
-                [clearable]="true"
-              >
-                <ion-icon matPrefix name="contract"></ion-icon>
-              </mat-autocomplete-field>
-            </ion-col>
+            @if (showFilterProgram) {
+              <ion-col>
+                <!-- Program -->
+                <mat-autocomplete-field
+                  [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.PROGRAM' | translate"
+                  formControlName="program"
+                  [config]="autocompleteFields.program"
+                  [clearable]="true"
+                >
+                  <ion-icon matPrefix name="contract"></ion-icon>
+                </mat-autocomplete-field>
+              </ion-col>
+            }
+
+            @if (showFilterSamplingStrata) {
+              <ion-col>
+                <!-- Program -->
+                <mat-autocomplete-field
+                  [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.SAMPLING_STRATA' | translate"
+                  formControlName="samplingStrata"
+                  [config]="autocompleteFields.samplingStrata"
+                  [clearable]="true"
+                >
+                  <mat-icon matPrefix>date_range</mat-icon>
+                </mat-autocomplete-field>
+              </ion-col>
+            }
           </ion-row>
         }
 

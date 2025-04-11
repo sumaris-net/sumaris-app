@@ -20,6 +20,12 @@
           [clearable]="!mobile"
         >
           <ion-icon matPrefix name="contract"></ion-icon>
+          <app-data-favorite-button
+            matSuffix
+            controlName="program"
+            [equals]="autocompleteFields.program.equals"
+            [visibility]="true"
+          ></app-data-favorite-button>
         </mat-autocomplete-field>
       </ion-col>
     </ion-row>
@@ -30,15 +36,22 @@
         <ion-label class="ion-float-end hidden-xs hidden-sm">{{ 'TRIP.SAMPLING_SCHEME' | translateContext: i18nSuffix }}</ion-label>
       </ion-col>
       <ion-col class="has-form-field">
-        @if (showSamplingStrata) {
+        @if (showSamplingStrata && form.controls.samplingStrata; as control) {
           <mat-autocomplete-field
-            formControlName="samplingStrata"
+            [formControl]="control | formGetControl"
             [placeholder]="'TRIP.SAMPLING_STRATA' | translateContext: i18nSuffix"
             [config]="autocompleteFields.samplingStrata"
             [mobile]="mobile"
             [required]="true"
           >
-            <ion-icon matPrefix name="calendar"></ion-icon>
+            <mat-icon matPrefix>date_range</mat-icon>
+            @if (showFavorites) {
+              <app-data-favorite-button
+                matSuffix
+                controlName="samplingStrata"
+                [equals]="autocompleteFields.samplingStrata.equals"
+              ></app-data-favorite-button>
+            }
           </mat-autocomplete-field>
         }
       </ion-col>
@@ -59,19 +72,26 @@
             [panelWidth]="mobile ? '80vw' : undefined"
           >
             <ion-icon matPrefix name="boat"></ion-icon>
-            <!-- FIXME: need to export temporary vessel (from synchronize() function ?) before enabling this button in the offline mode -->
-            <button
-              matSuffix
-              type="button"
-              mat-icon-button
-              tabindex="-1"
-              [class.large]="mobile"
-              *ngIf="allowAddNewVessel && network.online"
-              [title]="'TRIP.BTN_ADD_VESSEL' | translate"
-              (click)="addVesselModal($event)"
-            >
-              <mat-icon>add</mat-icon>
-            </button>
+            @if (showFavorites) {
+              <app-data-favorite-button
+                matSuffix
+                controlName="vesselSnapshot"
+                [equals]="autocompleteFields.vesselSnapshot.equals"
+              ></app-data-favorite-button>
+            }
+            @if (allowAddNewVessel && network.online) {
+              <button
+                matSuffix
+                type="button"
+                mat-icon-button
+                tabindex="-1"
+                [class.large]="mobile"
+                [title]="'TRIP.BTN_ADD_VESSEL' | translate"
+                (click)="addVesselModal($event)"
+              >
+                <mat-icon>add</mat-icon>
+              </button>
+            }
           </mat-autocomplete-field>
         }
       </ion-col>
@@ -95,6 +115,13 @@
         >
           <mat-icon matPrefix>room</mat-icon>
 
+          @if (showFavorites) {
+            <app-data-favorite-button
+              matSuffix
+              [control]="departureLocationControl"
+              [equals]="autocompleteFields.location.equals"
+            ></app-data-favorite-button>
+          }
           @if (enableCopyLocation) {
             <button
               type="button"

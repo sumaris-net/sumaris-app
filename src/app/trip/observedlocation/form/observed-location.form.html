@@ -1,48 +1,60 @@
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
   <!-- error -->
-  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
-  </ion-item>
+  @if (showError && mobile) {
+    <app-error-item [message]="errorSubject | async"></app-error-item>
+  }
 
   <ion-grid>
     <!-- PROGRAM -->
-    @if (showProgram) {
-      <ion-row>
-        <ion-col offset-md="2" offset-lg="3">
-          <mat-autocomplete-field
-            formControlName="program"
-            [placeholder]="'TRIP.PROGRAM' | translate"
-            [config]="autocompleteFields.program"
-            [tabindex]="tabindex"
-            [required]="true"
-          >
-            <ion-icon matPrefix name="contract"></ion-icon>
-          </mat-autocomplete-field>
-        </ion-col>
-      </ion-row>
-    }
+    <ion-row *ngIf="showProgram">
+      <ion-col offset-md="2" offset-lg="3">
+        <mat-autocomplete-field
+          formControlName="program"
+          [placeholder]="'TRIP.PROGRAM' | translate"
+          [config]="autocompleteFields.program"
+          [tabindex]="tabindex"
+          [required]="true"
+          [clearable]="!mobile"
+        >
+          <ion-icon matPrefix name="contract"></ion-icon>
+
+          <!-- FIXME -->
+          <!--<app-data-favorite-button
+            matSuffix
+            controlName="program"
+            [equals]="autocompleteFields.program.equals"
+            [visibility]="true"
+          ></app-data-favorite-button>-->
+        </mat-autocomplete-field>
+      </ion-col>
+    </ion-row>
 
     <!-- Sampling strata -->
-    @if (showSamplingStrata) {
-      <ion-row>
-        <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-          <ion-label class="ion-float-end hidden-xs hidden-sm">{{ 'OBSERVED_LOCATION.SAMPLING_SCHEME' | translateContext: i18nSuffix }}</ion-label>
-        </ion-col>
-        <ion-col>
+    <ion-row [@expansionInOutAnimation]="showSamplingStrata ? 'expanded' : 'collapsed'">
+      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
+        <ion-label class="ion-float-end hidden-xs hidden-sm">{{ 'OBSERVED_LOCATION.SAMPLING_SCHEME' | translateContext: i18nSuffix }}</ion-label>
+      </ion-col>
+      <ion-col class="has-form-field">
+        @if (showSamplingStrata && form.controls.samplingStrata; as control) {
           <mat-autocomplete-field
-            *ngIf="loaded; else skeletonText100"
-            formControlName="samplingStrata"
+            [formControl]="control | formGetControl"
             [placeholder]="'OBSERVED_LOCATION.SAMPLING_STRATA' | translateContext: i18nSuffix"
             [config]="autocompleteFields.samplingStrata"
             [tabindex]="tabindex + 1"
             [required]="true"
           >
-            <ion-icon matPrefix name="calendar"></ion-icon>
+            <mat-icon matPrefix>date_range</mat-icon>
+            @if (showFavorites) {
+              <app-data-favorite-button
+                matSuffix
+                controlName="samplingStrata"
+                [equals]="autocompleteFields.samplingStrata.equals"
+              ></app-data-favorite-button>
+            }
           </mat-autocomplete-field>
-        </ion-col>
-      </ion-row>
-    }
+        }
+      </ion-col>
+    </ion-row>
 
     <!-- If only start date time -->
     @if (!showEndDateTime) {
@@ -60,6 +72,9 @@
             required
           >
             <mat-icon matPrefix>room</mat-icon>
+            @if (showFavorites) {
+              <app-data-favorite-button matSuffix controlName="location" [equals]="autocompleteFields.location.equals"></app-data-favorite-button>
+            }
           </mat-autocomplete-field>
         </ion-col>
 
@@ -113,6 +128,9 @@
             required
           >
             <mat-icon matPrefix>room</mat-icon>
+            @if (showFavorites) {
+              <app-data-favorite-button matSuffix controlName="location" [equals]="autocompleteFields.location.equals"></app-data-favorite-button>
+            }
           </mat-autocomplete-field>
         </ion-col>
       </ion-row>
@@ -126,21 +144,21 @@
           </ion-label>
         </ion-col>
         <ion-col size="12" size-md="4">
-          <mat-date-time-field
-            *ngIf="showStartTime; else startDate"
-            formControlName="startDateTime"
-            [placeholder]="'OBSERVED_LOCATION.EDIT.START_DATE' | translate"
-            [tabindex]="tabindex + 3"
-            required
-          >
-            <mat-icon matPrefix class="visible-xs visible-sm">today</mat-icon>
-            <mat-icon matPrefix class="hidden-xs hidden-sm">date_range</mat-icon>
-            <mat-hint *ngIf="isStartDateInTheFuture">
-              <mat-icon color="warn">warning</mat-icon>
-              {{ 'WARNING.DATE_IN_THE_FUTURE' | translate }}
-            </mat-hint>
-          </mat-date-time-field>
-          <ng-template #startDate>
+          @if (showStartTime) {
+            <mat-date-time-field
+              formControlName="startDateTime"
+              [placeholder]="'OBSERVED_LOCATION.EDIT.START_DATE' | translate"
+              [tabindex]="tabindex + 3"
+              required
+            >
+              <mat-icon matPrefix class="visible-xs visible-sm">today</mat-icon>
+              <ion-icon matPrefix class="hidden-xs hidden-sm" name="calendar" />
+              <mat-hint *ngIf="isStartDateInTheFuture">
+                <mat-icon color="warn">warning</mat-icon>
+                {{ 'WARNING.DATE_IN_THE_FUTURE' | translate }}
+              </mat-hint>
+            </mat-date-time-field>
+          } @else {
             <mat-date-field
               formControlName="startDateTime"
               [placeholder]="'OBSERVED_LOCATION.EDIT.START_DATE' | translate"
@@ -150,13 +168,13 @@
               required
             >
               <mat-icon matPrefix class="visible-xs visible-sm">today</mat-icon>
-              <mat-icon matPrefix class="hidden-xs hidden-sm">date_range</mat-icon>
+              <ion-icon matPrefix class="hidden-xs hidden-sm" name="calendar" />
               <mat-hint *ngIf="isStartDateInTheFuture">
                 <mat-icon color="warn">warning</mat-icon>
                 {{ 'WARNING.DATE_IN_THE_FUTURE' | translate }}
               </mat-hint>
             </mat-date-field>
-          </ng-template>
+          }
         </ion-col>
 
         <!-- End date time -->
@@ -188,8 +206,8 @@
     }
 
     <!-- Observers -->
-    @if (showObservers) {
-      <ion-row *ngFor="let observerForm of observersForm?.controls; index as i; first as first; last as last">
+    @for (observerForm of observersForm?.controls; track i; let i = $index; let first = $first; let last = $last) {
+      <ion-row [@expansionInOutAnimation]="showObservers ? 'expanded' : 'collapsed'">
         <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
           <ion-label class="ion-float-end" *ngIf="first" translate>OBSERVED_LOCATION.EDIT.OBSERVERS</ion-label>
         </ion-col>

@@ -71,6 +71,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
   protected configVesselTypeIds: number[] = [];
 
   @Input() showFilterProgram = true;
+  @Input() showFilterSamplingStrata = false; // Can be override by setProgram() or resetProgram()
   @Input() showRecorder = true;
   @Input() showObservers = true;
   @Input() canDownload = false;
@@ -122,6 +123,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
     this.i18nColumnPrefix = 'TRIP.TABLE.';
     this.filterForm = formBuilder.group({
       program: [null, SharedValidators.entity],
+      samplingStrata: [null],
       vesselSnapshot: [null, SharedValidators.entity],
       vesselType: [null, SharedValidators.entity],
       location: [null, SharedValidators.entity],
@@ -168,6 +170,21 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
     this.registerAutocompleteField('program', {
       service: this.programRefService,
       filter: TRIP_FEATURE_DEFAULT_PROGRAM_FILTER,
+      mobile: this.mobile,
+    });
+
+    // Sampling strata combo (filter)
+    this.registerAutocompleteField('samplingStrata', {
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, { ...filter, levelLabel: this.programLabel }, null, null, {
+          withProperties: true,
+        }),
+      filter: <Partial<ReferentialRefFilter>>{
+        entityName: 'DenormalizedSamplingStrata',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      },
+      attributes: ['label', 'properties.samplingSchemeLabel'],
+      columnNames: ['REFERENTIAL.LABEL', 'TRIP.SAMPLING_SCHEME_LABEL'],
       mobile: this.mobile,
     });
 
@@ -569,6 +586,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
 
     // Allow to filter on program, if user can access more than one program
     this.showFilterProgram = this.defaultShowFilterProgram && (this.isAdmin || !this.filter?.program?.label);
+    this.showFilterSamplingStrata = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLING_STRATA_ENABLE);
 
     // Hide program if cannot change it
     this.showProgramColumn = this.showFilterProgram;
@@ -587,6 +605,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
 
     this.showFilterProgram = this.defaultShowFilterProgram;
     this.showProgramColumn = this.defaultShowFilterProgram;
+    this.showFilterSamplingStrata = toBoolean(ProgramProperties.TRIP_SAMPLING_STRATA_ENABLE.defaultValue, false);
     this.programVesselTypeIds = null;
     this.showVesselTypeColumn = toBoolean(ProgramProperties.VESSEL_TYPE_ENABLE.defaultValue, false);
     this.enableReport = toBoolean(ProgramProperties.TRIP_REPORT_ENABLE.defaultValue, false);

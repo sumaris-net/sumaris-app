@@ -16,6 +16,7 @@ export const expansionInOutAnimation = trigger('expansionInOutAnimation', [
     style({
       height: '*',
       opacity: 1,
+      overflow: 'hidden',
     })
   ),
   transition('collapsed <=> expanded', [animate('300ms ease-in-out')]),

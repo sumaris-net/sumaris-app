@@ -17,6 +17,9 @@ import {
   firstTrue,
   isNil,
   isNotNil,
+  RxStateProperty,
+  RxStateRegister,
+  RxStateSelect,
   toNumber,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
@@ -25,7 +28,6 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { RxState } from '@rx-angular/state';
 import { environment } from '@environments/environment';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
-import { RxStateProperty, RxStateRegister, RxStateSelect } from '@sumaris-net/ngx-components';
 import { MeasurementsFormReadySteps, MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
 import { IDataFormPathTranslatorOptions } from '@app/data/services/data-service.class';

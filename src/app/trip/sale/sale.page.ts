@@ -17,6 +17,7 @@ import {
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
+  RxStateProperty,
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
@@ -42,7 +43,6 @@ import { SaleFilter } from './sale.filter';
 import { APP_DATA_ENTITY_EDITOR, DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty } from '@sumaris-net/ngx-components';
 import { AppDataEntityEditor } from '@app/data/form/data-editor.class';
 import { FishingAreaForm } from '@app/data/fishing-area/fishing-area.form';
 import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
@@ -53,6 +53,7 @@ import { SaleContextService } from './sale-context.service';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { TaxonGroupRefService } from '@app/referential/services/taxon-group-ref.service';
 import { ContextService } from '@app/shared/context.service';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 
 export class SaleEditorOptions extends RootDataEditorOptions {}
 
@@ -261,7 +262,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
       // If show parent
       if (this.showParent) {
         console.warn('[sale-page] Sale without parent: show parent field');
-        // this.saleForm.showProgram = false;
+        this.saleForm.showProgram = false;
         this.saleForm.showVessel = true;
         // this.saleForm.showLocation = false;
         // this.saleForm.showDateTime = false;
@@ -271,7 +272,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
       // Sale is root
       else {
         console.warn('[sale-page] Sale as ROOT has not been tested !');
-        // this.saleForm.showProgram = true;
+        this.saleForm.showProgram = true;
         this.saleForm.showVessel = true;
         this.saleForm.showLocation = true;
         // this.saleForm.showDateTime = true;
@@ -327,6 +328,49 @@ export class SalePage<ST extends SalePageState = SalePageState>
       data.rankOrder = +queryParams['rankOrder'];
     } else {
       data.rankOrder = 1;
+    }
+
+    // Fill default, from favorites
+    const pageFavorites = this.getPageFavorites();
+    if (pageFavorites) {
+      // Program
+      if (!(this.parent || this.showParent)) {
+        const program = this.getFirstControlFavorite('program', {
+          pageFavorites,
+        });
+        if (!data.program && EntityUtils.isNotEmpty(program)) {
+          data.program = ReferentialRef.fromObject(program);
+        }
+      }
+
+      // Vessel
+      const vesselSnapshot = this.getFirstControlFavorite('vesselSnapshot', {
+        pageFavorites,
+        sortBy: this.saleForm.autocompleteFields.vesselSnapshot.attributes?.[0],
+      });
+      if (!data.vesselSnapshot && EntityUtils.isNotEmpty(vesselSnapshot)) {
+        data.vesselSnapshot = VesselSnapshot.fromObject(vesselSnapshot);
+      }
+
+      // Sale type
+      let saleType = this.getFirstControlFavorite('saleType', {
+        pageFavorites,
+        sortBy: this.saleForm.autocompleteFields.saleType.attributes?.[0],
+      });
+      if (!data.saleType && EntityUtils.isNotEmpty(saleType)) {
+        data.saleType = ReferentialRef.fromObject(saleType);
+      }
+
+      // Sale location{
+      let saleLocation =
+        this.saleForm.showLocation &&
+        this.getFirstControlFavorite('saleLocation', {
+          pageFavorites,
+          sortBy: this.saleForm.autocompleteFields.location.attributes?.[0],
+        });
+      if (!data.saleLocation && EntityUtils.isNotEmpty(saleLocation)) {
+        data.saleLocation = ReferentialRef.fromObject(saleLocation);
+      }
     }
 
     // Fill defaults, from table's filter.
@@ -512,17 +556,18 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
     this.requiredStrategy = requiredStrategy;
     this.strategyResolution = showStrategy ? 'user-select' : program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION);
+    this.showFavorites = program.getPropertyAsBoolean(ProgramProperties.SALE_FAVORITES_ENABLE);
 
     // Customize the UI, using program options
+    this.saleForm.showFavorites = this.showFavorites;
     this.saleForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.SALE_LOCATION_LEVEL_IDS);
     // this.saleForm.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
     // this.saleForm.showStrategy = showStrategy;
     // this.saleForm.requiredStrategy = requiredStrategy;
     // this.saleForm.canEditStrategy = showStrategy && isNewData;
-    // this.saleForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
-    // this.saleForm.showDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
-    // this.saleForm.showLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
-    // this.saleForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS);
+    // this.saleForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.SALE_OBSERVERS_ENABLE);
+    // this.saleForm.showDateTime = program.getPropertyAsBoolean(ProgramProperties.SALE_DATE_TIME_ENABLE);
+    // this.saleForm.showLocation = program.getPropertyAsBoolean(ProgramProperties.SALE_LOCATION_ENABLE);
 
     // Compute i18n prefix
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);

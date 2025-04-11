@@ -239,6 +239,11 @@ export class EntityQualityFormComponent<
         this.editor.usageMode = 'DESK';
         this.editor.markAllAsTouched();
       }
+
+      if (!opts || opts.emitEvent !== false) {
+        this.markForCheck();
+      }
+
       return false;
     }
 
@@ -298,6 +303,7 @@ export class EntityQualityFormComponent<
     });
     if (!controlled || event?.defaultPrevented || opts.progression?.cancelled) {
       progressionSubscription?.unsubscribe();
+      this.markForCheck();
       return false;
     }
 

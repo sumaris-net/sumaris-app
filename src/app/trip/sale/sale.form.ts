@@ -21,11 +21,13 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { UntypedFormControl } from '@angular/forms';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { expansionInOutAnimation } from '@app/shared/material/material.animations';
 
 @Component({
   selector: 'app-form-sale',
   templateUrl: './sale.form.html',
   styleUrls: ['./sale.form.scss'],
+  animations: [expansionInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
@@ -36,7 +38,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
   protected readonly mobile = this.settings.mobile;
 
   @Input() showError = true;
-  @Input() showProgram = true;
+  @Input() showProgram = false;
   @Input() showVessel = true;
   @Input() showLocation = true;
   @Input() showEndDateTime = true;
@@ -45,6 +47,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
   @Input() i18nSuffix: string;
   @Input() showParent = false;
   @Input() locationLevelIds: number[];
+  @Input() showFavorites = false;
 
   @Input() set required(value: boolean) {
     if (this._required !== value) {
