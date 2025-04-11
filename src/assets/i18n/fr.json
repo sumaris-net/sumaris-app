@@ -974,7 +974,7 @@
         "TAB_CATCH_TOTAL": "Capture total",
         "TAB_SAMPLES": "Prélèvements",
         "TAB_BATCH_SPECIES": "Lots par espèce",
-        "TAB_BATCH_INDIVIDUAL": "Mesures individuelles",
+        "TAB_BATCH_INDIVIDUAL": "Mensurations",
         "METIER": "Espèce cible",
         "TARGET_SPECIES": "Espèce cible",
         "PHYSICAL_GEAR": "Engin utilisé",
@@ -1203,12 +1203,13 @@
         "TOTAL_WEIGHT": "Poids total (kg)",
         "TOTAL_RANK_ORDER": "Numéro Lot",
         "TOTAL_LABEL": "Libellé Lot",
-        "INDIVIDUAL_MEASURE": "Mesures individuelles ?",
+        "INDIVIDUAL_MEASURE": "Mensurations ?",
         "WITH_MEASURE": "Avec mesure",
         "WITHOUT_MEASURE": "Sans mesure",
         "IS_SAMPLING": "Saisir le poids échantillonné (si mesure) :",
         "IS_INDIVIDUAL_MEASURE": "Mode rafale",
         "IS_INDIVIDUAL_COUNT": "Intervalle de taille",
+        "OUTLIERS_SUB_BATCHES": "Des valeurs aberrantes ont été détectées. Souhaitez-vous les conserver quand même ?",
         "SAMPLING_BATCH": "Échantillon",
         "SAMPLING_WEIGHT": "Poids échant. (kg)",
         "SAMPLING_CHILDREN_WEIGHT": "Poids calculé par RTP",
@@ -1220,8 +1221,8 @@
         "BTN_FILTER_TAXON_NAMES": "Restreindre aux espèces scientifiques par défaut",
         "IS_EXHAUSTIVE_INVENTORY": "Inventaire exhaustif des espèces ?",
         "INDIVIDUAL": {
-          "TITLE_PREFIX": "<small>Lot {{label}}<br/></small>",
-          "TITLE": "Mesures individuelles",
+          "TITLE_PREFIX": "<small>Lot {{label}} <br/> - Cat. : {{auctionSizeCat}} <br/> - Cat. UE : {{ueCategory}} <br/> - Etat : {{dressing}} <br/>  - Prés. : {{preservation}} <br/> </small>",
+          "TITLE": "Mensurations",
           "INDIVIDUAL_COUNT": "Nb individus",
           "BURST_FORM_TITLE": "Saisie rafale :",
           "ADD_MEASURE_DOTS": "Ajouter une mesure :",
@@ -1241,7 +1242,7 @@
       },
       "TABLE": {
         "BTN_AUTO_FILL": "Remplissage automatique des espèces",
-        "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures individuelles",
+        "BTN_INDIVIDUAL_MEASURE": "Saisir les mensurations",
         "BTN_IMAGES": "Ajouter des photos",
         "IMAGES": "Photo(s)",
         "LABEL": "Libellé",
@@ -1406,7 +1407,7 @@
         },
         "ACCIDENTAL_CATCH": {
           "TITLE": "Captures accidentelles",
-          "TAB_SAMPLES": "Mesures individuelles",
+          "TAB_SAMPLES": "Mensurations",
           "TAXON_GROUP": "Espèce (FAO)",
           "TAXON_NAME": "Espèce scientifique",
           "TAG_COUNT": "<b>{{tagCount}}</b> individu(s) marqué(s)"
@@ -1414,13 +1415,13 @@
         "OBSERVED_TRIP": {
           "TITLE": "Captures accidentelles",
           "RANK_ORDER": "N° ECH",
-          "TAB_SAMPLES": "Mesures individuelles",
+          "TAB_SAMPLES": "Mensurations",
           "TAXON_NAME": "Espèce scientifique",
           "TAG_COUNT": "<b>{{tagCount}}</b> individu(s) marqué(s)"
         },
         "SURVIVAL_TEST": {
           "TITLE": "Tests de survie",
-          "TAB_SAMPLES": "Mesures individuelles",
+          "TAB_SAMPLES": "Mensurations",
           "TAB_SUB_SAMPLES": "Suivi individuel",
           "BTN_INDIVIDUAL_MONITORING": "Saisir le suivi individuel",
           "TAG_COUNT": "<b>{{tagCount}}</b> Tag-ID"
@@ -1857,8 +1858,8 @@
       "INVALID_OBSERVED_COUNT": "Nombre d'espèces observées incorrect. Veuillez observer au moins {{minObservedCount}} espèces"
     },
     "CONFIRM": {
-      "DELETE_ONE_HAS_SAMPLE": "La sortie sélectionnée est liée à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
-      "DELETE_MANY_HAS_SAMPLE": "Les sorties sélectionnées sont liées à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
+      "DELETE_ONE_HAS_SAMPLE": "La sortie sélectionnée est liée à des mensurations.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
+      "DELETE_MANY_HAS_SAMPLE": "Les sorties sélectionnées sont liées à des mensurations.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
     },
     "REPORT": {
       "TITLE": "Rapport de sortie - {{ location }} - {{ dateTime }}",
@@ -1919,7 +1920,7 @@
         "STRATEGY_SUMMARY_TITLE": "Plan d'échantillonnage",
         "LANDING": "Débarquement :",
         "DATE": "Date de débarquement",
-        "TAB_SAMPLES": "Mesures individuelles",
+        "TAB_SAMPLES": "Mensurations",
         "LOCATION": "Port de débarquement",
         "CALCIFIED_TYPE": "Pièces calcifiées :"
       }
@@ -1977,7 +1978,7 @@
       "SAMPLING": {
         "TITLE": "Ligne de plan {{strategyLabel}} - {{vessel}}",
         "TITLE_SHORT": "Rapport d'échantillonnage",
-        "SAMPLES_TITLE": "Mesures individuelles"
+        "SAMPLES_TITLE": "Mensurations"
       },
       "AUCTION_CONTROL": {
         "EMBEDDED_TITLE": "Contrôle <b>{{species}}</b>",
@@ -1991,8 +1992,8 @@
       "CONTROL_SUCCEED": "<ion-icon name='checkmark'></ion-icon> Saisie contrôlée <b>avec succès</b> ! Aucune erreur détectée."
     },
     "CONFIRM": {
-      "DELETE_ONE_HAS_SAMPLE": "La donnée sélectionnée est liée à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
-      "DELETE_MANY_HAS_SAMPLE": "Les données sélectionnées sont liées à des mesures individuelles.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
+      "DELETE_ONE_HAS_SAMPLE": "La donnée sélectionnée est liée à des mensurations.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
+      "DELETE_MANY_HAS_SAMPLE": "Les données sélectionnées sont liées à des mensurations.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
     },
     "WARNING": {
       "NOT_OBSERVER_ERROR": "Le saisisseur de l'échantillonnage n'est pas un observateur de la sortie"
@@ -2657,16 +2658,16 @@
       "TRIP_BATCH_SAMPLING_RATIO_FORMAT": "Capture > Lot espèce: Format de la fraction",
       "TRIP_BATCH_EXHAUSTIVE_INVENTORY_ENABLE": "Capture > Lots espèces: Inventaire exhaustif ?",
       "TRIP_BATCH_WEIGHT_ENABLE": "Capture > Lot espèce : Saisir les poids ?",
-      "TRIP_BATCH_MEASURE_ENABLE": "Capture > Lot espèce : Activer les mesures individuelles ?",
-      "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Mesures individuelles : Réordonné à la sauvegarde ?",
-      "TRIP_BATCH_MEASURE_ICHTHYOMETER_ENABLE": "Capture > Mesures individuelles : Afficher l'icone bluetooth ?",
-      "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ONLY_ENABLE": "Capture > Mesures individuelles : Autoriser le choix mode rafale ou intervalle de taille ?",
-      "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Capture > Mesures individuelles : Saisir nb indiv. ?",
-      "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Capture > Mesures individuelles : Espèces scientifiques ?",
-      "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Capture > Mesures individuelles : Espèces commerciales ?",
-      "TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_UNIT": "Capture > Mesures individuelles : Unité de poids",
+      "TRIP_BATCH_MEASURE_ENABLE": "Capture > Lot espèce : Activer les mensurations ?",
+      "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Mensurations : Réordonné à la sauvegarde ?",
+      "TRIP_BATCH_MEASURE_ICHTHYOMETER_ENABLE": "Capture > Mensurations : Afficher l'icone bluetooth ?",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ONLY_ENABLE": "Capture > Mensurations : Autoriser le choix mode rafale ou intervalle de taille ?",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Capture > Mensurations : Saisir nb indiv. ?",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Capture > Mensurations : Espèces scientifiques ?",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Capture > Mensurations : Espèces commerciales ?",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_UNIT": "Capture > Mensurations : Unité de poids",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_BUTTON_ENABLE": "Capture > Mesures individuelles: Afficher le bouton des mesures individuelles",
-      "TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE": "Capture > Mesures individuelles : Calcul poids par RTP ?",
+      "TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE": "Capture > Mensurations : Calcul poids par RTP ?",
       "TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID": "Capture > Pays (ID) pour les équivalents poids vifs",
       "TRIP_SAMPLE_ENABLE": "Marée > Échantillon : Activer ?",
       "TRIP_SAMPLE_DATE_TIME_ENABLE": "Marée > Échantillon : Date et heure ?",
@@ -2788,6 +2789,7 @@
       "SALE_FAVORITES_ENABLE": "Sortie > Vente : Activer les favoris ?",
       "SALE_BATCH_ENABLE": "Sortie > Vente : Activer les lots ?",
       "SALE_BATCH_IMAGES_ENABLE": "Sortie > Vente : Activer les photos ?",
+      "SALE_BATCH_CHART_ENABLE": "Sortie > Vente : Activer le graphique ?",
       "SALE_METIER_ENABLE": "Sortie > Vente : Métier ?",
       "SALE_FISHING_AREA_LOCATION_LEVEL_IDS": "Sortie > Vente : Zone de pêche: Niveau(x) de lieu",
       "STRATEGY_EDITOR": "Stratégie > Éditeur",
@@ -2987,7 +2989,7 @@
         "PARAMETERS.WEIGHT_OR_LENGTH": "Le poids ou la taille est obligatoire",
         "PARAMETERS.MISSING_FRACTION": "Au moins un pièce calcifiée est obligatoire",
         "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}",
-        "EFFORT.REALIZED_EFFORT": "Effort obligatoire pour le(s) trimestre(s) {{quarters}} ayant des mesures individuelles",
+        "EFFORT.REALIZED_EFFORT": "Effort obligatoire pour le(s) trimestre(s) {{quarters}} ayant des mensurations",
         "LABEL.UNIQUE": "Le code de la ligne de plan existe déjà",
         "LABEL.ZERO": "L'incrément minimal est 001",
         "STRATEGY_HAS_DATA": "La ligne de plan {{ label }} est liée à une ou plusieurs observations individuelles",
@@ -3227,7 +3229,7 @@
       "HAS_BUOY": "Présence de flotteur?",
       "WIND_FORCE": "Force du vent",
       "SEA_STATE": "État de la mer",
-      "HAS_INDIVIDUAL_MEASURES": "Mesures individuelles?",
+      "HAS_INDIVIDUAL_MEASURES": "Mensurations?",
       "DOLPHIN_PRESENCE": "Dauphin autour navire?",
       "IS_ACOUSTIC_DEVICE": "Dispositif(s) de répulsif acoustique?",
       "HAS_ACCIDENTAL_CATCHES": "Captures accidentelles ?",

@@ -29,6 +29,8 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { AppIchthyometerModule } from '@app/shared/ichthyometer/ichthyometer.module';
 import { AppExtractionButtonModule } from '@app/extraction/button/extraction-button.module';
 import { SubSortingCriteriaForm } from './sub/sub-sorting-criteria.form';
+import { NgChartsModule } from 'ng2-charts';
+import { AppDynamicChartModule } from '@app/shared/chart/dynamic-chart.module';
 
 @NgModule({
   imports: [
@@ -50,6 +52,9 @@ import { SubSortingCriteriaForm } from './sub/sub-sorting-criteria.form';
     MatSamplingRatioFieldModule,
     AppIchthyometerModule,
     AppExtractionButtonModule,
+
+    NgChartsModule,
+    AppDynamicChartModule,
   ],
   declarations: [
     // Pipes

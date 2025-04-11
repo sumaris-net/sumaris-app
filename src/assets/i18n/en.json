@@ -2657,6 +2657,7 @@
       "SALE_FAVORITES_ENABLE": "Occasion > Sale: Enable favourites?",
       "SALE_BATCH_ENABLE": "Occasion > Sale: Enable batches?",
       "SALE_BATCH_IMAGES_ENABLE": "Occasion > Sale: Enable pictures?",
+      "SALE_BATCH_CHART_ENABLE": "Occasion > Sale : Enable chart?",
       "SALE_METIER_ENABLE": "Occasion > Sale: Metier ?",
       "SALE_FISHING_AREA_LOCATION_LEVEL_IDS": "Occasion > Sale > Fishing area: Location level(s)",
       "STRATEGY_EDITOR": "Strategy > editor",

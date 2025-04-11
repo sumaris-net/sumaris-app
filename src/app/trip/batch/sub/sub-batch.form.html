@@ -114,7 +114,7 @@
         mat-icon-button
         tabindex="-1"
         [disabled]="canFilterTaxonName || disabled"
-        [title]="'TRIP.BATCH.BTN_FILTER_TAXON_NAMES' | translate"
+        [title]="'TRIP.BATCH.EDIT.BTN_FILTER_TAXON_NAMES' | translate"
         (click)="toggleFilteredTaxonName()"
         [color]="enableTaxonNameFilter ? 'primary' : undefined"
       >
@@ -252,7 +252,7 @@
 
       <!-- checkbox (to manually set the individual count, otherwise it increment one by one) -->
       <!-- TODO MF FOR DEMO  class="ion-padding-end" -->
-      <mat-checkbox matSuffix [formControl]="enableIndividualCountControl" labelPosition="after" [tabIndex]="-1" class="ion-padding-end">
+      <mat-checkbox matSuffix [formControl]="freezeIndividualCountControl" labelPosition="after" [tabIndex]="-1" class="ion-padding-end">
         <ion-text><small translate>TRIP.BATCH.EDIT.INDIVIDUAL.BTN_MANUAL_ENTRY</small></ion-text>
       </mat-checkbox>
     </mat-form-field>

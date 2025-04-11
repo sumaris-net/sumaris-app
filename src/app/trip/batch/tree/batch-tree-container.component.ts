@@ -173,6 +173,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch> implements IBa
   @Input() rxStrategy: RxConcurrentStrategyNames = 'userBlocking';
   @Input() controlButtonText: 'QUALITY.BTN_CONTROL';
   @Input() enableImageAttachments: boolean;
+  @Input() enableChart: boolean;
 
   @Input() set disabled(value: boolean) {
     if (value && this._enabled) {

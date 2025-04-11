@@ -1218,6 +1218,13 @@ export const ProgramProperties = Object.freeze({
     type: 'boolean',
   },
 
+  SALE_BATCH_CHART_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.sale.batch.chart.enable',
+    label: 'PROGRAM.OPTIONS.SALE_BATCH_CHART_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
+
   SALE_METIER_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.sale.metier.enable',
     label: 'PROGRAM.OPTIONS.SALE_METIER_ENABLE',

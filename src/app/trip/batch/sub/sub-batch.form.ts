@@ -109,6 +109,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
   freezeTaxonNameControl: UntypedFormControl;
   freezeQvPmfmControl: UntypedFormControl;
   freezeQvPmfmsControl: UntypedFormControl;
+  freezeIndividualCountControl: UntypedFormControl;
   selectedTaxonNameIndex = -1;
   warning: string;
   weightPmfm: IPmfm;
@@ -161,6 +162,17 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     this.freezeTaxonNameControl.setValue(value);
     if (!value) {
       this.form.get('taxonName').reset(null);
+    }
+  }
+
+  get freezeIndividualCount(): boolean {
+    return this.freezeIndividualCountControl.value;
+  }
+
+  @Input() set freezeIndividualCount(value: boolean) {
+    this.freezeIndividualCountControl.setValue(value);
+    if (!value) {
+      this.form.get('individualCount').reset(null);
     }
   }
 
@@ -248,6 +260,8 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
 
     this.freezeTaxonNameControl = this.formBuilder.control(!this.mobile, Validators.required);
 
+    this.freezeIndividualCountControl = this.formBuilder.control(false, Validators.required);
+
     this.freezeQvPmfmsControl = this.formBuilder.control(false, Validators.required);
 
     // Listen pending status
@@ -270,6 +284,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch, SubBatchFormSt
     this.isNew = toBoolean(this.isNew, false);
     this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 4);
     this.freezeTaxonNameControl.setValue(!this.mobile, { emitEvent: false });
+    this.freezeIndividualCountControl.setValue(!this.mobile, { emitEvent: false });
 
     // Get display attributes for parent
     this._parentAttributes = this.settings

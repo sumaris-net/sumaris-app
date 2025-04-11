@@ -143,6 +143,11 @@
           [debug]="debug"
           [enableImageAttachments]="enableImageAttachments"
         ></app-sub-batch-form>
+        @if (enableChart) {
+          @defer {
+            <app-dynamic-chart #chart [chartConfig]="chartConfig" [chartData]="chartData"></app-dynamic-chart>
+          }
+        }
       </ion-col>
 
       <!-- table -->
@@ -302,12 +307,12 @@
 
         @if (showFilterTab) {
           <nav mat-tab-nav-bar [tabPanel]="tableContainer">
-            @for (item of taxonNameTabs; track item.id) {
-              <a mat-tab-link [active]="item.isActive" (click)="setTabFilter(item.id)">
+            @for (item of taxonTabs; track item.id) {
+              <a mat-tab-link [active]="item.isActive" (click)="setTabFilter(item.id)" [title]="item.usedRowsCount">
                 <ion-icon name="fish"></ion-icon>
                 &nbsp;
                 <ion-label
-                  [matBadge]="item.usedRowsCount"
+                  [matBadge]="item.usedRowsCount | badgeNumber"
                   matBadgeOverlap="false"
                   [matBadgeColor]="item.usedRowsCount > 0 ? 'primary' : 'warn'"
                   matBadgeSize="small"
@@ -329,7 +334,6 @@
           [matSortDirection]="defaultSortDirection"
           matSortDisableClear="true"
           [class.compact]="compact"
-          [class.disabled-table]="useCssDisabled"
         >
           <ng-container matColumnDef="select" [sticky]="sticky && !mobile && canEdit">
             <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || !canEdit">
@@ -454,7 +458,13 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header>
               <ion-label translate>TRIP.BATCH.TABLE.INDIVIDUAL_COUNT</ion-label>
             </th>
-            <td mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing" (click)="focusColumn = 'individualCount'">
+            <td
+              mat-cell
+              *matCellDef="let row"
+              [class.mat-form-field-disabled]="!row.editing"
+              (click)="focusColumn = 'individualCount'"
+              (focusout)="onRowBlur(row)"
+            >
               @if (row.editing) {
                 <mat-form-field>
                   <input
