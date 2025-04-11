@@ -152,7 +152,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
   @ViewChild('tripForm', { static: true }) tripForm: TripForm;
   //@ViewChild('saleForm') saleForm: SaleForm;
-  @ViewChildren('saleComponent') saleForms: QueryList<SaleForm>;
+  //@ViewChildren('saleComponent') saleForms: QueryList<SaleForm>;
   @ViewChild('physicalGearsTable', { static: true }) physicalGearsTable: PhysicalGearTable;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
   @ViewChild('operationsTable', { static: true }) operationsTable: OperationsTable;
@@ -160,7 +160,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   @ViewChild('expenseForm', { static: true }) expenseForm: ExpenseForm;
 
   get saleFormsEnabledCount(): number {
-    return this.saleForms?.filter((f) => f.enabled).length;
+    return -1; // return this.saleForms?.filter((f) => f.enabled).length;
   }
 
   get dirty(): boolean {
@@ -168,7 +168,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       this.dirtySubject.value ||
       // Ignore operation table, when computing dirty state
       this.children?.filter((c) => c !== this.operationsTable).some((c) => c.dirty) ||
-      this.saleForms?.some((form) => form.dirty) ||
+      //this.saleForms?.some((form) => form.dirty) ||
       false
     );
   }
@@ -195,13 +195,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   get loading(): boolean {
-    // console.debug(
-    //   this.logPrefix + 'loading()',
-    //   this.loadingSubject.value,
-    //   this.children?.filter((c) => c !== this.operationsTable).some((c) => c.loading),
-    //   this.children
-    // );
-
     return (
       this.loadingSubject.value ||
       // Ignore operation table, when computing loading state (to be able to save)
@@ -309,25 +302,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   addSale() {
     console.debug(this.logPrefix + 'addSale()');
     this.saleAppFormArray.add();
-
-    console.debug(this.logPrefix + 'addSale()');
-    if (!this.data?.sales) {
-      this.data.sales = [];
-    }
-    this.data.sales.push(new Sale());
-
-    //this.tripForm.form.get('sales').form. .addAsyncValidators()
-
     this.markForCheck();
-    // // TODO ici voir si saleForms est a jour et subscrire au changement de value si besoin ?
-    // this.saleForms.last.value = [];
-    // this.saleForms.last.markAsReady();
-    //if (this._enabled)
-
-    console.debug(this.logPrefix + 'addSale() sales Eanblling !!!!!! ---- --- - -- - ', this.data.sales, this.saleForms);
-    this.saleForms.last.enable();
-
-    console.debug(this.logPrefix + 'addSale() sales', this.data.sales, this.saleForms);
   }
 
   removeSale(index: number) {
@@ -384,29 +359,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
           .subscribe(() => this.onMeasurementsFormReady())
       );
     }
-
-    // listen to sale forms children view changes
-    this.registerSubscription(this.saleForms.changes.subscribe(() => this.refreshSaleForms()));
-  }
-
-  refreshSaleForms() {
-    console.debug(this.logPrefix + 'refreshSaleForms() if needed later');
-    this.saleForms.forEach((saleForm) => {
-      // set all as enabled
-      saleForm.markAsReady();
-      if (this._enabled) {
-        console.debug(this.logPrefix + 'refreshSaleForms() enable saleForm ---- enable saleForm ----', saleForm);
-        saleForm.enable();
-      }
-    });
-
-    // // on adding a new bait, prepare the new form
-    // if (this.addingNewBait) {
-    //   this.addingNewBait = false;
-    //   this.baitForms.last.value = [];
-    //   this.baitForms.last.markAsReady();
-    //   if (this._enabled) this.baitForms.last.enable();
-    // }
   }
 
   ngOnDestroy() {
@@ -871,7 +823,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
         // });
         //this.saleForms.addForm(null);
         console.debug(this.logPrefix + ' Ici on devrait avoir a moins une sales et une saleforms');
-        console.debug(this.logPrefix + 'setValue() [OK] saleForm(s)', data.sales, this.saleForms /*, this.saleForm*/);
+        console.debug(this.logPrefix + 'setValue() [OK] saleForm(s)', data.sales /*, this.saleForms */ /*, this.saleForm*/);
       }
 
       // Measurements
@@ -1064,8 +1016,17 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   async save(event?: Event, opts?: any): Promise<boolean> {
-    console.debug(this.logPrefix + 'save()', this.data, this.form, this.tripForm.value, this.saleForms);
-    //console.debug(this.logPrefix + 'save() suite', this.saving, this.loading);
+    console.debug(
+      this.logPrefix + 'save()',
+      {
+        program: this.program,
+        data: this.data,
+        form: this.form,
+        'tripForm.value': this.tripForm.value,
+      },
+      this.saving,
+      this.loading
+    );
     if (this.saving || this.loading) return false;
 
     // Workaround to avoid the option menu to be selected
@@ -1075,34 +1036,35 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     // propagation of values to parent
     // get saleForms values to put to tripForm.value
-    // const salesValue = this.saleForms.map((form) => ({progam: this.program, ...form.value}));
+    const salesValue = this.form.get('sales').value; //.map((sale) => ({program: this.program, ...sale} as Sale));
     // //console.debug('--- truc ---', salesValue,crtvalue);
 
-    // this.data.sales = salesValue;
-    // this.tripForm.value.sales = salesValue;
+    // set program on sales
+    this.data.sales = salesValue;
+    this.tripForm.value.sales = salesValue;
     // TODO OLM remove Fake to prevent Must supply a value for form control with name: 'program'
     //(this.form.controls.sales as AppFormArray).setValue(salesValue);
 
     // console.debug(this.logPrefix + 'save() Just before super save', salesValue, this.data, this.form, this.tripForm.value, this.saleForms);
 
-    // console.debug(this.logPrefix + 'save() VALUES', {
-    //   'data': this.data,
-    //   'form': this.form,
-    //   'form.value': this.form.value,
-    //   'tripForm.value': this.tripForm.value,
-    //   'saleForms': this.saleForms,
-    //   'form.get(\'sales\')': this.form.get('sales')
-    // });
+    console.debug(this.logPrefix + 'save() VALUES', {
+      data: this.data,
+      form: this.form,
+      'form.value': this.form.value,
+      'tripForm.value': this.tripForm.value,
+      //'saleForms': this.saleForms,
+      "form.get('sales')": this.form.get('sales'),
+    });
 
-    // console.debug('Validity:', {
-    //   'tripForm.valid': this.tripForm.valid,
-    //   'tripForm.error': this.tripForm.error,
-    //   'tripForm.form.valid': this.tripForm.form.valid,
-    //   'tripForm.form.validator': this.tripForm.form.validator,
-    //   'tripForm.form.errors': this.tripForm.form.errors,
-    //   'tripForm.form.get(\'sales\')': this.tripForm.form.get('sales'), // <== ici les données ne sont pas à jour...
-    //   'this.form.controls.sales': this.form.controls.sales,// <== ici les données ne sont pas à jour... (meme objet)
-    // } );
+    console.debug('Validity:', {
+      'tripForm.valid': this.tripForm.valid,
+      'tripForm.error': this.tripForm.error,
+      'tripForm.form.valid': this.tripForm.form.valid,
+      'tripForm.form.validator': this.tripForm.form.validator,
+      'tripForm.form.errors': this.tripForm.form.errors,
+      "tripForm.form.get('sales')": this.tripForm.form.get('sales'), // <== ici les données ne sont pas à jour...
+      'this.form.controls.sales': this.form.controls.sales, // <== ici les données ne sont pas à jour... (meme objet)
+    });
 
     // this.saleForms.forEach((form, index) => {
     //   console.debug(`SaleForm #${index} Validity:`, {
@@ -1110,9 +1072,19 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     //       'Errors': form.error,
     //       'form.form.validator': form.form.validator,
     //     });
-    //});
+    // });
 
-    return super.save(event, opts);
+    const retour = super
+      .save(event, opts)
+      .then((saved) => {
+        console.debug(this.logPrefix + 'save() [OK] saved', saved);
+        return saved;
+      })
+      .catch((err) => {
+        console.debug(this.logPrefix + 'save() [KO] err', err);
+        return false;
+      });
+    return retour;
   }
 
   /* -- protected methods -- */
@@ -1158,7 +1130,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     const json = await super.getJsonValueToSave();
 
     //json.sale = !this.saleForm.empty ? this.saleForm.value : null;
-    //json.sales = isEmptyArray(this.saleForms) ? [] : this.saleForms.map((form) => !form.empty ? form.value : null);
+    json.sales = this.saleAppFormArray.value.map((form) => form.value);
 
     return json;
   }
@@ -1175,10 +1147,10 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     data.gears = this.physicalGearService.value;
 
     // add sales values
-    this.saleForms
+    this.saleAppFormArray.value
       .map((form) => form.value)
       .filter(isNotEmptyArray)
-      .forEach((value) => data.sales.push(...value));
+      .forEach((value) => data.sales.push(value));
 
     return data;
   }
@@ -1360,34 +1332,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     this.measurementsForm.value = trip.measurements;
     this.form.patchValue(trip);
-  }
-
-  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    console.debug(this.logPrefix + 'enable()');
-    const r = super.enable(opts);
-    console.debug(this.logPrefix + 'enable() all sales forms +++++++++', r);
-    this.saleForms?.forEach((form) => form.enable(opts));
-    return r;
-  }
-
-  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.disable(opts);
-    this.saleForms?.forEach((form) => form.disable(opts));
-  }
-
-  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.markAsPristine(opts);
-    this.saleForms?.forEach((form) => form.markAsPristine(opts));
-  }
-
-  markAsUntouched(opts?: { onlySelf?: boolean }) {
-    super.markAsUntouched(opts);
-    this.saleForms?.forEach((form) => form.markAsUntouched());
-  }
-
-  markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.markAllAsTouched(opts);
-    this.saleForms?.forEach((form) => form.markAllAsTouched(opts));
   }
 
   protected markForCheck() {

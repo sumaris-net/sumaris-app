@@ -211,12 +211,7 @@
                   @let saleFormArray = saleFormArrayControl | formGetArray;
 
                   @if (saleFormArray) {
-                    @for (
-                      saleFormGroup of saleFormArray.controls;
-                      track saleFormGroup;
-                      let i=$index,
-                first=$first, last=$last, odd=$odd
-                    ) {
+                    @for (saleFormGroup of saleFormArray.controls; track saleFormGroup; let i=$index, first=$first, last=$last, odd=$odd) {
                       <ion-row [class.odd]="odd">
                         <ion-col>
                           <app-form-sale
@@ -233,6 +228,7 @@
                             [minDate]="returnDateTime$ | async"
                             [debug]="debug"
                             (ngInit)="addForm(null, saleComponent)"
+                            [config]="{ showTitle: first }"
                           ></app-form-sale>
                         </ion-col>
                         <ion-col size="1" class="ion-text-end ion-align-self-center">
