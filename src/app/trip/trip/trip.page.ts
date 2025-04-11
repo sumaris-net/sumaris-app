@@ -8,10 +8,8 @@ import {
   Input,
   OnDestroy,
   OnInit,
-  QueryList,
   Self,
   ViewChild,
-  ViewChildren,
 } from '@angular/core';
 
 import { TripService } from './trip.service';
@@ -22,7 +20,7 @@ import { MeasurementsForm } from '@app/data/measurement/measurements.form.compon
 import { PhysicalGearTable } from '../physicalgear/physical-gears.table'; // import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { AppRootDataEntityEditor, RootDataEntityEditorState } from '@app/data/form/root-data-editor.class';
-import { FormGroup, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
   Alerts,
@@ -173,22 +171,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     );
   }
 
-  // get valid(): boolean {
-  //   // Important: Should be not invalid AND not pending, so use '!valid' (and NOT 'invalid')
-  //   return (
-  //     super.valid &&
-  //     (this.saleForms?.toArray()?.every((form) => form.valid) ?? true)
-  //   );
-  // }
-
-  // get invalid(): boolean {
-  //   return super.invalid || this.saleForms?.some((form) => form.invalid);
-  // }
-
-  // get pending(): boolean {
-  //   return super.pending || this.saleForms?.some((form) => form.pending);
-  // }
-
   get saleAppFormArray() {
     console.debug(this.logPrefix + 'saleAppFormArray()', this.tripForm.form.get('sales'));
     return this.tripForm.form.get('sales') as AppFormArray<Sale, UntypedFormGroup>;
@@ -202,16 +184,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       false
     );
   }
-
-  // markAsReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-  //   super.markAsReady(opts);
-  //   this.saleForms?.forEach((form) => form.markAsReady(opts));
-  // }
-
-  // async ready(opts?: WaitForOptions): Promise<void> {
-  //   await super.ready(opts);
-  //   if (this.saleForms) await this.saleForms.forEach((form) => form.ready(opts));
-  // }
 
   get forceMeasurementAsOptional(): boolean {
     return this._forceMeasurementAsOptionalOnFieldMode && this.isOnFieldMode;
@@ -239,12 +211,11 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.operationPasteFlags = this.operationPasteFlags || 0;
 
     // FOR DEV ONLY ----
-    this.logPrefix = '🟦[trip-page]';
+    this.logPrefix = '[trip-page]';
   }
 
   ngOnInit() {
     super.ngOnInit();
-    console.debug(this.logPrefix + 'ngOnInit()');
 
     // Listen some field
     this._state.connect('departureLocation', this.tripForm.departureLocationChanges);
@@ -316,7 +287,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
-    console.debug(this.logPrefix + 'ngAfterViewInit()');
 
     // Cascade refresh to operation tables
     this.registerSubscription(
@@ -472,9 +442,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     // Trip form
     this.tripForm.i18nSuffix = i18nSuffix;
     this.tripForm.showSamplingStrata = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLING_STRATA_ENABLE);
-
-    //sales
-
     this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
     if (!this.tripForm.showObservers && this.data?.observers) {
       this.data.observers = []; // make sure to reset data observers, if any
@@ -491,9 +458,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.showExpensesForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_EXPENSES_ENABLE);
 
     // Sale form
-
     this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
-    console.debug(this.logPrefix + 'showSaleForm', this.showSaleForm);
     this.data.sales = [new Sale()];
 
     this.saleLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_SALE_LOCATION_LEVEL_IDS);
@@ -790,7 +755,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   async setValue(data: Trip) {
-    console.debug(this.logPrefix + 'setValue()', data);
     try {
       const isNewData = isNil(data.id);
 
@@ -953,9 +917,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     //console.log('TODO offlineFilter' + JSON.stringify(tripOfflineFilter));
 
     const programLabel = this.programLabel;
-    console.debug(this.logPrefix + 'openSearchPhysicalGearModal() programLabel:', programLabel);
     const requiredStrategy = this.requiredStrategy ?? this.physicalGearsTable.requiredStrategy;
-    console.debug(this.logPrefix + 'openSearchPhysicalGearModal() requiredStrategy:', requiredStrategy);
     const strategyId = toNumber(this.strategy?.id, this.physicalGearsTable.strategyId);
     const filter = <PhysicalGearFilter>{
       program: { label: programLabel },
@@ -1032,8 +994,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     // Workaround to avoid the option menu to be selected
     if (this.mobile) await sleep(50);
 
-    //const crtvalue = await this.getValue();
-
     // propagation of values to parent
     // get saleForms values to put to tripForm.value
     const salesValue = this.form.get('sales').value; //.map((sale) => ({program: this.program, ...sale} as Sale));
@@ -1066,14 +1026,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       'this.form.controls.sales': this.form.controls.sales, // <== ici les données ne sont pas à jour... (meme objet)
     });
 
-    // this.saleForms.forEach((form, index) => {
-    //   console.debug(`SaleForm #${index} Validity:`, {
-    //       'form.valid': form.valid,
-    //       'Errors': form.error,
-    //       'form.form.validator': form.form.validator,
-    //     });
-    // });
-
+    // TODO OLM remove. Juste pour debug
     const retour = super
       .save(event, opts)
       .then((saved) => {
@@ -1125,8 +1078,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   protected async getJsonValueToSave(): Promise<any> {
-    console.debug(this.logPrefix + 'getJsonValueToSave() tripForm', this.tripForm.value);
-
     const json = await super.getJsonValueToSave();
 
     //json.sale = !this.saleForm.empty ? this.saleForm.value : null;
@@ -1136,7 +1087,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   async getValue(): Promise<Trip> {
-    console.debug(this.logPrefix + 'getValue() tripForm', this.tripForm.value);
     const data = await super.getValue();
 
     data.measurements = (this.measurementsForm.value || []).concat(this.expenseForm.value);
