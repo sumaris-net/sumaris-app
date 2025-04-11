@@ -48,7 +48,6 @@ import { Moment } from 'moment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { SortDirection } from '@angular/material/sort';
 import { expansionInOutAnimation } from '@app/shared/material/material.animations';
-import { Sale } from '../sale/sale.model';
 
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
 
@@ -72,6 +71,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   protected metierFilter: Partial<MetierFilter>;
   protected metierFocusIndex = -1;
   protected canFilterMetier = false;
+  //protected salesFocusIndex = -1;
   protected readonly mobile = this.settings.mobile;
 
   @Input() showComment = true;
@@ -81,7 +81,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   @Input() vesselDefaultStatus = StatusIds.TEMPORARY;
   @Input() metierHistoryNbDays = 60;
   @Input() i18nSuffix = null;
-  logPrefix: string;
 
   @Input() set showSamplingStrata(value: boolean) {
     if (this._showSamplingStrata !== value) {
@@ -186,11 +185,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     return this.form.controls.observers as AppFormArray<Person, UntypedFormControl>;
   }
 
-  get salesForm() {
-    console.debug(this.logPrefix + 'get salesForm()', this.form.controls.sales);
-    return this.form.controls.sales as AppFormArray<Sale, UntypedFormControl>;
-  }
-
   get metiersForm() {
     return this.form.controls.metiers as AppFormArray<ReferentialRef<any>, UntypedFormControl>;
   }
@@ -200,7 +194,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   @Output() departureLocationChanges = new EventEmitter<ReferentialRef>();
   @Output() maxDateChanges = new EventEmitter<Moment>();
   @Output() metiersChanges = new EventEmitter<ReferentialRef[]>();
-  @Output() salesChanges = new EventEmitter<Sale[]>();
 
   @ViewChild('departureLocation') departureLocationField: MatAutocompleteField;
   @ViewChild('returnLocation') returnLocationField: MatAutocompleteField;
@@ -220,9 +213,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     protected cd: ChangeDetectorRef
   ) {
     super(injector, validatorService.getFormGroup());
-
-    // FOR DEV ONLY ----
-    this.logPrefix = '🔵[trip-form] ';
   }
 
   ngOnInit() {
@@ -331,10 +321,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   }
 
   ngOnReady() {
-    console.debug(this.logPrefix + 'ngOnReady() - updating form group...');
-
     this.updateFormGroup();
-    console.debug(this.logPrefix + 'ngOnReady() - updating form group done!');
 
     const departureDateTime$ = this.form.get('departureDateTime').valueChanges;
     const returnDateTime$ = this.form.get('returnDateTime').valueChanges;
@@ -360,18 +347,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     if (this.showMetiers) {
       this.registerSubscription(this.form.get('metiers').valueChanges.subscribe((metiers) => this.metiersChanges.next(metiers)));
     }
-
-    // //if (true) { //TOODO OLM: add condition on mutli sale if needed
-    // console.debug(this.logPrefix + 'ngOnReady() - subscribes sales vale change sales form', this.form.get('sales'));
-
-    // this.registerSubscription(
-    //   this.form.get('sales').valueChanges.subscribe((sales) => {
-    //     console.debug(this.logPrefix + 'ngOnReady() - sales value changes', sales);
-
-    //     //return this.salesChanges.next(sales);
-    //   })
-    // );
-    //}
   }
 
   registerAutocompleteField<E = any, EF = any>(fieldName: string, opts?: MatAutocompleteFieldAddOptions<E, EF>): MatAutocompleteFieldConfig<E, EF> {
@@ -397,7 +372,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   }
 
   async setValue(data: Trip, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-    console.debug(this.logPrefix + 'setValue()', data, opts);
     // Wait ready (= form group updated, by the parent page)
     await this.ready();
 
@@ -419,8 +393,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     }
 
     this.maxDateChanges.emit(DateUtils.max(data.departureDateTime, data.returnDateTime));
-
-    console.debug(this.logPrefix + 'setValue() - setting form value...', data, opts);
 
     // Send value for form
     super.setValue(data, opts);
@@ -451,11 +423,11 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     if (vessel) {
       const vesselSnapshot =
         vessel instanceof VesselSnapshot ? vessel : vessel instanceof Vessel ? VesselSnapshot.fromVessel(vessel) : VesselSnapshot.fromObject(vessel);
-      console.debug(this.logPrefix + 'New vessel added : updating form...', vesselSnapshot);
+      console.debug('[trip-form] New vessel added : updating form...', vesselSnapshot);
       this.form.controls['vesselSnapshot'].setValue(vesselSnapshot);
       this.markForCheck();
     } else {
-      console.debug(this.logPrefix + ' No vessel added (user cancelled)');
+      console.debug('[trip-form] No vessel added (user cancelled)');
     }
   }
 
@@ -483,7 +455,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     let value = this.form.get('departureLocation').value;
     if (ReferentialUtils.isEmpty(value)) return; // Skip
 
-    console.debug(this.logPrefix + ' Copying location...', value);
+    console.debug('[trip-form] Copying location...', value);
     if (value instanceof ReferentialRef) value = value.asObject();
 
     const targetControl = this.form.get('returnLocation');
@@ -500,7 +472,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   }
 
   protected updateMetierFilter(value?: Trip) {
-    console.debug(this.logPrefix + ' Updating metier filter...');
+    console.debug('[trip-form] Updating metier filter...');
     value = value || (this.form.value as Trip);
     const program = value.program || this.form.get('program').value;
     const programLabel = program && program.label;
@@ -594,8 +566,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   }
 
   updateFormGroup() {
-    console.debug(this.logPrefix + 'Updating form group...');
-
     const validatorOpts: TripValidatorOptions = {
       returnFieldsRequired: this._returnFieldsRequired,
       minDurationInHours: this.minDurationInHours,
@@ -606,7 +576,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     };
 
     if (!equals(validatorOpts, this._lastValidatorOpts)) {
-      console.info(this.logPrefix + ' Updating form group, using opts', validatorOpts);
+      console.info('[trip-form] Updating form group, using opts', validatorOpts);
 
       this.validatorService.updateFormGroup(this.form, validatorOpts);
 
