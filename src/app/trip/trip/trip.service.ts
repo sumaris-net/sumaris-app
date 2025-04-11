@@ -167,6 +167,9 @@ export const TripFragments = {
     sale {
       ...TripSaleFragment
     }
+    sales { 
+      ...TripSaleFragment
+    }
     gears {
       ...PhysicalGearFragment
     }

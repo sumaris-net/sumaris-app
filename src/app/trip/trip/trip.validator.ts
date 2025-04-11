@@ -94,13 +94,11 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
   // Méthode pour créer un AppFormArray pour les ventes
   getSalesArray(data?: Sale[], opts?: { required?: boolean }): AppFormArray<Sale, UntypedFormGroup> {
-    const required = !opts || opts.required !== false;
     console.debug(this.logPrefix + `(${data?.[0]?.program?.id}) getSalesArray()`, data);
-    if (!data) data = [new Sale()]; // Crée une vente vide si aucune donnée n'est fournie
+    const required = !opts || opts.required !== false;
 
-    console.debug(this.logPrefix + `(${data?.[0]?.program?.id}) getSalesArray()`);
     const formArray = new AppFormArray<Sale, UntypedFormGroup>(
-      (sale) => this.saleValidator.getFormGroup(sale), // Utilisation du SaleValidatorService pour chaque vente
+      (sale) => this.saleValidator.getFormGroup(sale, { ...opts, withProgram: false }), // Utilisation du SaleValidatorService pour chaque vente
       (a, b) => a?.equals(b) /*a.id === b.id*/, // Comparaison des ventes
       (a) => false /*!!a.id*/, // Vérification si une vente est vide
       {
