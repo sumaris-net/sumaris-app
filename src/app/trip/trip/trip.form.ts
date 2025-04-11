@@ -71,7 +71,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   protected metierFilter: Partial<MetierFilter>;
   protected metierFocusIndex = -1;
   protected canFilterMetier = false;
-  //protected salesFocusIndex = -1;
   protected readonly mobile = this.settings.mobile;
 
   @Input() showComment = true;
