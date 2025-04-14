@@ -271,7 +271,7 @@ export const DataFragments = {
         ...MetierFragment
       }
       gear {
-        ...LightReferentialFragment
+        ...GearFragment
       }
       fishingAreas {
         ...FishingAreaFragment
@@ -305,7 +305,7 @@ export const DataFragments = {
         ...MetierFragment
       }
       gear {
-        ...LightReferentialFragment
+        ...GearFragment
       }
       creationDate
       updateDate
