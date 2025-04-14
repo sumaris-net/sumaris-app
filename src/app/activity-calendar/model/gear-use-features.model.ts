@@ -21,6 +21,7 @@ import { IWithProgramEntity } from '@app/data/services/model/model.utils';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
 import { FishingArea, FishingAreaUtils } from '@app/data/fishing-area/fishing-area.model';
 import { IUseFeatures } from '@app/activity-calendar/model/use-features.model';
+import { GearRef } from '@app/referential/gear/gear.model';
 
 @EntityClass({ typename: 'GearUseFeaturesVO' })
 export class GearUseFeatures extends DataEntity<GearUseFeatures> implements IWithProgramEntity<GearUseFeatures>, IUseFeatures<GearUseFeatures> {
@@ -71,7 +72,7 @@ export class GearUseFeatures extends DataEntity<GearUseFeatures> implements IWit
   endDate: Moment = null;
   rankOrder: number = null;
   metier: Metier = null;
-  gear: ReferentialRef = null;
+  gear: GearRef = null;
   dataOrigins: DataOrigin[] = null;
   measurementValues: MeasurementModelValues | MeasurementFormValues = null;
   fishingAreas: FishingArea[] = null;
@@ -110,7 +111,7 @@ export class GearUseFeatures extends DataEntity<GearUseFeatures> implements IWit
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
     this.metier = source.metier && Metier.fromObject(source.metier);
-    this.gear = source.gear && ReferentialRef.fromObject(source.gear);
+    this.gear = source.gear && GearRef.fromObject(source.gear);
     this.rankOrder = source.rankOrder;
     this.dataOrigins = source.dataOrigins?.map(DataOrigin.fromObject) || undefined;
     this.measurementValues = { ...source.measurementValues }; // Copy values

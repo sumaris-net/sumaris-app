@@ -188,6 +188,7 @@ export const ActivityCalendarFragments = {
     ${DataCommonFragments.lightPerson}
     ${DataCommonFragments.referential}
     ${DataCommonFragments.location}
+    ${DataCommonFragments.gear}
     ${VesselSnapshotFragments.lightVesselSnapshot}
     ${DataFragments.vesselUseFeatures}
     ${DataFragments.gearUseFeatures}

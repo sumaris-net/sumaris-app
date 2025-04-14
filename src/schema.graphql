@@ -485,11 +485,11 @@ type GearPhysicalFeaturesVO {
   dataOrigins: [DataOriginVO]
   endDate: Date
   flags: Int!
-  gear: ReferentialVO
+  gear: GearVO
   id: Int
   measurementValues: Map_Integer_StringScalar
   metier: MetierVO
-  otherGear: ReferentialVO
+  otherGear: GearVO
   program: ProgramVO
   qualificationComments: String
   qualificationDate: Date
@@ -517,12 +517,12 @@ type GearUseFeaturesVO {
   endDate: Date
   fishingAreas: [FishingAreaVO]
   flags: Int!
-  gear: ReferentialVO
+  gear: GearVO
   id: Int
   "Get gear use features measurements"
   measurementValues: Map_Integer_StringScalar
   metier: MetierVO
-  otherGear: ReferentialVO
+  otherGear: GearVO
   program: ProgramVO
   qualificationComments: String
   qualificationDate: Date
@@ -2947,11 +2947,11 @@ input GearPhysicalFeaturesVOInput {
   creationDate: Date
   dataOrigins: [DataOriginVOInput]
   endDate: Date
-  gear: ReferentialVOInput
+  gear: GearVOInput
   id: Int
   measurementValues: Map_Integer_StringScalar
   metier: MetierVOInput
-  otherGear: ReferentialVOInput
+  otherGear: GearVOInput
   program: ProgramVOInput
   qualificationComments: String
   qualificationDate: Date
@@ -2978,11 +2978,11 @@ input GearUseFeaturesVOInput {
   dataOrigins: [DataOriginVOInput]
   endDate: Date
   fishingAreas: [FishingAreaVOInput]
-  gear: ReferentialVOInput
+  gear: GearVOInput
   id: Int
   measurementValues: Map_Integer_StringScalar
   metier: MetierVOInput
-  otherGear: ReferentialVOInput
+  otherGear: GearVOInput
   program: ProgramVOInput
   qualificationComments: String
   qualificationDate: Date

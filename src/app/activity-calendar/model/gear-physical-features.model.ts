@@ -15,6 +15,7 @@ import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { Metier } from '@app/referential/metier/metier.model';
 import { IWithProgramEntity } from '@app/data/services/model/model.utils';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
+import { GearRef } from '@app/referential/gear/gear.model';
 
 @EntityClass({ typename: 'GearPhysicalFeaturesVO' })
 export class GearPhysicalFeatures extends DataEntity<GearPhysicalFeatures> implements IWithProgramEntity<GearPhysicalFeatures> {
@@ -38,8 +39,8 @@ export class GearPhysicalFeatures extends DataEntity<GearPhysicalFeatures> imple
   endDate: Moment = null;
   rankOrder: number = null;
   metier: Metier = null;
-  gear: ReferentialRef = null;
-  otherGear: ReferentialRef = null;
+  gear: GearRef = null;
+  otherGear: GearRef = null;
   dataOrigins: DataOrigin[] = null;
   measurementValues: MeasurementModelValues | MeasurementFormValues = null;
 
@@ -76,8 +77,8 @@ export class GearPhysicalFeatures extends DataEntity<GearPhysicalFeatures> imple
     this.startDate = fromDateISOString(source.startDate);
     this.endDate = fromDateISOString(source.endDate);
     this.metier = source.metier && Metier.fromObject(source.metier);
-    this.gear = source.gear && ReferentialRef.fromObject(source.gear);
-    this.otherGear = source.otherGear && ReferentialRef.fromObject(source.otherGear);
+    this.gear = source.gear && GearRef.fromObject(source.gear);
+    this.otherGear = source.otherGear && GearRef.fromObject(source.otherGear);
     this.rankOrder = source.rankOrder;
     this.dataOrigins = source.dataOrigins?.map(DataOrigin.fromObject) || undefined;
     this.measurementValues = { ...source.measurementValues }; // Copy values
