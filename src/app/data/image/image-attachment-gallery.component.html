@@ -15,6 +15,8 @@
       <ion-col>
         error: {{ errorSubject | async }}
         <br />
+        cardTemplate: {{ gallery.cardTemplate | isNotNil }}
+        <br />
       </ion-col>
     </ion-row>
   </ion-grid>
@@ -31,6 +33,7 @@
   [showToolbar]="showToolbar"
   [showAddCardButton]="!disabled && showAddCardButton"
   [showFabButton]="showFabButton"
+  [cardTemplate]="cardTemplate"
   (onAfterAddRows)="onAfterAddRows($event)"
   (onAfterEditRow)="onAfterEditRow($event)"
   [debug]="debug"
