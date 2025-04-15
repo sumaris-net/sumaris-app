@@ -45,12 +45,17 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
   @Input() i18nSuffix: string;
   @Input() showParent = false;
   @Input() locationLevelIds: number[];
+  @Input() config: any = { showTitle: true };
 
   @Input() set required(value: boolean) {
     if (this._required !== value) {
       this._required = value;
       if (!this.loading) this.updateFormGroup();
     }
+  }
+
+  get showTitle(): boolean {
+    return this.config.showTitle !== false;
   }
 
   get required(): boolean {
