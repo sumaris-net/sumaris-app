@@ -4,7 +4,7 @@
   mat-icon-button
   type="button"
   tabindex="-1"
-  [title]="(allowMultiple ? 'COMMON.BTN_ADD_TO_FAVORITES' : 'COMMON.BTN_SET_AS_FAVORITE') | translate"
+  [title]="(favorite ? 'COMMON.BTN_DELETE_FAVORITE' : allowMultiple ? 'COMMON.BTN_ADD_TO_FAVORITES' : 'COMMON.BTN_SET_AS_FAVORITE') | translate"
   (click)="toggleFavorite($event)"
   [color]="favorite ? 'primary' : undefined"
   [disabled]="control.invalid"

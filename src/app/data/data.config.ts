@@ -112,32 +112,32 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     defaultValue: true,
   },
   SHOW_RECORDER: <FormFieldDefinition>{
-    key: 'sumaris.data.show.recorder.enable',
+    key: 'sumaris.data.show.recorder.enable', // FIXME: bad code - remove `show` !!
     label: 'CONFIGURATION.OPTIONS.DATA_SHOW_RECORDER',
     type: 'boolean',
     defaultValue: true,
   },
   SHOW_OBSERVERS: <FormFieldDefinition>{
-    key: 'sumaris.data.show.observer.enable',
+    key: 'sumaris.data.show.observer.enable', // FIXME: bad code - remove `show` !!
     label: 'CONFIGURATION.OPTIONS.DATA_SHOW_OBSERVERS',
     type: 'boolean',
     defaultValue: true,
   },
   SHOW_FILTER_PROGRAM: <FormFieldDefinition>{
-    key: 'sumaris.data.landing.show.filter.program.enable',
-    label: 'CONFIGURATION.OPTIONS.LANDING.FILTER_PROGRAM',
+    key: 'sumaris.data.landing.show.filter.program.enable', // FIXME: bad code - remove `landing.show` !!
+    label: 'CONFIGURATION.OPTIONS.LANDING.FILTER_PROGRAM', // FIXME: bad i18n key - remove `LANDING`
     type: 'boolean',
     defaultValue: true,
   },
   SHOW_FILTER_LOCATION: <FormFieldDefinition>{
-    key: 'sumaris.data.landing.show.filter.location.enable',
-    label: 'CONFIGURATION.OPTIONS.LANDING.FILTER_LOCATION',
+    key: 'sumaris.data.landing.show.filter.location.enable', // FIXME: bad code - remove `landing.show` !!
+    label: 'CONFIGURATION.OPTIONS.LANDING.FILTER_LOCATION', // FIXME: bad i18n key - remove `LANDING`
     type: 'boolean',
     defaultValue: true,
   },
   SHOW_FILTER_PERIOD: <FormFieldDefinition>{
-    key: 'sumaris.data.landing.show.filter.period.enable',
-    label: 'CONFIGURATION.OPTIONS.LANDING.FILTER_PERIOD',
+    key: 'sumaris.data.landing.show.filter.period.enable', // FIXME: bad code - remove `landing.show` !!
+    label: 'CONFIGURATION.OPTIONS.LANDING.FILTER_PERIOD', // FIXME: bad i18n key - remove `LANDING`
     type: 'boolean',
     defaultValue: true,
   },

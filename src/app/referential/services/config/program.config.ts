@@ -104,6 +104,12 @@ export const ProgramProperties = Object.freeze({
     // DEV only ---
     // defaultValue: DataStrategyResolutions.SPATIO_TEMPORAL
   },
+  DATA_FAVORITES_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.data.favorites.enable',
+    label: 'PROGRAM.OPTIONS.DATA_FAVORITES_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean',
+  },
 
   // Report options
   DATA_REPORT_COLOR_PRIMARY: <FormFieldDefinition>{
@@ -189,7 +195,7 @@ export const ProgramProperties = Object.freeze({
   TRIP_FAVORITES_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.favorites.enable',
     label: 'PROGRAM.OPTIONS.TRIP_FAVORITES_ENABLE',
-    defaultValue: 'false',
+    defaultValue: 'true',
     type: 'boolean',
   },
 
@@ -938,7 +944,6 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean',
   },
-
   OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.aggregatedLandings.enable',
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE',
@@ -1178,14 +1183,12 @@ export const ProgramProperties = Object.freeze({
     autocomplete: pmfmAutocomplete,
     defaultValue: null,
   },
-  // TODO remove
-  /*LANDING_TOP_PMFM_IDS: <FormFieldDefinition>{
-    key: 'sumaris.landing.topPmfmIds',
-    label: 'PROGRAM.OPTIONS.LANDING_TOP_PMFM_IDS',
-    defaultValue: null,
-    type: 'entities',
-    autocomplete: pmfmAutocompleteConfig,
-  },*/
+  LANDING_FAVORITES_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.landing.favorites.enable',
+    label: 'PROGRAM.OPTIONS.LANDING_FAVORITES_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean',
+  },
 
   /* -- Sale -- */
 
@@ -1213,7 +1216,7 @@ export const ProgramProperties = Object.freeze({
   SALE_FAVORITES_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.sale.favorite.enable',
     label: 'PROGRAM.OPTIONS.SALE_FAVORITES_ENABLE',
-    defaultValue: 'false',
+    defaultValue: 'true',
     type: 'boolean',
   },
 

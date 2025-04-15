@@ -548,6 +548,8 @@ export class SalePage<ST extends SalePageState = SalePageState>
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
 
+    await super.setProgram(program);
+
     const showStrategy =
       program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE) ||
       program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION) === 'user-select';
@@ -556,7 +558,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
     this.requiredStrategy = requiredStrategy;
     this.strategyResolution = showStrategy ? 'user-select' : program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION);
-    this.showFavorites = program.getPropertyAsBoolean(ProgramProperties.SALE_FAVORITES_ENABLE);
+    this.showFavorites = this.showFavoritesByProgram && program.getPropertyAsBoolean(ProgramProperties.SALE_FAVORITES_ENABLE);
 
     // Customize the UI, using program options
     this.saleForm.showFavorites = this.showFavorites;

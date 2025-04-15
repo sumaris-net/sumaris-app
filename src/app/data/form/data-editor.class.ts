@@ -23,6 +23,7 @@ import {
   MarkdownUtils,
   Message,
   MessageService,
+  Observed,
   Person,
   PersonService,
   PlatformService,
@@ -70,6 +71,15 @@ export interface AppDataEditorState extends AppDataState {
   requiredStrategy: boolean;
   strategy: Strategy;
   strategyFilter: Partial<StrategyFilter>;
+
+  /**
+   * Is favorites enable on program (all editors) ?
+   */
+  showFavoritesByProgram: boolean;
+
+  /**
+   * Is favorites enable on this ?
+   */
   showFavorites: boolean;
 }
 
@@ -82,7 +92,7 @@ export abstract class AppDataEntityEditor<
     ST extends AppDataEditorState = AppDataEditorState,
   >
   extends AppEntityEditor<T, S, ID>
-  implements OnInit, AfterViewInit, OnDestroy, IFormPathTranslator
+  implements OnInit, AfterViewInit, OnDestroy, IFormPathTranslator, AppDataEditorState, Observed<AppDataEditorState>
 {
   @RxStateRegister() protected readonly _state: RxState<ST> = inject(RxState);
 
@@ -125,6 +135,7 @@ export abstract class AppDataEntityEditor<
   @RxStateSelect() availableExpertiseAreas$: Observable<ExpertiseArea[]>;
   @RxStateSelect() selectedExpertiseArea$: Observable<ExpertiseArea>;
   @RxStateSelect() expertiseAreaProperties$: Observable<IExpertiseAreaProperties>;
+  @RxStateSelect() showFavoritesByProgram$: Observable<boolean>;
   @RxStateSelect() showFavorites$: Observable<boolean>;
 
   @RxStateProperty() acquisitionLevel: AcquisitionLevelType;
@@ -138,6 +149,7 @@ export abstract class AppDataEntityEditor<
   @RxStateProperty() availableExpertiseAreas: ExpertiseArea[];
   @RxStateProperty() selectedExpertiseArea: ExpertiseArea;
   @RxStateProperty() expertiseAreaProperties: IExpertiseAreaProperties;
+  @RxStateProperty() showFavoritesByProgram: boolean;
   @RxStateProperty() showFavorites: boolean;
 
   protected constructor(injector: Injector, dataType: new () => T, dataService: S, options?: AppDataEditorOptions) {
@@ -361,6 +373,9 @@ export abstract class AppDataEntityEditor<
     const strategyResolution = program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION);
     console.info(this.logPrefix + 'Strategy resolution: ' + strategyResolution);
     this.strategyResolution = strategyResolution;
+
+    // Set favorites
+    this.showFavoritesByProgram = program.getPropertyAsBoolean(ProgramProperties.DATA_FAVORITES_ENABLE);
   }
 
   protected async setStrategy(strategy: Strategy) {
@@ -523,7 +538,7 @@ export abstract class AppDataEntityEditor<
     return this.getControlFavorites(controlName, { ...options, allowMultiple: false });
   }
 
-  getControlFavorites(
+  protected getControlFavorites(
     controlName: string | keyof Omit<Omit<T, 'fromObject'>, 'asObject'>,
     options?: {
       pageId?: string;
@@ -538,30 +553,14 @@ export abstract class AppDataEntityEditor<
     });
   }
 
-  toggleControlFavorite(
-    controlName: string | keyof Omit<Omit<T, 'fromObject'>, 'asObject'>,
-    value: any,
-    options?: {
-      pageId?: string;
-      pageFavorites?: { [key: string]: any };
-      allowMultiple?: boolean; // true by default
-      emitEvent?: boolean;
-    }
-  ): any {
-    return this.favoriteService.toggleControlFavorite(controlName as string, value, {
-      pageId: this.settingsId,
-      ...options,
-    });
-  }
-
   protected async onConfigLoaded(config: Configuration) {
-    if (!this.mobile) {
-      console.info('[base-data-editor] Init using config', config);
-      const canSendMessage = config.getPropertyAsBoolean(APP_SOCIAL_CONFIG_OPTIONS.ENABLE_NOTIFICATION_ICONS);
-      if (this.canSendMessage !== canSendMessage) {
-        this.canSendMessage = canSendMessage;
-        this.markForCheck();
-      }
+    console.info('[base-data-editor] Init using config', config);
+
+    // Set message enabled
+    const canSendMessage = !this.mobile && config.getPropertyAsBoolean(APP_SOCIAL_CONFIG_OPTIONS.ENABLE_NOTIFICATION_ICONS);
+    if (this.canSendMessage !== canSendMessage) {
+      this.canSendMessage = canSendMessage;
+      this.markForCheck();
     }
   }
 
@@ -606,7 +605,9 @@ export abstract class AppDataEntityEditor<
     }
   }
 
-  devToggleDebug() {
+  /* -- DEV methods -- */
+
+  protected devToggleDebug() {
     this.debug = !this.debug;
     this.markForCheck();
 

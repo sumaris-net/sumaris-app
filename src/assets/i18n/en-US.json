@@ -46,8 +46,9 @@
     "BTN_SAVE": "Save",
     "BTN_SAVE_WITH_SHORTCUT": "<u>S</u>ave",
     "BTN_SAVE_WITH_SHORTCUT_HELP": "Save (Ctrl+S)",
-    "BTN_SET_AS_FAVORITE": "Set as favourite",
+    "BTN_SET_AS_FAVORITE": "Set as favorite",
     "BTN_ADD_TO_FAVORITES": "Add to favorites",
+    "BTN_DELETE_FAVORITE": "Remove from favorites",
     "BTN_FILTER": "Filter",
     "BTN_RELOAD": "Reload",
     "BTN_REFRESH": "Refresh",
@@ -784,7 +785,8 @@
       "TITLE": "<small>{{vessel}}<br></small>Trip of {{departureDateTime}}",
       "OTHER_FEATURES": "Other features:",
       "BTN_DELETE": "Delete the full trip",
-      "BTN_REPORT": "Edit report..."
+      "BTN_REPORT": "Edit report...",
+      "BTN_DUPLICATE_LOCATION": "Duplicate to return port"
     },
     "CARD": {
       "DEPARTURE_DOTS": "Departure:",
@@ -2482,6 +2484,7 @@
       "TRIP_METIERS_HISTORY_NB_DAYS": "Trip: Filtered metiers > Nb. days",
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Trip: Are other features optional, when on field?",
       "TRIP_HELP_URL": "Trip: Online help (URL)",
+      "TRIP_FAVORITES_ENABLE": "Trip: Enable favorites?",
       "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Trip > Gears: Optional pmfms to show (ids)",
       "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_HIDE_EMPTY": "Trip > Gears: Hide empty pmfm columns?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Trip > Gear: Enter the gear number?",
@@ -2591,6 +2594,7 @@
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Occasion > Add landing: Show history?",
       "OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE": "Occasion > Enable sampling plan data entry?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Occasion > Location level(s)",
+      "OBSERVED_LOCATION_FAVORITES_ENABLE": "Occasion: Enable favorites?",
       "OBSERVED_LOCATION_CONTROL_ENABLE": "Occasion: Enable control at end of data entry?",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Occasion > Weekly activity calendar?",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Occasion > Weekly activity calendar > Target program",
@@ -2626,6 +2630,7 @@
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Occasion > Fishing area: Location level(s)",
       "PROGRAM_PRIVILEGE_READONLY": "Program > Access rights: read only?",
       "SALE_LOCATION_LEVEL_IDS": "Occasion > Sale: Location level(s)",
+      "SALE_FAVORITES_ENABLE": "Occasion > Sale: Enable favorites?",
       "SALE_BATCH_ENABLE": "Occasion > Sale: Enable batches?",
       "STRATEGY_EDITOR": "Strategy > editor",
       "STRATEGY_EDITOR_ENUM": {
@@ -2640,6 +2645,7 @@
       "MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS": "Qualitative values > Max values count to use buttons (mobile)",
       "VESSEL_TYPE_ENABLE": "Vessels > Enable vessel type?",
       "VESSEL_FILTER_DEFAULT_TYPE_IDS": "Data entry > Vessel: Vessel type(s) (filter)",
+      "DATA_FAVORITES_ENABLE": "Data Entry > Enable favourites?",
       "DATA_OBSERVERS_CAN_WRITE": "Data entry > Authorize the observer of data to modify it?",
       "DATA_STRATEGY_RESOLUTION": "Data entry > Collection strategy resolution",
       "DATA_STRATEGY_RESOLUTION_ENUM": {

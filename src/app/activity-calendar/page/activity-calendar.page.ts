@@ -32,6 +32,8 @@ import {
   Property,
   ReferentialRef,
   removeDuplicatesFromArray,
+  RxStateProperty,
+  RxStateSelect,
   splitByProperty,
   toBoolean,
   toNumber,
@@ -55,7 +57,6 @@ import { RxState } from '@rx-angular/state';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { CalendarComponent } from '@app/activity-calendar/calendar/calendar.component';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
-import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { CalendarUtils } from '@app/activity-calendar/calendar/calendar.utils';
 import { ActivityMonthUtils } from '@app/activity-calendar/calendar/activity-month.utils';
@@ -600,7 +601,7 @@ export class ActivityCalendarPage
     if (!programLabel) this.markAsReady();
   }
 
-  devToggleDebug() {
+  protected devToggleDebug() {
     super.devToggleDebug();
 
     setTimeout(() => {

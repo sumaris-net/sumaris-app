@@ -187,19 +187,20 @@
 
               <app-entity-metadata [value]="data" [showRecorder]="showRecorder">
                 <!-- Compose message -->
-                <ion-button
-                  recorderSuffix
-                  *ngIf="showRecorder && canSendMessage"
-                  slot="end"
-                  size="small"
-                  fill="clear"
-                  color="tertiary"
-                  class="visible-hover ion-no-margin"
-                  [title]="'DATA.BTN_WRITE_TO_RECORDER' | translate"
-                  (click)="openComposeMessageModal(data?.recorderPerson)"
-                >
-                  <ion-icon slot="icon-only" name="mail"></ion-icon>
-                </ion-button>
+                @if (showRecorder && canSendMessage) {
+                  <ion-button
+                    recorderSuffix
+                    slot="end"
+                    size="small"
+                    fill="clear"
+                    color="tertiary"
+                    class="visible-hover ion-no-margin"
+                    [title]="'DATA.BTN_WRITE_TO_RECORDER' | translate"
+                    (click)="openComposeMessageModal(data?.recorderPerson)"
+                  >
+                    <ion-icon slot="icon-only" name="mail"></ion-icon>
+                  </ion-button>
+                }
 
                 <!-- Observers -->
                 @if (data?.observers | isNotEmptyArray) {

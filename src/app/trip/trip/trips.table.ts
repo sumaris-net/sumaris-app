@@ -240,7 +240,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
 
     this.registerSubscription(this.configService.config.pipe(filter(isNotNil)).subscribe((config) => this.onConfigLoaded(config)));
 
-    // Clear the existing trip context
+    // Clear the existing context
     this.resetContext();
 
     // Restore card view

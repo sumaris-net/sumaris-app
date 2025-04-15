@@ -91,29 +91,29 @@ export class ObservedLocationPage
 
   private _measurementSubscription: Subscription;
 
-  @RxStateSelect() landingTableType$: Observable<LandingTableType>;
-  @RxStateSelect() landingTable$: Observable<ILandingsTable>;
-  dbTimeZone = DateUtils.moment().tz();
+  protected dbTimeZone = DateUtils.moment().tz();
+  protected allowAddNewVessel: boolean;
+  protected showLandingTab = false;
+  protected canAddLandings = true;
+  protected showVesselType: boolean;
+  protected showVesselBasePortLocation: boolean;
+  protected addLandingUsingHistoryModal: boolean;
+  protected autoFillLandings: boolean;
+  protected showRecorder = true;
+  protected showObservers = true;
+  protected showStrategyCard = false;
+  protected enableReport: boolean;
+  protected landingEditor: LandingEditor;
 
-  allowAddNewVessel: boolean;
-  showLandingTab = false;
-  canAddLandings = true;
-  showVesselType: boolean;
-  showVesselBasePortLocation: boolean;
-  addLandingUsingHistoryModal: boolean;
-  autoFillLandings: boolean;
-  showRecorder = true;
-  showObservers = true;
-  showStrategyCard = false;
-  enableReport: boolean;
-  landingEditor: LandingEditor;
+  @RxStateSelect() protected landingTableType$: Observable<LandingTableType>;
+  @RxStateSelect() protected landingTable$: Observable<ILandingsTable>;
 
-  // TODO remove
-  //topPmfmIds: number[];
+  @RxStateProperty() protected landingTableType: LandingTableType;
+  @RxStateProperty() protected landingTable: ILandingsTable;
+  @RxStateProperty() protected location: ReferentialRef;
+  @RxStateProperty() protected startDateTime: Moment;
 
-  @RxStateProperty() landingTableType: LandingTableType;
-  @RxStateProperty() landingTable: ILandingsTable;
-
+  @Input() embedded = false;
   @Input() showToolbar = true;
   @Input() showQualityForm = true;
   @Input() showOptionsMenu = true;
@@ -163,8 +163,9 @@ export class ObservedLocationPage
     this.registerSubscription(
       this.route.queryParams.pipe(first()).subscribe((queryParams) => {
         // Manage embedded mode
-        const embedded = toBoolean(queryParams['embedded'], false);
+        const embedded = toBoolean(queryParams['embedded'], this.embedded);
         if (embedded) {
+          this.embedded = true;
           this.showLandingTab = false;
           this.showOptionsMenu = false;
           this.showQualityForm = false;
@@ -191,6 +192,17 @@ export class ObservedLocationPage
   ngOnDestroy() {
     super.ngOnDestroy();
     this._measurementSubscription?.unsubscribe();
+  }
+
+  /**
+   * Call when leaving the page (e.g. back)
+   */
+  deactivate() {
+    // Do not reset context, when embedded
+    if (!this.embedded) {
+      // Should reset program, etc.
+      this.resetDataContext();
+    }
   }
 
   setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
@@ -545,6 +557,16 @@ export class ObservedLocationPage
 
   /* -- protected methods -- */
 
+  /**
+   * Clean the data context (e.g. when deactivate)
+   * @protected
+   */
+  protected resetDataContext() {
+    console.debug(this.logPrefix + 'Resetting data context...');
+    this.context.reset();
+    this.observedLocationContext.reset();
+  }
+
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
 
@@ -556,7 +578,8 @@ export class ObservedLocationPage
       this.observedLocationContext.program = program;
     }
 
-    this.showFavorites = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_FAVORITES_ENABLE);
+    this.showObservers = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_OBSERVERS_ENABLE);
+    this.showFavorites = this.showFavoritesByProgram && program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_FAVORITES_ENABLE);
 
     try {
       this.observedLocationForm.showSamplingStrata = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE);
@@ -564,7 +587,7 @@ export class ObservedLocationPage
       this.observedLocationForm.withEndDateRequired = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_REQUIRED);
       this.observedLocationForm.showStartTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_START_TIME_ENABLE);
       this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
-      this.observedLocationForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_OBSERVERS_ENABLE);
+      this.observedLocationForm.showObservers = this.showObservers;
       if (!this.observedLocationForm.showObservers && this.data?.observers) {
         this.data.observers = []; // make sure to reset data observers, if any
       }

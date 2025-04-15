@@ -680,6 +680,8 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
       program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CONTROL_ENABLE)
     );
     this.helpUrl = program.getProperty(ProgramProperties.LANDING_HELP_URL) || program.getProperty(ProgramProperties.OBSERVED_LOCATION_HELP_URL);
+    this.showFavoritesByProgram = program.getPropertyAsBoolean(ProgramProperties.DATA_FAVORITES_ENABLE);
+    this.showFavorites = this.showFavoritesByProgram && program.getPropertyAsBoolean(ProgramProperties.LANDING_FAVORITES_ENABLE);
 
     // Customize the UI, using program options
     this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
