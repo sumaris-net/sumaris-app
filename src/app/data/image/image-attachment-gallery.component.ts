@@ -9,6 +9,7 @@ import {
   OnInit,
   Output,
   Self,
+  TemplateRef,
   ViewChild,
 } from '@angular/core';
 import { APP_IMAGE_ATTACHMENT_SERVICE } from './image-attachment.service';
@@ -32,7 +33,6 @@ import {
 } from '@sumaris-net/ngx-components';
 import { TableDataSource, TableElement } from '@e-is/ngx-material-table';
 import { debounceTime, startWith, switchMap } from 'rxjs/operators';
-import { environment } from '@environments/environment';
 import { PredefinedColors } from '@ionic/core';
 import { getMaxRankOrder } from '@app/data/services/model/model.utils';
 
@@ -82,6 +82,7 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy, IAppForm {
   @Input() showFabButton: boolean;
   @Input() showAddCardButton: boolean;
   @Input() autoLoad = true;
+  @Input() cardTemplate: TemplateRef<{ $implicit: ImageAttachment; mode: GalleryMode }>;
 
   // FIXME: need to hidden buttons (in HTML), etc. when disabled
   @Input() set disabled(value: boolean) {
@@ -218,6 +219,7 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy, IAppForm {
     this.dataSource = new EntitiesTableDataSource<ImageAttachment, ImageAttachmentFilter>(ImageAttachment, this.dataService, null, {
       prependNewElements: false,
     });
+
     //this.debug = !environment.production;
   }
 
