@@ -76,7 +76,22 @@
 
           <!-- quality process -->
           <ion-col size="12" size-md="4" size-lg="4" size-xl="3" class="ion-no-padding">
-            <app-entity-metadata [value]="data">
+            <app-entity-metadata [value]="data" [showRecorder]="showRecorder">
+              @if (showRecorder && canSendMessage) {
+                <ion-button
+                  recorderSuffix
+                  slot="end"
+                  size="small"
+                  fill="clear"
+                  color="tertiary"
+                  class="visible-hover ion-no-margin"
+                  [title]="'DATA.BTN_WRITE_TO_RECORDER' | translate"
+                  (click)="openComposeMessageModal(data?.recorderPerson)"
+                >
+                  <ion-icon slot="icon-only" name="mail"></ion-icon>
+                </ion-button>
+              }
+
               <ion-button color="tertiary" expand="block" [matMenuTriggerFor]="actionMenu" [disabled]="!data || !canUserWrite(data)">
                 <ion-icon slot="start" name="create" class="ion-float-start"></ion-icon>
                 &nbsp;

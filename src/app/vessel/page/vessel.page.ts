@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Injector, OnInit, ViewChild } from '@angular/core';
 import { VesselService } from '../services/vessel-service';
 import { VesselForm } from '../form/form-vessel';
 import { Vessel, VesselFeatures, VesselRegistrationPeriod } from '../services/model/vessel.model';
@@ -7,13 +7,18 @@ import {
   Alerts,
   AppEntityEditor,
   ConfigService,
+  Configuration,
   EntityServiceLoadOptions,
   EntityUtils,
   HistoryPageReference,
   isNil,
   isNotNilOrBlank,
   isNotNilOrNaN,
+  Message,
+  MessageService,
   NetworkService,
+  Person,
+  PersonService,
   PlatformService,
   referentialToString,
   SharedValidators,
@@ -33,6 +38,8 @@ import { ModalController } from '@ionic/angular';
 import { SelectVesselsModal, SelectVesselsModalOptions } from '@app/vessel/modal/select-vessel.modal';
 import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 import { firstValueFrom } from 'rxjs';
+import { noHtml } from '@app/shared/functions';
+import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 
 @Component({
   selector: 'app-vessel-page',
@@ -42,6 +49,11 @@ import { firstValueFrom } from 'rxjs';
 export class VesselPage extends AppEntityEditor<Vessel, VesselService> implements AfterViewInit, OnInit {
   private _editing = false;
 
+  protected canSendMessage = false;
+  protected logPrefix = '[vessel-page] ';
+  protected messageService = inject(MessageService);
+  protected personService = inject(PersonService);
+
   previousVessel: Vessel;
   isNewFeatures = false;
   isNewRegistration = false;
@@ -49,6 +61,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
   replacementEnabled = false;
   temporaryStatusId = StatusIds.TEMPORARY;
   registrationLocationLevelIds: number[];
+  showRecorder = true;
 
   get editing(): boolean {
     return this._editing || this.isNewFeatures || this.isNewRegistration;
@@ -96,14 +109,8 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
     if (!this.form) throw new Error('No form for value setting');
     this.form.disable();
 
-    this.registerSubscription(
-      this.configService.config.subscribe((config) => {
-        this.replacementEnabled = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.TEMPORARY_VESSEL_REPLACEMENT_ENABLE);
-        this.registrationLocationLevelIds = config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_REGISTRATION_LOCATION_LEVEL_IDS);
-
-        this.markForCheck();
-      })
-    );
+    // Listen config
+    this.registerSubscription(this.configService.config.subscribe((config) => this.onConfigLoaded(config)));
 
     super.ngOnInit();
   }
@@ -366,5 +373,34 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> implement
 
   protected getJsonValueToSave(): Promise<any> {
     return this.form.getRawValue();
+  }
+
+  protected async onConfigLoaded(config: Configuration) {
+    console.info(`${this.logPrefix} Init using config`, config);
+
+    this.replacementEnabled = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.TEMPORARY_VESSEL_REPLACEMENT_ENABLE);
+    this.registrationLocationLevelIds = config.getPropertyAsNumbers(VESSEL_CONFIG_OPTIONS.VESSEL_REGISTRATION_LOCATION_LEVEL_IDS);
+    this.canSendMessage = !this.mobile && config.getPropertyAsBoolean(APP_SOCIAL_CONFIG_OPTIONS.ENABLE_NOTIFICATION_ICONS);
+
+    this.markForCheck();
+  }
+
+  protected async openComposeMessageModal(recipient?: Person, opts?: { title?: string }) {
+    if (!this.canSendMessage) return; // Skip if disabled
+
+    console.debug(this.logPrefix + 'Writing a message to:', recipient);
+
+    const title = noHtml(opts?.title || this.titleSubject.value)?.toLowerCase();
+    const url = this.router.url;
+    const body = this.translate.instant('DATA.MESSAGE_BODY', { title, url });
+
+    await this.messageService.openComposeModal({
+      suggestFn: (value, filter) => this.personService.suggest(value, filter),
+      data: <Message>{
+        subject: title,
+        recipients: recipient ? [recipient] : [],
+        body,
+      },
+    });
   }
 }
