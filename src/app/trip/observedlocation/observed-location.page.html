@@ -1,27 +1,28 @@
-<app-toolbar
-  *ngIf="showToolbar"
-  [color]="toolbarColor"
-  [hasValidate]="!loading && (dirty || saving)"
-  [hasClose]="!loading && !dirty && !saving"
-  (onValidate)="save($event)"
-  (onValidateAndClose)="saveAndClose($event)"
-  (onClose)="close($event)"
-  [defaultBackHref]="defaultBackHref"
-  [canGoBack]="true"
->
-  <ion-title [innerHTML]="titleSubject | async"></ion-title>
+@if (showToolbar) {
+  <app-toolbar
+    [color]="toolbarColor"
+    [hasValidate]="!loading && (dirty || saving)"
+    [hasClose]="!loading && !dirty && !saving"
+    (onValidate)="save($event)"
+    (onValidateAndClose)="saveAndClose($event)"
+    (onClose)="close($event)"
+    [defaultBackHref]="defaultBackHref"
+    [canGoBack]="true"
+  >
+    <ion-title [innerHTML]="titleSubject | async"></ion-title>
 
-  <ion-buttons slot="end">
-    <!-- option menu -->
-    <ion-button
-      *ngIf="showOptionsMenu && ((enabled && !isNewData) || canCopyLocally || canDebug)"
-      [matMenuTriggerFor]="optionsMenu"
-      [title]="'COMMON.BTN_OPTIONS' | translate"
-    >
-      <mat-icon slot="icon-only">more_vert</mat-icon>
-    </ion-button>
-  </ion-buttons>
-</app-toolbar>
+    <ion-buttons slot="end">
+      <!-- option menu -->
+      <ion-button
+        *ngIf="showOptionsMenu && ((enabled && !isNewData) || canCopyLocally || canDebug)"
+        [matMenuTriggerFor]="optionsMenu"
+        [title]="'COMMON.BTN_OPTIONS' | translate"
+      >
+        <mat-icon slot="icon-only">more_vert</mat-icon>
+      </ion-button>
+    </ion-buttons>
+  </app-toolbar>
+}
 
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">

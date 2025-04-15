@@ -128,6 +128,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   @RxStateSelect() protected returnDateTime$: Observable<Moment>;
 
   protected showRecorder = true;
+  protected showObservers = true;
   protected showSaleForm = false;
   protected saleLocationLevelIds: number[];
   protected showGearTable = false;
@@ -305,6 +306,14 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this._measurementSubscription?.unsubscribe();
   }
 
+  /**
+   * Call when leaving the page (e.g. back)
+   */
+  deactivate() {
+    // Should reset program, etc.
+    this.resetDataContext();
+  }
+
   setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string }) {
     // If errors in operations
     if (typeof error !== 'string' && error?.details?.errors?.operations) {
@@ -397,12 +406,13 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.i18nContext.suffix = i18nSuffix;
     this.operationEditor = program.getProperty<OperationEditor>(ProgramProperties.TRIP_OPERATION_EDITOR);
     this.enableReport = program.getPropertyAsBoolean(ProgramProperties.TRIP_REPORT_ENABLE);
-    this.showFavorites = program.getPropertyAsBoolean(ProgramProperties.TRIP_FAVORITES_ENABLE);
+    this.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
+    this.showFavorites = this.showFavoritesByProgram && program.getPropertyAsBoolean(ProgramProperties.TRIP_FAVORITES_ENABLE);
 
     // Trip form
     this.tripForm.i18nSuffix = i18nSuffix;
     this.tripForm.showSamplingStrata = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLING_STRATA_ENABLE);
-    this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
+    this.tripForm.showObservers = this.showObservers;
     if (!this.tripForm.showObservers && this.data?.observers) {
       this.data.observers = []; // make sure to reset data observers, if any
     }
@@ -590,7 +600,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
         this.getFirstControlFavorite('vesselSnapshot', {
           pageFavorites,
         });
-      if (this.showFavorites && !data.vesselSnapshot && EntityUtils.isNotEmpty(vesselSnapshot)) {
+      if (!data.vesselSnapshot && EntityUtils.isNotEmpty(vesselSnapshot)) {
         data.vesselSnapshot = VesselSnapshot.fromObject(vesselSnapshot);
       }
 
@@ -637,10 +647,11 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     // Set contextual program, if any
     if (!data.program) {
-      const contextualProgram = this.tripContext.getValue('program') as Program;
+      const contextualProgram = this.tripContext.program;
       if (contextualProgram?.label) {
-        data.program = ReferentialRef.fromObject(contextualProgram);
-        dirty = true;
+        console.log('[trip] Set contextual program: ' + contextualProgram.label);
+        //data.program = ReferentialRef.fromObject(contextualProgram);
+        //dirty = true;
       }
     }
 
@@ -664,6 +675,16 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.canDownload = !this.mobile && EntityUtils.isRemoteId(data?.id);
 
     this._state.set({ departureDateTime: data.departureDateTime, departureLocation: data.departureLocation });
+  }
+
+  /**
+   * Clean the data context (e.g. when deactivate)
+   * @protected
+   */
+  protected resetDataContext() {
+    console.debug(this.logPrefix + 'Resetting data context...');
+    this.context.reset();
+    this.tripContext.reset();
   }
 
   updateViewState(data: Trip, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -907,6 +928,10 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   /* -- protected methods -- */
+
+  unload(opts?: { emitEvent?: boolean }): Promise<void> {
+    return super.unload(opts);
+  }
 
   protected get form(): UntypedFormGroup {
     return this.tripForm.form;

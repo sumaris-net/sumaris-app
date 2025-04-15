@@ -46,8 +46,9 @@
     "BTN_SAVE": "Sauvegarder",
     "BTN_SAVE_WITH_SHORTCUT": "<u>S</u>auvegarder",
     "BTN_SAVE_WITH_SHORTCUT_HELP": "Sauvegarder (Ctrl+S)",
-    "BTN_SET_AS_FAVORITE": "Définir comme favori",
+    "BTN_SET_AS_FAVORITE": "Marquer comme favori",
     "BTN_ADD_TO_FAVORITES": "Ajouter aux favoris",
+    "BTN_DELETE_FAVORITE": "Retirer des favoris",
     "BTN_FILTER": "Filtrer",
     "BTN_RELOAD": "Recharger",
     "BTN_REFRESH": "Rafraichir",
@@ -450,8 +451,8 @@
       "DATA_IMAGES_ENABLE": "Saisie > Activer la gestion des images",
       "DATA_IMAGES_DIRECTORY_ENABLE": "Persistance > Sauvegarder les images en fichier (plutôt qu'en BDD) ?",
       "DATA_VESSEL_TYPE_IDS": "Saisie > Navire: Type(s) de navire autorisé(s) (POD)",
+      "DATA_FILTER_PROGRAM": "Saisie > Afficher le filtre sur le programme ?",
       "LANDING": {
-        "FILTER_PROGRAM": "Sorties > Afficher le filtre sur le programme ?",
         "FILTER_LOCATION": "Sorties > Afficher le filtre sur les lieux ?",
         "FILTER_PERIOD": "Sorties > Afficher le filtre sur la période ?"
       },
@@ -786,7 +787,8 @@
       "TITLE": "<small>{{vessel}}<br></small>Marée du {{departureDateTime}}",
       "OTHER_FEATURES": "Caractéristiques :",
       "BTN_DELETE": "Supprimer toute la marée",
-      "BTN_REPORT": "Éditer le rapport..."
+      "BTN_REPORT": "Éditer le rapport...",
+      "BTN_DUPLICATE_LOCATION": "Dupliquer vers le port de retour"
     },
     "CARD": {
       "DEPARTURE_DOTS": "Départ :",
@@ -2778,6 +2780,7 @@
       "MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS": "Valeurs qualitative > Nb valeurs max pour affichage en boutons (mobile)",
       "VESSEL_TYPE_ENABLE": "Navires > Activer le type de navire ?",
       "VESSEL_FILTER_DEFAULT_TYPE_IDS": "Saisie > Navire: Type(s) de navire (filtre)",
+      "DATA_FAVORITES_ENABLE": "Saisie > Activer les favoris ?",
       "DATA_OBSERVERS_CAN_WRITE": "Saisie > Autoriser les observateurs d'une donnée à la modifier ?",
       "DATA_STRATEGY_RESOLUTION": "Saisie > Résolution de la stratégie",
       "DATA_STRATEGY_RESOLUTION_ENUM": {

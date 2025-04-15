@@ -94,7 +94,7 @@
                 #saleForm
                 [showError]="false"
                 [showEndDateTime]="false"
-                [showFavorites]="showFavorites"
+                [showFavorites]="showFavorites$ | async"
                 (onSubmit)="save($event)"
                 [debug]="debug"
               >

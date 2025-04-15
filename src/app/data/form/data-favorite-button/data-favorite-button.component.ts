@@ -2,10 +2,12 @@ import { booleanAttribute, ChangeDetectionStrategy, ChangeDetectorRef, Component
 import { Entity, equals, EqualsFn, isNil, isNilOrBlank, isNotNil } from '@sumaris-net/ngx-components';
 import { FormGroupDirective, UntypedFormControl } from '@angular/forms';
 import { filter, mergeMap, takeUntil } from 'rxjs/operators';
-import { distinctUntilChanged, Subject } from 'rxjs';
+import { distinctUntilChanged, of, Subject } from 'rxjs';
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 import { AppDataEntityEditor } from '@app/data/form/data-editor.class';
 import { FavoriteService } from '@app/data/form/data-favorite-button/data-favorite.service';
+
+export type AppDataFavoriteButtonVisibility = boolean | 'visible' | 'hidden' | 'auto';
 
 @Component({
   selector: 'app-data-favorite-button',
@@ -14,6 +16,13 @@ import { FavoriteService } from '@app/data/form/data-favorite-button/data-favori
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppDataFavoriteButton implements OnInit, OnDestroy {
+  static isVisible(visibility: AppDataFavoriteButtonVisibility = 'auto') {
+    return visibility === true || visibility === 'visible';
+  }
+  static isHidden(visibility: AppDataFavoriteButtonVisibility = 'auto') {
+    return visibility === false || visibility === 'hidden';
+  }
+
   private _favoriteValue: any;
   private _destroy$ = new Subject<void>();
   private _logPrefix = '[data-favorite-button] ';
@@ -25,7 +34,7 @@ export class AppDataFavoriteButton implements OnInit, OnDestroy {
   @Input() controlName: string;
   @Input({ transform: booleanAttribute }) allowMultiple = false;
   @Input() equals: EqualsFn;
-  @Input() visibility: boolean | 'visible' | 'hidden' | 'auto';
+  @Input() visibility: AppDataFavoriteButtonVisibility;
 
   get hidden() {
     return this._hidden || this.visibility === false || this.visibility === 'hidden' || this.editor?.disabled || isNil(this.control.value);
@@ -65,18 +74,23 @@ export class AppDataFavoriteButton implements OnInit, OnDestroy {
     const favorites = this.favoriteService.getPageFavorites(this.pageId);
     this._favoriteValue = favorites?.[this.controlName];
 
-    // Subscribe to program changes
-    if (this.editor && this.visibility === 'auto') {
+    // Subscribe to editor state
+    if (this.editor) {
       this._hidden = true;
       this.editor.enabledSubject
         .pipe(
           takeUntil(this._destroy$),
           filter((enabled) => enabled === true),
-          mergeMap(() => this.editor.showFavorites$)
+          mergeMap(() => {
+            if (this.visibility === 'auto') {
+              return this.editor.showFavorites$;
+            }
+            return of(AppDataFavoriteButton.isVisible(this.visibility));
+          })
         )
         .subscribe((show) => {
           // DEBUG
-          //console.debug(`${this._logPrefix}showFavorites$=${show} (controlName: ${this.controlName})`);
+          //console.debug(`${this._logPrefix}show=${show} (controlName: ${this.controlName})`);
 
           this._hidden = !show;
           if (show) this.applyFavoriteToControl();
@@ -124,6 +138,14 @@ export class AppDataFavoriteButton implements OnInit, OnDestroy {
 
   /* -- protected functions -- */
 
+  /**
+   * Applies a favorite value to the control if certain conditions are met.
+   * The value is applied when the control is enabled, empty, and the editor is either new
+   * or not initialized. Additionally, the value cannot be an array and must not be undefined.
+   *
+   * @param {any} [value=this._favoriteValue] The value to apply to the control. Defaults to the favorite value stored internally.
+   * @return {void} No return value.
+   */
   protected applyFavoriteToControl(value: any = this._favoriteValue) {
     // DEBUG
     //console.debug(`${this._logPrefix}Check if can apply value (controlName: ${this.controlName})`, value);

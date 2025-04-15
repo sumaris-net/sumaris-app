@@ -46,6 +46,9 @@
     "BTN_SAVE": "Salvar",
     "BTN_SAVE_WITH_SHORTCUT": "<u>S</u>alvar",
     "BTN_SAVE_WITH_SHORTCUT_HELP": "Salvar (Ctrl+S)",
+    "BTN_SET_AS_FAVORITE": "Definir como favorito",
+    "BTN_ADD_TO_FAVORITES": "Adicionar aos favoritos",
+    "BTN_DELETE_FAVORITE": "Remover dos favoritos",
     "BTN_FILTER": "Filtrar",
     "BTN_RELOAD": "Recarregar",
     "BTN_REFRESH": "Atualizar",
@@ -782,7 +785,8 @@
       "TITLE": "<small>{{vessel}}<br></small>Viagem de {{departureDateTime}}",
       "OTHER_FEATURES": "Características:",
       "BTN_DELETE": "Eliminar toda a viagem",
-      "BTN_REPORT": "Editar o relatório..."
+      "BTN_REPORT": "Editar o relatório...",
+      "BTN_DUPLICATE_LOCATION": "Duplicar para o porto de regresso"
     },
     "CARD": {
       "DEPARTURE_DOTS": "Partida:",
@@ -2596,6 +2600,7 @@
       "TRIP_METIERS_HISTORY_NB_DAYS": "Viagem: Pré-doc métiers > Nº de dias",
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Viagem: Características opcionais se registo em campo?",
       "TRIP_HELP_URL": "Viagem: Ajuda online (URL)",
+      "TRIP_FAVORITES_ENABLE": "Maré: Ativar favoritos?",
       "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Viagem > Artes: Coluna(s) PSFM adicional(is)",
       "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_HIDE_EMPTY": "Viagem > Artes: Ocultar colunas PSFM vazias?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Viagem > Arte: Registar o número da arte?",
@@ -2702,6 +2707,7 @@
       "OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY": "Saída > Mostrar o histórico para adicionar um desembarque?",
       "OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE": "Saída > Registar a linha de plano de amostragem?",
       "OBSERVED_LOCATION_LOCATION_LEVEL_IDS": "Saída: Nível(is) de local",
+      "OBSERVED_LOCATION_FAVORITES_ENABLE": "Saída: Ativar favoritos?",
       "OBSERVED_LOCATION_CONTROL_ENABLE": "Saída: Ativar o controlo ao finalizar o registo?",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE": "Saída > Calendário de atividade semanal?",
       "OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM": "Saída > Calendário de atividade semanal > Programa alvo",
@@ -2739,6 +2745,7 @@
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Viagem observada no desembarque > Zona de pesca: Nível(is) de local",
       "PROGRAM_PRIVILEGE_READONLY": "Programa > Direitos de acesso: Apenas leitura?",
       "SALE_LOCATION_LEVEL_IDS": "Saída > Venda: Nível(is) de local",
+      "SALE_FAVORITES_ENABLE": "Saída > Venda: Ativar favoritos?",
       "SALE_BATCH_ENABLE": "Saída > Venda: Ativar os lotes?",
       "STRATEGY_EDITOR": "Estratégia > Editor",
       "STRATEGY_EDITOR_ENUM": {
@@ -2752,6 +2759,7 @@
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valores qualitativos > Nº máx botões (móvel)",
       "MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS": "Valores qualitativos > Nº valores máx para exibição em botões (móvel)",
       "VESSEL_TYPE_ENABLE": "Embarcações > Ativar o tipo de embarcação?",
+      "DATA_FAVORITES_ENABLE": "Registo > Ativar favoritos?",
       "VESSEL_FILTER_DEFAULT_TYPE_IDS": "Registo > Embarcação: Tipo(s) de embarcação (filtro)",
       "DATA_OBSERVERS_CAN_WRITE": "Registo > Autorizar os observadores de um dado a modificá-lo?",
       "DATA_STRATEGY_RESOLUTION": "Registo > Resolução da estratégia",

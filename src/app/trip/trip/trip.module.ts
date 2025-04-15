@@ -19,6 +19,7 @@ import { AppSocialModule } from '@app/social/social.module';
 import { AppExtractionButtonModule } from '@app/extraction/button/extraction-button.module';
 import { AppTripCardModule } from '@app/trip/trip/card/trip-card.module';
 import { AppExpenseModule } from '@app/trip/expense/expense.module';
+import { AppObservedLocationFormModule } from '@app/trip/observedlocation/form/observed-location-form.module';
 
 @NgModule({
   imports: [
@@ -42,6 +43,7 @@ import { AppExpenseModule } from '@app/trip/expense/expense.module';
     AppOperationModule,
     AppSaleModule,
     AppExpenseModule,
+    AppObservedLocationFormModule,
   ],
   declarations: [TripTable, TripForm, TripPage, TripTrashModal, TripOfflineModal],
   exports: [

@@ -8,6 +8,7 @@
   [hasClose]="!hasValidate"
   (onValidate)="save($event)"
   (onValidateAndClose)="saveAndClose($event)"
+  (onBackClick)="close($event)"
   (onClose)="close($event)"
   [defaultBackHref]="defaultBackHref"
   [canGoBack]="true"
@@ -191,7 +192,7 @@
                 #tripForm
                 [showError]="false"
                 [returnFieldsRequired]="usageMode | isOnDesk"
-                [showFavorites]="showFavorites"
+                [showFavorites]="showFavorites$ | async"
                 (onSubmit)="save($event)"
               >
                 <!-- sale -->
@@ -250,19 +251,20 @@
               <!-- metadata -->
               <app-entity-metadata [value]="data" [showRecorder]="showRecorder">
                 <!-- Compose message -->
-                <ion-button
-                  recorderSuffix
-                  *ngIf="canSendMessage"
-                  slot="end"
-                  size="small"
-                  fill="clear"
-                  color="tertiary"
-                  class="visible-hover ion-no-margin"
-                  [title]="'DATA.BTN_WRITE_TO_RECORDER' | translate"
-                  (click)="openComposeMessageModal(data?.recorderPerson)"
-                >
-                  <ion-icon slot="icon-only" name="mail"></ion-icon>
-                </ion-button>
+                @if (showRecorder && canSendMessage) {
+                  <ion-button
+                    recorderSuffix
+                    slot="end"
+                    size="small"
+                    fill="clear"
+                    color="tertiary"
+                    class="visible-hover ion-no-margin"
+                    [title]="'DATA.BTN_WRITE_TO_RECORDER' | translate"
+                    (click)="openComposeMessageModal(data?.recorderPerson)"
+                  >
+                    <ion-icon slot="icon-only" name="mail"></ion-icon>
+                  </ion-button>
+                }
 
                 <!-- quality process -->
                 <app-entity-quality-form></app-entity-quality-form>
