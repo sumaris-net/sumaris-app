@@ -951,7 +951,6 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
         }
       }
 
-      await this.setModalMode('LENGTH_CLASS');
       this.setFilter(filter);
     }
   }
@@ -1696,6 +1695,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   }
 
   updateChart(subBatches: SubBatch[] = [], opts?: { taxonNameId?: number }) {
+    if (!this.enableChart) return;
     const data = this.getFilteredData(subBatches, opts?.taxonNameId);
     if (isEmptyArray(data)) return;
 
