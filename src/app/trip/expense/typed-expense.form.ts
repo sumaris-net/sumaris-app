@@ -82,7 +82,7 @@ export class TypedExpenseForm extends MeasurementsForm<TypedExpenseFormState> im
     this.registerSubscription(
       this.pmfms$
         // Wait form controls ready
-        .pipe(mergeMap((pmfms) => this.ready().then((_) => pmfms)))
+        .pipe(mergeMap((pmfms) => this.ready({ stop: this.destroySubject }).then((_) => pmfms)))
         .subscribe((pmfms) => {
           if (this.debug) console.debug(`[expense] ${this.expenseType} pmfms: `, pmfms);
           this.parsePmfms(pmfms);
