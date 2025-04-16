@@ -149,6 +149,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean',
   },
+  TRIP_SALES_ENABLE: <FormFieldDefinition>{
+    /* vente multiple */ key: 'sumaris.trip.sales.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_SALES_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean',
+  },
   TRIP_SALE_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.sale.location.level.ids',
     label: 'PROGRAM.OPTIONS.TRIP_SALE_LOCATION_LEVEL_IDS',

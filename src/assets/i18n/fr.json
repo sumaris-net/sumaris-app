@@ -2609,6 +2609,7 @@
       "TRIP_LOCATION_LEVEL_IDS": "Marée: Niveau(x) de lieu",
       "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Marée > Lieux: nb caract. min pour recherche",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
+      "TRIP_SALES_ENABLE": "Marée: Ventes multiples ?",
       "TRIP_SALE_LOCATION_LEVEL_IDS": "Marée > Vente : Niveau(x) de lieu",
       "TRIP_SAMPLING_STRATA_ENABLE": "Marée: Saisir la ligne de plan d'échantillonnage ?",
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
