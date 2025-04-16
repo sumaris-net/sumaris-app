@@ -6,7 +6,10 @@ import {
   isNotNil,
   Person,
   ReferentialRef,
+  ReferentialUtils,
   toDateISOString,
+  DateUtils,
+  isNil,
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data/services/model/data-entity.model';
@@ -39,6 +42,26 @@ export const MINIFY_SALE_FOR_LOCAL_STORAGE = Object.freeze(<OperationAsObjectOpt
 @EntityClass({ typename: 'SaleVO' })
 export class Sale extends DataRootVesselEntity<Sale, number, SaleAsObjectOptions, SaleFromObjectOptions> implements IWithProductsEntity<Sale> {
   static fromObject: (source: any, opts?: any) => Sale;
+
+  static equals(o1: Sale | any, o2: Sale | any): boolean {
+    return (
+      (isNotNil(o1?.id) && o1.id === o2?.id) ||
+      (!!o1 &&
+        !!o2 &&
+        ReferentialUtils.equals(o1.saleLocation, o2.saleLocation) &&
+        DateUtils.equals(o1.startDateTime, o2.startDateTime) &&
+        DateUtils.equals(o1.endDateTime, o2.endDateTime) &&
+        ReferentialUtils.equals(o1.saleType, o2.saleType))
+    );
+  }
+
+  static isNotEmpty(o: Partial<Sale>): boolean {
+    return !Sale.isEmpty(o);
+  }
+
+  static isEmpty(o: Partial<Sale>): boolean {
+    return !o || (ReferentialUtils.isEmpty(o.saleLocation) && ReferentialUtils.isEmpty(o.saleType) && isNil(o.startDateTime) && isNil(o.endDateTime));
+  }
 
   static rankOrderComparator(sortDirection: SortDirection = 'asc'): (n1: Sale, n2: Sale) => number {
     return !sortDirection || sortDirection !== 'desc' ? Sale.sortByAscRankOrder : Sale.sortByDescRankOrder;

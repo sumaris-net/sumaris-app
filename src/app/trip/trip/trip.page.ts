@@ -132,6 +132,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   protected showRecorder = true;
   protected showObservers = true;
   protected showSaleForm = false;
+  protected showSales = false;
   protected disabledSaleRemove = false;
   protected disabledSaleAdd = false;
   protected saleLocationLevelIds: number[];
@@ -157,8 +158,18 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   @ViewChild('generaleTabContent', { static: true }) generalTabContent: IonContent;
   @ViewChild('expenseForm', { static: true }) expenseForm: ExpenseForm;
 
-  get saleFormsEnabledCount(): number {
-    return -1; // return this.saleForms?.filter((f) => f.enabled).length;
+  get saleAppFormArrayEnabledCnt(): number {
+    // for debugging only
+    const Ena = this.saleAppFormArray?.controls.filter((c) => c.enabled).length;
+    if (Ena < this.saleAppFormArrayCnt) {
+      //en faisant ça ça marche
+      // this.saleAppFormArray?.controls.forEach( c => c.enable());
+      // Ena = this.saleAppFormArray?.controls.filter( c => c.enabled).length;
+    }
+    return Ena;
+  }
+  get saleAppFormArrayCnt(): number {
+    return this.saleAppFormArray?.controls.length;
   }
 
   get dirty(): boolean {
@@ -273,7 +284,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   addSale() {
     console.debug(this.logPrefix + 'addSale()');
     this.saleAppFormArray.add();
+    //this.saleAppFormArray.controls.forEach(s => s.enable()); // marche pas
     this.markForCheck();
+    //this.tripForm.updateFormGroup();
   }
 
   removeSale(index: number) {
@@ -459,6 +472,9 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     // Sale form
     this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
+    this.showSales = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALES_ENABLE);
+    this.tripForm.showSales = this.showSales;
+
     this.saleLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_SALE_LOCATION_LEVEL_IDS);
 
     // Measurement form
@@ -637,7 +653,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       }
 
       // Departure location
-      let departureLocation =
+      const departureLocation =
         this.showFavorites &&
         this.getSingleControlFavorite('departureLocation', {
           pageFavorites,
