@@ -21,13 +21,13 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { UntypedFormControl } from '@angular/forms';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { expansionInOutAnimation } from '@app/shared/material/material.animations';
+import { expansionAnimation } from '@app/shared/material/material.animations';
 
 @Component({
   selector: 'app-form-sale',
   templateUrl: './sale.form.html',
   styleUrls: ['./sale.form.scss'],
-  animations: [expansionInOutAnimation],
+  animations: [expansionAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {

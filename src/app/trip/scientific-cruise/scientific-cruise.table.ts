@@ -15,7 +15,6 @@ import {
   PersonUtils,
   ReferentialRef,
   SharedValidators,
-  slideUpDownAnimation,
   StatusIds,
 } from '@sumaris-net/ngx-components';
 import { TripFilter, TripSynchroImportFilter } from '@app/trip/trip/trip.filter';
@@ -56,7 +55,6 @@ export const ScientificCruiseTableSettingsEnum = {
   templateUrl: 'scientific-cruise.table.html',
   styleUrls: ['./scientific-cruise.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [slideUpDownAnimation],
   providers: [RxState],
 })
 export class ScientificCruiseTable extends AppRootDataTable<ScientificCruise, ScientificCruiseFilter> implements OnInit, OnDestroy {

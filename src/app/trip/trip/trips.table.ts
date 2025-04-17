@@ -21,7 +21,6 @@ import {
   Property,
   ReferentialRef,
   SharedValidators,
-  slideUpDownAnimation,
   splitByProperty,
   StatusIds,
   toBoolean,
@@ -64,7 +63,6 @@ export interface TripTableState extends AppRootDataTableState {}
   styleUrls: ['./trips.table.scss'],
   providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [slideUpDownAnimation],
 })
 export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, any, number, TripTableState> implements OnInit, OnDestroy {
   protected programVesselTypeIds: number[];

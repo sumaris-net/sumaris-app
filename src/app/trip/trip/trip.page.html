@@ -196,7 +196,7 @@
                 (onSubmit)="save($event)"
               >
                 <!-- sale -->
-                <div beforeObservers [@expansionInOutAnimation]="showSaleForm && (measurementsForm.readySubject | async) ? 'expanded' : 'collapsed'">
+                <div beforeObservers [@expansionAnimation]="showSaleForm && (measurementsForm.readySubject | async)">
                   <app-form-sale
                     #saleForm
                     [locationLevelIds]="saleLocationLevelIds"

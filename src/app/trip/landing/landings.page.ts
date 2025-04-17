@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
-// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
+
 import {
   Alerts,
   ConfigService,
@@ -21,7 +21,6 @@ import {
   RxStateProperty,
   RxStateSelect,
   SharedValidators,
-  slideUpDownAnimation,
   StatusIds,
   toBoolean,
   toNumber,
@@ -31,11 +30,11 @@ import { ObservedLocation } from '../observedlocation/observed-location.model';
 import { AppRootDataTable, AppRootDataTableState, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER, OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../trip.config';
 import { environment } from '@environments/environment';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { ObservedLocationOfflineModal, ObservedLocationOfflineModalOptions } from '../observedlocation/offline/observed-location-offline.modal';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../observedlocation/observed-location.filter';
-import { filter } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import { ContextService } from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { Landing } from '@app/trip/landing/landing.model';
@@ -97,7 +96,6 @@ export interface LandingPageConfig extends BaseTableConfig<Landing, number, Land
   selector: 'app-landings-page',
   templateUrl: 'landings.page.html',
   styleUrls: ['landings.page.scss'],
-  animations: [slideUpDownAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [RxState],
 })
@@ -370,7 +368,17 @@ export class LandingsPage
       mobile: this.mobile,
     });
 
+    // Listen config
     this.registerSubscription(this.configService.config.pipe(filter(isNotNil)).subscribe((config) => this.onConfigLoaded(config)));
+
+    // Listen program label, from filter
+    this._state.connect(
+      'programLabel',
+      this.filterForm.get('program').valueChanges.pipe(
+        tap((program) => console.log('TODO 2', program)),
+        map((program) => program?.label)
+      )
+    );
 
     // Clear the context
     this.resetContext();
@@ -558,6 +566,9 @@ export class LandingsPage
     const nextFilter = ObservedLocationFilter.fromLandingFilter(this.asFilter());
     const json = nextFilter?.asObject({ keepTypename: true }) || {};
     await this.settings.savePageSetting(ObservedLocationsPageSettingsEnum.PAGE_ID, json, ObservedLocationsPageSettingsEnum.FILTER_KEY);
+
+    // Clear selection before leaving the page
+    this.selection.clear();
 
     setTimeout(async () => {
       await this.navController.navigateRoot(path, {

@@ -15,7 +15,6 @@ import {
   RxStateProperty,
   RxStateSelect,
   SharedValidators,
-  slideUpDownAnimation,
   StatusIds,
   toBoolean,
 } from '@sumaris-net/ngx-components';
@@ -54,7 +53,6 @@ export interface ObservedLocationsPageState extends AppRootDataTableState {
   styleUrls: ['observed-locations.page.scss'],
   providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [slideUpDownAnimation],
 })
 export class ObservedLocationsPage
   extends AppRootDataTable<ObservedLocation, ObservedLocationFilter, ObservedLocationService, any, number, ObservedLocationsPageState>

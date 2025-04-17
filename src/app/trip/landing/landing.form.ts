@@ -70,7 +70,7 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import { StrategyService } from '@app/referential/services/strategy.service';
 import { MeasurementsFormState } from '@app/data/measurement/measurements.utils';
 import { RxState } from '@rx-angular/state';
-import { expansionInOutAnimation } from '@app/shared/material/material.animations';
+import { expansionAnimation } from '@app/shared/material/material.animations';
 
 const TRIP_FORM_EXCLUDED_FIELD_NAMES = [
   'program',
@@ -102,7 +102,7 @@ interface LandingFormState extends MeasurementsFormState {
   styleUrls: ['./landing.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [RxState],
-  animations: [expansionInOutAnimation],
+  animations: [expansionAnimation],
 })
 export class LandingForm extends MeasurementValuesForm<Landing, LandingFormState> implements OnInit {
   private _showObservers: boolean; // Disable by default

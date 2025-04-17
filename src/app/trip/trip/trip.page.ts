@@ -80,7 +80,7 @@ import { StrategyFilter } from '@app/referential/services/filter/strategy.filter
 import { RxState } from '@rx-angular/state';
 import { ExpenseForm } from '@app/trip/expense/expense.form';
 import { OperationType } from '@app/trip/operation/operation.form';
-import { expansionInOutAnimation } from '@app/shared/material/material.animations';
+import { expansionAnimation } from '@app/shared/material/material.animations';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -99,7 +99,7 @@ export interface TripPageState extends RootDataEntityEditorState {
   selector: 'app-trip-page',
   templateUrl: './trip.page.html',
   styleUrls: ['./trip.page.scss'],
-  animations: [fadeInOutAnimation, expansionInOutAnimation],
+  animations: [fadeInOutAnimation, expansionAnimation],
   providers: [
     { provide: APP_DATA_ENTITY_EDITOR, useExisting: forwardRef(() => TripPage) },
     {
