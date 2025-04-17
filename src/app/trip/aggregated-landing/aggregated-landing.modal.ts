@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AlertController, IonContent, ModalController } from '@ionic/angular';
 import { BehaviorSubject, firstValueFrom, Subscription } from 'rxjs';
-import { Alerts, AppFormUtils, isEmptyArray, isNil, referentialToString, sleep } from '@sumaris-net/ngx-components';
+import { Alerts, AppFormUtils, isNil, referentialToString, sleep } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import { AggregatedLandingForm, AggregatedLandingFormOption } from './aggregated-landing.form';
 import { AggregatedLanding, VesselActivity } from './aggregated-landing.model';
@@ -55,11 +55,6 @@ export class AggregatedLandingModal implements OnInit, OnDestroy {
 
     if (!this._disabled) {
       this.enable();
-
-      // Add first activity
-      if (isEmptyArray(this.data.vesselActivities)) {
-        this.addActivity();
-      }
     }
   }
 

@@ -36,6 +36,7 @@
     height: 100%;
     .mat-mdc-tab-body {
       height: 100%;
+      overflow: hidden;
     }
   }
 
@@ -45,5 +46,13 @@
     & > .ng-star-inserted {
       height: var(--mat-tab-body-content-height, 100%);
     }
+  }
+}
+
+.mat-mdc-tab {
+  &.mat-mdc-tab-disabled.mat-mdc-tab-disabled-hidden {
+    display: none;
+    visibility: hidden;
+    opacity: 0;
   }
 }

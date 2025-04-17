@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, skip } from 'rxjs/operators';
 import { ErrorCodes } from './errors';
 import {
   AccountService,
@@ -204,6 +204,9 @@ export class ReferentialRefService
 
     const config = await firstNotNilPromise(this.configService.config);
     this.updateModelEnumerations(config);
+
+    // Listen config changes (.e.g when peer changes) - see issue #1095
+    this.registerSubscription(this.configService.config.pipe(skip(1)).subscribe((config) => this.updateModelEnumerations(config)));
   }
 
   /**

@@ -18,6 +18,8 @@ import {
   isNotNil,
   PromiseEvent,
   ReferentialRef,
+  RxStateProperty,
+  RxStateSelect,
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
@@ -50,7 +52,6 @@ import { LandedTripService } from '@app/trip/landedtrip/landed-trip.service';
 import moment from 'moment';
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 import { RxState } from '@rx-angular/state';
-import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 
 export interface LandedTripPageState extends RootDataEntityEditorState {
   metiers: ReferentialRef[];
@@ -664,7 +665,6 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
     }
     if (this.operationGroupTable.dirty) {
       await this.operationGroupTable.save();
-      this.operationGroupTable.markAsDirty();
       saveOptions.withOperationGroup = true;
     }
 
@@ -733,5 +733,10 @@ export class LandedTripPage extends AppRootDataEntityEditor<Trip, TripService, n
 
   filter($event: Event) {
     console.debug('[landed-trip.page] filter : ', $event);
+  }
+
+  markAsDirty(opts?: any) {
+    if (this.loading || !opts) return;
+    super.markAsDirty();
   }
 }

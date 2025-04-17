@@ -97,10 +97,11 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
       this.metier = this.data.metier;
       console.debug('[operation-group.form] Taxon group : ', this.metier.taxonGroup);
 
-      if (this.data.physicalGearId !== this.data.metier.gear.id) {
+      if (this.data.physicalGearId !== this.data.metier.gear?.id) {
         this.data.physicalGearId = this.data.physicalGearId || null;
         this.gear = this.data.metier.gear;
       }
+      this.markForCheck();
     }
   }
 

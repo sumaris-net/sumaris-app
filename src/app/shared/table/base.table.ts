@@ -111,7 +111,9 @@ export abstract class AppBaseTable<
   @Input({ transform: numberAttribute }) pressHighlightDuration = 10000; // 10s
   @Input({ transform: numberAttribute }) highlightedRowId: number;
   @Input({ transform: booleanAttribute }) filterPanelFloating = true;
+  @Input({ transform: booleanAttribute }) multipleSelection = true;
   @Input({ transform: booleanAttribute }) canDelete: boolean;
+  @Input({ transform: booleanAttribute }) canPress: boolean;
   @Input({ transform: booleanAttribute }) set canEdit(value: boolean) {
     this._canEdit = value;
   }
@@ -355,14 +357,29 @@ export abstract class AppBaseTable<
 
   clickRow(event: Event | undefined, row: TableElement<T>): boolean {
     if (event?.defaultPrevented) return false;
-    if (!this.inlineEdition) this.highlightedRowId = row?.id;
 
     //console.debug('[base-table] click row');
     return super.clickRow(event, row);
   }
 
+  toggleSelectRow(event: Event | undefined, row: TableElement<T>) {
+    if (!this.multipleSelection && !this.selection.isSelected(row)) {
+      this.selection.clear(false);
+    }
+    super.toggleSelectRow(event, row);
+  }
+
+  protected async openRow(id: ID, row: TableElement<T>): Promise<boolean> {
+    const result = await super.openRow(id, row);
+    if (result) {
+      // Highlight the opened row (to know the last opened row, when go back to the table)
+      this.highlightedRowId = row?.id;
+    }
+    return result;
+  }
+
   pressRow(event: Event | undefined, row: TableElement<T>): boolean {
-    if (!this.mobile || event?.defaultPrevented) return false; // Skip if inline edition, or not mobile
+    if (!this.canPress || !this.mobile || event?.defaultPrevented) return false; // Skip if inline edition, or not mobile
 
     event?.preventDefault();
 

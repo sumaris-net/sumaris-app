@@ -336,10 +336,15 @@ export class ObservedLocationPage
     try {
       // Add landing using vessels modal
       if (this.addLandingUsingHistoryModal) {
-        const vessel = await this.openSelectVesselModal();
+        const selectedVessel = await this.openSelectVesselModal();
+        const vessel = selectedVessel && (Array.isArray(selectedVessel) ? selectedVessel[0] : selectedVessel);
         if (vessel && this.landingsTable) {
-          const rankOrder = ((await this.landingsTable.getMaxRankOrderOnVessel(vessel)) || 0) + 1;
-          await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${vessel.id}&rankOrder=${rankOrder}`);
+          if (this.landingTable.inlineEdition) {
+            await this.landingsTable.addLandingWithVessel(vessel);
+          } else {
+            const rankOrder = ((await this.landingsTable.getMaxRankOrderOnVessel(vessel)) || 0) + 1;
+            await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${vessel.id}&rankOrder=${rankOrder}`);
+          }
         }
       }
       // Create landing without vessel selection
@@ -367,9 +372,12 @@ export class ObservedLocationPage
     this.markAsLoading();
 
     try {
-      const vessel = await this.openSelectVesselModal(true);
-      if (vessel && this.aggregatedLandingsTable) {
-        await this.aggregatedLandingsTable.addAggregatedRow(vessel);
+      const selectedVessels = await this.openSelectVesselModal({ allowMultiple: true, excludeExistingVessels: true });
+      const vessels = selectedVessels && (Array.isArray(selectedVessels) ? selectedVessels : [selectedVessels]);
+      if (vessels && this.aggregatedLandingsTable) {
+        for (const vessel of vessels) {
+          await this.aggregatedLandingsTable.addAggregatedRow(vessel);
+        }
       }
     } finally {
       this.markAsLoaded();
@@ -459,7 +467,10 @@ export class ObservedLocationPage
     }
   }
 
-  async openSelectVesselModal(excludeExistingVessels?: boolean): Promise<VesselSnapshot | undefined> {
+  async openSelectVesselModal(opts?: {
+    allowMultiple?: boolean;
+    excludeExistingVessels?: boolean;
+  }): Promise<VesselSnapshot | VesselSnapshot[] | undefined> {
     const programLabel = this.aggregatedLandingsTable?.programLabel || this.programLabel || this.data.program.label;
     if (!this.data.startDateTime || !programLabel) {
       throw new Error('Root entity has no program and start date. Cannot open select vessels modal');
@@ -467,7 +478,9 @@ export class ObservedLocationPage
 
     // Prepare vessel filter's value
     const excludeVesselIds =
-      (toBoolean(excludeExistingVessels, false) && this.aggregatedLandingsTable && (await this.aggregatedLandingsTable.vesselIdsAlreadyPresent())) ||
+      (toBoolean(opts?.excludeExistingVessels, false) &&
+        this.aggregatedLandingsTable &&
+        (await this.aggregatedLandingsTable.vesselIdsAlreadyPresent())) ||
       [];
     const showOfflineVessels = EntityUtils.isLocal(this.data) && (await this.vesselService.countAll({ synchronizationStatus: 'DIRTY' })) > 0;
     const defaultVesselSynchronizationStatus = this.network.offline || showOfflineVessels ? 'DIRTY' : 'SYNC';
@@ -491,7 +504,7 @@ export class ObservedLocationPage
         programLabel: this.programLabel,
         requiredStrategy: this.requiredStrategy,
         strategyId: this.strategy?.id,
-        allowMultiple: false,
+        allowMultiple: opts?.allowMultiple,
         landingFilter,
         vesselFilter: <VesselFilter>{
           statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
@@ -518,18 +531,19 @@ export class ObservedLocationPage
     // If modal return a landing, use it
     if (data && data[0] instanceof Landing) {
       console.debug(this.logPrefix + 'Vessel selection modal result:', data);
-      return (data[0] as Landing).vesselSnapshot;
+      return opts?.allowMultiple ? data.map((landing: Landing) => landing.vesselSnapshot) : (data[0] as Landing).vesselSnapshot;
     }
     if (data && data[0] instanceof VesselSnapshot) {
       console.debug(this.logPrefix + 'Vessel selection modal result:', data);
-      const vessel = data[0] as VesselSnapshot;
-      if (excludeVesselIds.includes(data.id)) {
+      const vessels = data.map((value) => value as VesselSnapshot);
+      if (excludeVesselIds.some((id) => vessels.some((vessel) => vessel.id === id))) {
         await Alerts.showError('AGGREGATED_LANDING.VESSEL_ALREADY_PRESENT', this.alertCtrl, this.translate);
-        return;
+        return undefined;
       }
-      return vessel;
+      return opts?.allowMultiple ? vessels : vessels[0];
     } else {
       console.debug(this.logPrefix + 'Vessel selection modal was cancelled');
+      return undefined;
     }
   }
 

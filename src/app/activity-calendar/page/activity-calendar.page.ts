@@ -601,7 +601,7 @@ export class ActivityCalendarPage
     if (!programLabel) this.markAsReady();
   }
 
-  protected devToggleDebug() {
+  devToggleDebug() {
     super.devToggleDebug();
 
     setTimeout(() => {

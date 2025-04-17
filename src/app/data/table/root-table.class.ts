@@ -209,7 +209,6 @@ export abstract class AppRootDataTable<
 
     // Init program, when loaded (or reset)
     this._state.hold(this.program$, (program) => {
-      console.log('TODO program', program);
       if (isNotNilOrBlank(program?.label)) {
         return this.setProgram(program);
       } else {

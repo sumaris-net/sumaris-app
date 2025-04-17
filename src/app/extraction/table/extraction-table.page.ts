@@ -851,7 +851,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       this._extractionTypesProgramLabel = programLabel;
       this._extractionTypesByPrograms$ = this.extractionTypeService.watchAllByProgramLabels([programLabel]);
     }
-
+    this.markForCheck();
     return this._extractionTypesByPrograms$;
   }
 }

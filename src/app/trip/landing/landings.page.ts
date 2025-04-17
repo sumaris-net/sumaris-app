@@ -25,12 +25,12 @@ import {
   toBoolean,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ObservedLocation } from '../observedlocation/observed-location.model';
 import { AppRootDataTable, AppRootDataTableState, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER, OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../trip.config';
 import { environment } from '@environments/environment';
-import { Observable, tap } from 'rxjs';
+import { Observable } from 'rxjs';
 import { ObservedLocationOfflineModal, ObservedLocationOfflineModalOptions } from '../observedlocation/offline/observed-location-offline.modal';
 import { DATA_CONFIG_OPTIONS } from '@app/data/data.config';
 import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../observedlocation/observed-location.filter';
@@ -53,7 +53,7 @@ import { LandingValidatorService } from '@app/trip/landing/landing.validator';
 import { VesselSnapshotFilter } from '@app/referential/services/filter/vessel.filter';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
-import { ObservedLocationsPageSettingsEnum } from '@app/trip/observedlocation/table/observed-locations.page';
+import { ObservedLocationsPage, ObservedLocationsPageSettingsEnum } from '@app/trip/observedlocation/table/observed-locations.page';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { RxState } from '@rx-angular/state';
@@ -110,6 +110,7 @@ export class LandingsPage
   protected qualitativeValueAttributes: string[];
   protected vesselSnapshotAttributes: string[];
   protected programVesselTypeIds: number[];
+  protected programLocationLevelIds: number[];
 
   @RxStateProperty() protected observedLocationTitle: string;
 
@@ -317,21 +318,23 @@ export class LandingsPage
     // Vessel type
     this.registerAutocompleteField('vesselType', {
       attributes: ['name'],
-      service: this.referentialRefService,
+      suggestFn: (value, filter) => this.referentialRefService.suggest(value, { ...filter, includedIds: this.programVesselTypeIds }),
       filter: {
         entityName: 'VesselType',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
       },
       mobile: this.mobile,
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, { ...filter, includedIds: this.programVesselTypeIds }),
     });
 
     // Locations combo (filter)
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
-      service: this.referentialRefService,
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          levelIds: isNotEmptyArray(this.programLocationLevelIds) ? this.programLocationLevelIds : ObservedLocationsPage.getDefaultLocationLevelIds(),
+        }),
       filter: {
         entityName: 'Location',
-        levelIds: [LocationLevelIds.AUCTION, LocationLevelIds.PORT],
       },
       mobile: this.mobile,
     });
@@ -372,13 +375,7 @@ export class LandingsPage
     this.registerSubscription(this.configService.config.pipe(filter(isNotNil)).subscribe((config) => this.onConfigLoaded(config)));
 
     // Listen program label, from filter
-    this._state.connect(
-      'programLabel',
-      this.filterForm.get('program').valueChanges.pipe(
-        tap((program) => console.log('TODO 2', program)),
-        map((program) => program?.label)
-      )
-    );
+    this._state.connect('programLabel', this.filterForm.get('program').valueChanges.pipe(map((program) => program?.label)));
 
     // Clear the context
     this.resetContext();
@@ -436,24 +433,21 @@ export class LandingsPage
 
     // Allow to filter on program, if user can access more than one program
     this.showFilterProgram = this.defaultShowFilterProgram && (this.isAdmin || !this.filter?.program?.label);
+    this.showFilterStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
+    this.showFilterSampleLabel = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLE_LABEL_ENABLE);
+
+    this.programVesselTypeIds = program.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
+    this.programLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
 
     // Hide program if cannot change it
     this.showProgramColumn = this.showFilterProgram;
-    this.programVesselTypeIds = program.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS);
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
     this.showVesselBasePortLocationColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
     this.showCreationDateColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE);
     this.showLocationColumn = this.showFilterLocation || program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
     this.showObserversColumn = this.showObservers || program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
     this.showRecorderPersonColumn = this.showRecorder || program.getPropertyAsBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE);
-
     this.showSamplesCountColumn = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
-    this.showFilterStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
-    this.showFilterSampleLabel = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLE_LABEL_ENABLE);
-
-    // Location filter
-    const locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
-    this.autocompleteFields.location.filter.levelIds = isNotEmptyArray(locationLevelIds) ? locationLevelIds : undefined;
 
     // Landing pmfms
     const includedPmfmIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_COLUMNS_PMFM_IDS);
@@ -461,7 +455,6 @@ export class LandingsPage
       acquisitionLevel: AcquisitionLevelCodes.LANDING,
     });
     this.pmfms = landingPmfms.filter((p) => p.required || includedPmfmIds?.includes(p.id));
-
     const samplePmfms = await this.programRefService.loadProgramPmfms(program?.label, {
       acquisitionLevels: [AcquisitionLevelCodes.SAMPLE, AcquisitionLevelCodes.INDIVIDUAL_MONITORING, AcquisitionLevelCodes.INDIVIDUAL_RELEASE],
     });
@@ -476,9 +469,13 @@ export class LandingsPage
     this.title = this.i18nColumnPrefix + 'TITLE';
 
     this.showFilterProgram = this.defaultShowFilterProgram;
-    this.showProgramColumn = this.defaultShowFilterProgram;
-    this.programVesselTypeIds = null;
+    this.showFilterStrategy = toBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE.defaultValue, false);
+    this.showFilterSampleLabel = toBoolean(ProgramProperties.LANDING_SAMPLE_LABEL_ENABLE.defaultValue, false);
 
+    this.programVesselTypeIds = undefined;
+    this.programLocationLevelIds = undefined;
+
+    this.showProgramColumn = this.defaultShowFilterProgram;
     this.showVesselTypeColumn = toBoolean(ProgramProperties.VESSEL_TYPE_ENABLE.defaultValue, false);
     this.showVesselBasePortLocationColumn = toBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE.defaultValue, false);
     this.showCreationDateColumn = toBoolean(ProgramProperties.LANDING_CREATION_DATE_ENABLE.defaultValue, false);
@@ -487,14 +484,10 @@ export class LandingsPage
     this.showRecorderPersonColumn = this.showRecorder || toBoolean(ProgramProperties.LANDING_RECORDER_PERSON_ENABLE.defaultValue, false);
 
     this.showSamplesCountColumn = toBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE.defaultValue, false);
-    this.showFilterStrategy = toBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE.defaultValue, false);
-    this.showFilterSampleLabel = toBoolean(ProgramProperties.LANDING_SAMPLE_LABEL_ENABLE.defaultValue, false);
-    this.showFilterSampleTagId = false;
-
-    // Reset location filter
-    delete this.autocompleteFields.location.filter.levelIds;
 
     this.pmfms = [];
+    this.showFilterSampleTagId = false;
+
     if (this.loaded) this.updateColumns();
   }
 

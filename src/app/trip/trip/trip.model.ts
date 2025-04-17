@@ -1,5 +1,5 @@
 import { isMoment, Moment } from 'moment';
-import { DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data/services/model/data-entity.model';
+import { DataEntity, DataEntityAsObjectOptions, IDataEntity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data/services/model/data-entity.model';
 import {
   Measurement,
   MeasurementFormValues,
@@ -49,6 +49,11 @@ import { unitOfTime } from 'moment/moment';
 
 /* -- Data -- */
 
+export interface IOperation extends IDataEntity {
+  metier: Metier;
+  rankOrderOnPeriod: number;
+}
+
 export interface OperationAsObjectOptions extends DataEntityAsObjectOptions {
   batchAsTree?: boolean;
   sampleAsTree?: boolean;
@@ -71,7 +76,7 @@ export const FISHING_AREAS_LOCATION_REGEXP = /^fishingAreas\.[0-9]+\.location$/;
 export const POSITIONS_REGEXP = /^startPosition|fishingStartPosition|fishingEndPosition|endPosition$/;
 
 @EntityClass({ typename: 'OperationVO' })
-export class Operation extends DataEntity<Operation, number, OperationAsObjectOptions, OperationFromObjectOptions> {
+export class Operation extends DataEntity<Operation, number, OperationAsObjectOptions, OperationFromObjectOptions> implements IOperation {
   static ENTITY_NAME = 'Operation';
   static fromObject: (source: any, opts?: OperationFromObjectOptions) => Operation;
 
@@ -502,6 +507,20 @@ export class OperationVesselAssociation extends Entity<OperationVesselAssociatio
 }
 
 export class OperationUtils {
+  static equals(o1: IOperation, o2: IOperation): boolean {
+    return (
+      o1 &&
+      o2 &&
+      ((isNotNil(o1.id) && o1.id === o2.id) ||
+        // Or by functional attributes
+        // Same metier
+        (o1.metier &&
+          o1.metier.equals(o2.metier) &&
+          // Same rankOrderOnPeriod
+          ((isNil(o1.rankOrderOnPeriod) && isNil(o2.rankOrderOnPeriod)) || o1.rankOrderOnPeriod === o2.rankOrderOnPeriod)))
+    );
+  }
+
   static isOperation(data: DataEntity<any>): data is Operation {
     return data?.__typename === Operation.TYPENAME;
   }
@@ -533,22 +552,11 @@ export class OperationUtils {
 }
 
 @EntityClass({ typename: 'OperationGroupVO' })
-export class OperationGroup extends DataEntity<OperationGroup> implements IWithProductsEntity<OperationGroup>, IWithPacketsEntity<OperationGroup> {
+export class OperationGroup
+  extends DataEntity<OperationGroup>
+  implements IWithProductsEntity<OperationGroup>, IWithPacketsEntity<OperationGroup>, IOperation
+{
   static fromObject: (source: any) => OperationGroup;
-
-  static equals(o1: OperationGroup | any, o2: OperationGroup | any): boolean {
-    return (
-      o1 &&
-      o2 &&
-      ((isNotNil(o1.id) && o1.id === o2.id) ||
-        // Or by functional attributes
-        // Same metier
-        (o1.metier &&
-          o1.metier.equals(o2.metier) &&
-          // Same rankOrderOnPeriod
-          ((isNil(o1.rankOrderOnPeriod) && isNil(o2.rankOrderOnPeriod)) || o1.rankOrderOnPeriod === o2.rankOrderOnPeriod)))
-    );
-  }
 
   comments: string;
   rankOrderOnPeriod: number;
@@ -582,7 +590,7 @@ export class OperationGroup extends DataEntity<OperationGroup> implements IWithP
         this.metier.asObject({
           ...opts,
           ...NOT_MINIFY_OPTIONS /*Always minify=false, because of operations tables cache*/,
-        } as ReferentialAsObjectOptions)) ||
+        })) ||
       undefined;
 
     // Measurements

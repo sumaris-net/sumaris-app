@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
-import { AppFormProvider, firstNotNilPromise, isNotNil, LocalSettingsService, round } from '@sumaris-net/ngx-components';
+import { AppFormProvider, firstNotNilPromise, isNotNil, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { ProductsTable } from '../product/products.table';
 import { MeasurementsForm } from '@app/data/measurement/measurements.form.component';
 import { ExpectedSale } from '@app/trip/sale/expected-sale.model';
@@ -77,7 +77,7 @@ export class ExpectedSaleForm extends AppFormProvider<MeasurementsForm> implemen
         saleProduct,
         (object, valueName) => !!object[valueName],
         (object, valueName) => object[valueName],
-        (object, valueName, value) => (object[valueName] = round(value)),
+        (object, valueName, value) => (object[valueName] = value),
         (object, valueName) => (object[valueName] = undefined),
         true,
         'individualCount'

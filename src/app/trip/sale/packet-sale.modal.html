@@ -9,7 +9,7 @@
 ></app-modal-toolbar>
 
 <ion-content>
-  <app-packet-sale-form #packetSaleForm [pmfms]="pmfms" [mobile]="mobile"></app-packet-sale-form>
+  <app-packet-sale-form #packetSaleForm [pmfms]="pmfms" [mobile]="mobile" [debug]="debug"></app-packet-sale-form>
 
   <!-- add button (mobile) -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="mobile && enabled">
@@ -33,7 +33,7 @@
 
         <ion-button
           [fill]="invalid ? 'clear' : 'solid'"
-          [disabled]="disabled || loading || invalid"
+          [disabled]="disabled || loading || invalid || !dirty"
           (click)="onSave($event)"
           (keyup.enter)="onSave($event)"
           color="tertiary"

@@ -24,6 +24,7 @@ import {
   DateUtils,
   EntityUtils,
   equals,
+  expansionAnimation,
   firstArrayValue,
   firstNotNilPromise,
   fromDateISOString,
@@ -81,7 +82,6 @@ import { OverlayEventDetail } from '@ionic/core';
 import { PositionService } from '@app/data/position/position.service';
 import { RxState } from '@rx-angular/state';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { expansionAnimation } from '@app/shared/material/material.animations';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 
 type FilterableFieldName = 'fishingArea' | 'metier';

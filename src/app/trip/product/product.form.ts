@@ -9,6 +9,7 @@ import { environment } from '@environments/environment';
 import { IWithProductsEntity, Product } from '@app/trip/product/product.model';
 import { ProductValidatorService } from '@app/trip/product/product.validator';
 import { RxState } from '@rx-angular/state';
+import { OperationUtils } from '@app/trip/trip/trip.model';
 
 @Component({
   selector: 'app-product-form',
@@ -62,6 +63,7 @@ export class ProductForm extends MeasurementValuesForm<Product> implements OnIni
       columnNames: ['RANK_ORDER', 'REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
       columnSizes: this.parentAttributes.map((attr) => (attr === 'metier.label' ? 3 : attr === 'rankOrderOnPeriod' ? 1 : undefined)),
       mobile: this.mobile,
+      equals: OperationUtils.equals,
     });
 
     const taxonGroupAttributes = this.settings.getFieldDisplayAttributes('taxonGroup');

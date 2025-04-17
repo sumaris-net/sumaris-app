@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
-import { LocalSettingsService, SharedFormArrayValidators, SharedValidators } from '@sumaris-net/ngx-components';
+import { AbstractControlOptions, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { LocalSettingsService, SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators } from '@sumaris-net/ngx-components';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { Packet, PacketComposition, PacketIndexes } from './packet.model';
 import { PacketCompositionValidatorService } from './packet-composition.validator';
@@ -11,6 +11,7 @@ import { TranslateService } from '@ngx-translate/core';
 export interface PacketValidatorOptions extends DataEntityValidatorOptions {
   withComposition?: boolean;
   withSaleProducts?: boolean;
+  packetCount?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -40,7 +41,7 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
     PacketIndexes.forEach((index) => {
       formConfig['sampledWeight' + index] = [
         data?.['sampledWeight' + index] || null,
-        Validators.compose([Validators.min(0), SharedValidators.decimal({ maxDecimals: 2 })]),
+        Validators.compose([Validators.min(0.01), SharedValidators.decimal({ maxDecimals: 2 })]),
       ];
     });
 
@@ -49,7 +50,7 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
 
       // add sampledRatios
       PacketIndexes.forEach((index) => {
-        formConfig['sampledRatio' + index] = [data?.['sampledRatio' + index] || null, Validators.max(100)];
+        formConfig['sampledRatio' + index] = [data?.['sampledRatio' + index] || null, [Validators.min(100), Validators.max(100)]];
       });
     } else {
       formConfig.composition = [data?.composition || null, Validators.required];
@@ -64,8 +65,49 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
     return formConfig;
   }
 
+  getFormGroupOptions(data?: Packet, opts?: O): AbstractControlOptions | null {
+    if (opts?.withComposition) {
+      const validators: ValidatorFn[] = [];
+      PacketIndexes.forEach((index) => {
+        validators.push(SharedFormGroupValidators.requiredIf('sampledRatio' + index, 'sampledWeight' + index));
+        validators.push(SharedFormGroupValidators.requiredIf('sampledWeight' + index, 'sampledRatio' + index));
+      });
+      return <AbstractControlOptions>{
+        validator: validators,
+      };
+    }
+    return null;
+  }
+
   updateFormGroup(formGroup: UntypedFormGroup, opts?: O) {
-    if (opts.withSaleProducts) {
+    if (opts?.packetCount) {
+      // update sampledWeights
+      PacketIndexes.forEach((index) => {
+        const control = formGroup.controls['sampledWeight' + index];
+        if (control && index > opts.packetCount - 1) {
+          control.setValue(null);
+        }
+      });
+      // update sampledRatios
+      if (opts?.withComposition) {
+        PacketIndexes.forEach((index) => {
+          const control = formGroup.controls['sampledRatio' + index];
+          if (control && index > opts.packetCount - 1) {
+            control.setValue(null);
+          }
+        });
+        const compositions = formGroup.controls.composition as UntypedFormArray;
+        compositions.controls.forEach((composition: UntypedFormGroup) => {
+          PacketIndexes.forEach((index) => {
+            const control = composition.controls['ratio' + index];
+            if (control && index > opts.packetCount - 1) {
+              control.setValue(null);
+            }
+          });
+        });
+      }
+    }
+    if (opts?.withSaleProducts) {
       const saleValidators = [];
       if (formGroup.controls.number.value) {
         saleValidators.push(SharedFormArrayValidators.validSumMaxValue('subgroupCount', formGroup.controls.number.value));

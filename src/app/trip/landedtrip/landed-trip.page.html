@@ -153,6 +153,7 @@
         [metiers]="metiers$"
         [showToolbar]="!mobile"
         [debug]="debug"
+        (onDirty)="markAsDirty($event)"
       ></app-operation-group-table>
     </mat-tab>
 
@@ -178,6 +179,8 @@
                   [placeholder]="'COMMON.EMPTY_OPTION' | translate"
                   [config]="tripForm.autocompleteFields.operationGroupFilter"
                   formControlName="operationGroup"
+                  [mobile]="true"
+                  [showSearchBar]="false"
                 >
                   <ion-icon matPrefix name="locate"></ion-icon>
                 </mat-autocomplete-field>
