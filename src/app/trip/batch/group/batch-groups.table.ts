@@ -59,6 +59,7 @@ import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 import { Program } from '@app/referential/services/model/program.model';
 import { AppImageAttachmentsModal, IImageModalOptions } from '@app/data/image/image-attachment.modal';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -1180,7 +1181,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     const showParentGroup = !opts || opts.showParent !== false; // True by default
     const showIndividualCountOnly =
       this.allowIndividualCountOnly && (await BatchGroupUtils.hasSamplingIndividualCountOnly(parentGroup, this.availableSubBatches));
-
+    const titlePrefix = await this.computeModalTitle(parentGroup);
     const modal = await this.modalCtrl.create({
       component: SubBatchesModal,
       componentProps: <ISubBatchesModalOptions>{
@@ -1193,6 +1194,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         usageMode: this.usageMode,
         showParentGroup,
         parentGroup,
+        titlePrefix,
         floatLabel: 'always',
         data: this.availableSubBatches,
         qvPmfm: this.qvPmfm,
@@ -1249,6 +1251,42 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       this.onSubBatchesChanges.emit(data);
       return { data, role: 'subBatches' };
     }
+  }
+  async computeModalTitle(parentGroup?: BatchGroup): Promise<string> {
+    if (!this.pmfms) return null;
+
+    const { auctionSizeCat, ueCategory, preservation, dressing } = {
+      auctionSizeCat: this.getPmfmLabelWithPrefix(parentGroup, PmfmIds.AUCTION_SIZE_CAT), //1121
+      ueCategory: this.getPmfmLabelWithPrefix(parentGroup, PmfmIds.UE_CATEGORY),
+      preservation: this.getPmfmLabelWithPrefix(parentGroup, PmfmIds.PRESERVATION),
+      dressing: this.getPmfmLabelWithPrefix(parentGroup, PmfmIds.DRESSING), //1063
+    };
+
+    if (!auctionSizeCat || !ueCategory || !preservation || !dressing) {
+      return null;
+    }
+
+    const label = parentGroup ? BatchUtils.parentToString(parentGroup) : null;
+
+    return await this.translate.instant('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE_PREFIX_COMPLETE', {
+      label,
+      auctionSizeCat,
+      ueCategory,
+      preservation,
+      dressing,
+    });
+  }
+
+  getPmfmLabelWithPrefix(parentGroup: BatchGroup, id: number): string | null {
+    if (!this.pmfms) return null;
+
+    const pmfms = this.pmfms as DenormalizedPmfmStrategy[];
+    const pmfm = pmfms?.find((x) => x.id === id);
+
+    if (!pmfm?.name) return null;
+
+    const measurementValue = parentGroup?.measurementValues[id.toString()]?.name ?? ' ';
+    return `${pmfm.name} : ${measurementValue}`;
   }
 
   protected async openDetailModal(dataToOpen?: BatchGroup, row?: TableElement<BatchGroup>): Promise<OverlayEventDetail<BatchGroup | undefined>> {

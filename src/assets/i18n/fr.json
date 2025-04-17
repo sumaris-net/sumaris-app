@@ -1221,7 +1221,8 @@
         "BTN_FILTER_TAXON_NAMES": "Restreindre aux espèces scientifiques par défaut",
         "IS_EXHAUSTIVE_INVENTORY": "Inventaire exhaustif des espèces ?",
         "INDIVIDUAL": {
-          "TITLE_PREFIX": "<small>Lot {{label}} <br/> - Cat. : {{auctionSizeCat}} <br/> - Cat. UE : {{ueCategory}} <br/> - Etat : {{dressing}} <br/>  - Prés. : {{preservation}} <br/> </small>",
+          "TITLE_PREFIX": "<small>Lot {{label}}<br/></small>",
+          "TITLE_PREFIX_COMPLETE": "<small>Lot {{label}} <br/> - {{auctionSizeCat}} <br/> - {{ueCategory}} <br/> - {{dressing}} <br/> - {{preservation}} <br/> </small>",
           "TITLE": "Mensurations",
           "INDIVIDUAL_COUNT": "Nb individus",
           "BURST_FORM_TITLE": "Saisie rafale :",

@@ -246,6 +246,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   @Input() animationDuration = 1500; // 1.5s
   @Input() floatLabel: AppFloatLabelType = 'auto';
   @Input() showFilterForm: boolean = false;
+  @Input() titlePrefix: string = null;
 
   @Input() set i18nSuffix(value: string) {
     this.i18nColumnSuffix = value;
@@ -626,24 +627,20 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
   protected async computeTitle() {
     let titlePrefix;
-    // TODO MFA : To be validate with BLA
-    const auctionSizeCat = this.parentGroup?.measurementValues[PmfmIds.AUCTION_SIZE_CAT]?.name;
-    const ueCategory = this.parentGroup?.measurementValues[PmfmIds.UE_CATEGORY]?.name;
-    const preservation = this.parentGroup?.measurementValues[PmfmIds.PRESERVATION]?.name;
-    const dressing = this.parentGroup?.measurementValues[PmfmIds.DRESSING]?.name;
 
-    if (!this.showParentGroup && this.parentGroup) {
-      const label = BatchUtils.parentToString(this.parentGroup);
-      titlePrefix = await this.translate.instant('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE_PREFIX', {
-        label,
-        auctionSizeCat,
-        ueCategory,
-        preservation,
-        dressing,
-      });
+    if (isNotNil(this.titlePrefix)) {
+      titlePrefix = this.titlePrefix;
     } else {
-      titlePrefix = '';
+      if (!this.showParentGroup && this.parentGroup) {
+        const label = BatchUtils.parentToString(this.parentGroup);
+        titlePrefix = await this.translate.instant('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE_PREFIX', {
+          label,
+        });
+      } else {
+        titlePrefix = '';
+      }
     }
+
     if (this.showIndividualCountOnly) {
       this.titleSubject.next(titlePrefix + (await this.translate.instant('TRIP.BATCH.EDIT.INDIVIDUAL_COUNT.TITLE')));
     } else {
