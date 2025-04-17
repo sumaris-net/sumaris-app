@@ -27,6 +27,7 @@ import { FocusMonitor } from '@angular/cdk/a11y';
 export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withSamplingStrata?: boolean;
   withSale?: boolean;
+  withSales?: boolean;
   withMeasurements?: boolean;
   withMetiers?: boolean;
   withFishingAreas?: boolean;
@@ -61,15 +62,24 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
     // Add sale form
     if (opts.withSale) {
-      form.addControl('sales', this.getSalesArray(data?.sales)); // ### TODO dedoublonner
-      // form.addControl(
-      //   'sale',
-      //   this.saleValidator.getFormGroup(data?.sale, {
-      //     required: false,
-      //     withVessel: false,
-      //     withProgram: false,
-      //   })
-      // );
+      form.addControl(
+        'sale',
+        this.saleValidator.getFormGroup(data?.sale, {
+          required: false,
+          withVessel: false,
+          withProgram: false,
+        })
+      );
+    }
+
+    if (opts.withSales) {
+      form.addControl(
+        'sales',
+        this.getSalesArray(data?.sales, {
+          required: false,
+          enabled: true,
+        })
+      );
     }
 
     // Add measurement form
@@ -90,14 +100,14 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
   }
 
   // Méthode pour créer un AppFormArray pour les ventes
-  getSalesArray(data?: Sale[], opts?: { required?: boolean }): AppFormArray<Sale, UntypedFormGroup> {
+  getSalesArray(data?: Sale[], opts?: { required?: boolean; enabled?: boolean }): AppFormArray<Sale, UntypedFormGroup> {
     console.debug(this.logPrefix + `(${data?.[0]?.program?.id}) getSalesArray()`, data);
     const required = !opts || opts.required !== false;
 
     const formArray = new AppFormArray<Sale, UntypedFormGroup>(
-      (sale) => this.saleValidator.getFormGroup(sale, { ...opts, withProgram: false }), // Utilisation du SaleValidatorService pour chaque vente
-      (a, b) => a?.equals(b) /*a.id === b.id*/, // Comparaison des ventes
-      (a) => false /*!!a.id*/, // Vérification si une vente est vide
+      (sale) => this.saleValidator.getFormGroup(sale, { ...opts, withVessel: false, withProgram: false }), // Utilisation du SaleValidatorService pour chaque vente
+      Sale.equals, // Comparaison des ventes
+      Sale.isEmpty, // Vérification si une vente est vide
       {
         allowEmptyArray: true, // Permet un tableau vide TODO OLM enlever
         validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : null, // Validation pour s'assurer qu'il y a au moins une vente
@@ -116,6 +126,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
   // configuration du formGroup
   getFormGroupConfig(data?: Trip, opts?: O): { [key: string]: any } {
+    console.debug(this.logPrefix + `(${opts?.program?.id}) getFormGroupConfig()`, data, opts);
     const formConfig = Object.assign(super.getFormGroupConfig(data, opts), {
       __typename: [Trip.TYPENAME],
       departureDateTime: [(data && data.departureDateTime) || null, !opts.departureDateTimeRequired ? null : Validators.required],
@@ -145,8 +156,9 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     }
 
     // Add sales
-    if (opts.withSale) {
-      formConfig.sales = this.getSalesArray(data?.sales);
+    if (opts.withSales) {
+      console.debug(this.logPrefix + `(${opts?.program?.id}) getFormGroupConfig() withSales`, data?.sales);
+      formConfig.sales = this.getSalesArray(data?.sales, { required: false, enabled: true });
     }
 
     return formConfig;
@@ -174,6 +186,8 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
   //mise à jour du formGroup dans le cas où les options sont modifiées (par exemple, si on passe d'un programme à un autre)
   updateFormGroup(form: UntypedFormGroup, opts?: O): UntypedFormGroup {
+    console.debug(this.logPrefix + `(${opts?.program?.id}) updateFormGroup()`, form.controls, opts);
+
     opts = this.fillDefaultOptions(opts);
 
     const enabled = form.enabled;
@@ -209,6 +223,23 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
       if (form.controls.sale) form.removeControl('sale');
     }
 
+    // Sale array
+    if (opts?.withSales) {
+      console.debug(this.logPrefix + `(${opts?.program?.id}) updateFormGroup() before`, form.controls.sales);
+      if (!form.controls.sales) form.addControl('sales', this.getSalesArray(null, { required: false, enabled: true }));
+      if (enabled) {
+        console.debug(this.logPrefix + `(${opts?.program?.id}) updateFormGroup() enabling`, form.controls.sales, enabled);
+        form.controls.sales.enable();
+        // form.controls.sales.controls.forEach((sale) => {
+        //    sale.enable();
+        // });
+      } else {
+        form.controls.sales.disable();
+      }
+    } else {
+      if (form.controls.sales) form.removeControl('sales');
+    }
+
     // Metier array
     if (opts?.withMetiers) {
       if (!form.controls.metiers) {
@@ -219,23 +250,6 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     } else {
       if (form.controls.metiers) form.removeControl('metiers');
     }
-
-    // Sale array
-    if (opts?.withSale) {
-      console.debug(this.logPrefix + `(${opts?.program?.id}) updateFormGroup() before`, form.controls.sales);
-      if (!form.controls.sales) form.addControl('sales', this.getSalesArray(null, { required: true })); // ### TODO dedoublonner
-      if (enabled) {
-        form.controls.sales.enable();
-        this.getSalesArray(null).forEach((sale) => {
-          sale.enable();
-        });
-      } else {
-        form.controls.sales.disable();
-      }
-    } else {
-      if (form.controls.sales) form.removeControl('sales');
-    }
-    console.debug(this.logPrefix + `(${opts?.program?.id}) updateFormGroup()`, form.controls.sales);
 
     // Observers
     if (opts?.withObservers) {
@@ -315,7 +329,8 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
         ProgramProperties.TRIP_METIERS_ENABLE.defaultValue === 'true'
       )
     );
-    opts.withSale = toBoolean(opts.withSale, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE), true)); //TODO OLM replace true by false
+    opts.withSale = toBoolean(opts.withSale, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE), false));
+    opts.withSales = toBoolean(opts.withSales, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_SALES_ENABLE), false));
     opts.withMeasurements = toBoolean(opts.withMeasurements, !!opts.program);
     opts.returnFieldsRequired = toBoolean(opts.returnFieldsRequired, !opts.isOnFieldMode);
     opts.minDurationInHours = toNumber(opts.minDurationInHours, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_MIN_DURATION_HOURS));
