@@ -116,8 +116,6 @@ import { ACTIVITY_MONTH_VALIDATOR_I18N_ERROR_KEYS } from '@app/activity-calendar
 import { ACTIVITY_CALENDAR_VALIDATOR_I18N_ERROR_KEYS } from './activity-calendar/model/activity-calendar.validator';
 import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
 
-// import { TEST_USER_SETTINGS_OPTIONS } from '../../ngx-sumaris-components/src/app/core/services/testing/user-settings.config';
-
 @NgModule({
   declarations: [AppComponent],
   bootstrap: [AppComponent],
@@ -444,7 +442,7 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         { title: 'MENU.TESTING', path: '/testing', icon: 'code', color: 'danger', ifProperty: 'sumaris.testing.enable', profile: 'SUPERVISOR' },
         { title: 'MENU.INBOX', path: '/inbox', icon: 'mail', profile: 'USER', ifProperty: 'sumaris.social.notification.icons.enable' },
         { title: 'MENU.LOCAL_SETTINGS', path: '/settings', icon: 'settings', color: 'medium' },
-        { title: 'MENU.ABOUT', action: 'about', matIcon: 'help_outline', color: 'medium', cssClass: 'visible-mobile' },
+        { title: 'MENU.ABOUT', action: 'about', matIcon: 'help_outline', color: 'medium', cssClass: 'visible-xs' },
         // Logout
         { title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', color: 'medium hidden-mobile' },
         { title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', color: 'danger visible-mobile' },

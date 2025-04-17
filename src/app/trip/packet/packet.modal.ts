@@ -6,7 +6,6 @@ import { PacketForm } from './packet.form';
 import { AppFormUtils, isNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '@environments/environment';
-// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 export interface IPacketModalOptions {
   data: Packet;
@@ -29,7 +28,7 @@ export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
   subscription = new Subscription();
   $title = new BehaviorSubject<string>(null);
 
-  @ViewChild('form', { static: true }) packetForm: PacketForm;
+  @ViewChild('packetForm', { static: true }) packetForm: PacketForm;
 
   @Input() data: Packet;
   @Input() disabled: boolean;
@@ -45,11 +44,15 @@ export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
   }
 
   get valid() {
-    return this.packetForm?.valid || false;
+    return this.packetForm.valid ?? false;
   }
 
   get invalid() {
-    return this.packetForm?.invalid || false;
+    return this.packetForm.invalid ?? false;
+  }
+
+  get dirty() {
+    return this.packetForm.dirty ?? false;
   }
 
   constructor(
@@ -68,7 +71,7 @@ export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
     setTimeout(() => {
       this.packetForm.setValue(this.data);
       if (!this.disabled) this.enable();
-    });
+    }, 100);
   }
 
   protected updateTitle(data?: Packet) {

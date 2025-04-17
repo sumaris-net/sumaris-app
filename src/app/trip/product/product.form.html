@@ -34,6 +34,7 @@
       <!-- weight -->
       <ion-col size="12" size-md="">
         <mat-form-field>
+          <mat-label>{{ 'TRIP.PRODUCT.LIST.WEIGHT' | translate }}</mat-label>
           <input
             matInput
             autocomplete="off"
@@ -41,26 +42,26 @@
             type="number"
             decimal="true"
             [tabIndex]="tabindex + 2"
-            [placeholder]="'TRIP.PRODUCT.LIST.WEIGHT' | translate"
+            min="0.01"
+            step="0.01"
             required
           />
           <mat-error *ngIf="form.controls.weight.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls.weight.hasError('min')" translate>
+            {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate: form.controls.weight.errors.min }}
+          </mat-error>
         </mat-form-field>
       </ion-col>
 
       <!-- individualCount -->
       <ion-col size="12" size-md="">
         <mat-form-field>
-          <input
-            matInput
-            autocomplete="off"
-            formControlName="individualCount"
-            type="number"
-            [tabIndex]="tabindex + 3"
-            [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT' | translate"
-            required
-          />
+          <mat-label>{{ 'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT' | translate }}</mat-label>
+          <input matInput autocomplete="off" formControlName="individualCount" type="number" [tabIndex]="tabindex + 3" min="1" required />
           <mat-error *ngIf="form.controls.individualCount.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls.individualCount.hasError('min')" translate>
+            {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate: form.controls.individualCount.errors.min }}
+          </mat-error>
         </mat-form-field>
       </ion-col>
     </ion-row>

@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { AppFormUtils, LocalSettingsService, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
-import { environment } from '@environments/environment';
 import { ModalController } from '@ionic/angular';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
@@ -33,7 +32,6 @@ export interface ISamplesModalOptions<M = SamplesModal> extends IDataEntityModal
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SamplesModal implements OnInit, ISamplesModalOptions {
-  readonly debug = !environment.production;
   loading = false;
   $title = new BehaviorSubject<string>(undefined);
 
@@ -46,7 +44,7 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
   @Input() pmfms: IPmfm[];
   @Input() usageMode: UsageMode;
   @Input() i18nSuffix: string;
-
+  @Input() debug: boolean;
   @Input() canEdit: boolean;
 
   @Input() defaultSampleDate: Moment;

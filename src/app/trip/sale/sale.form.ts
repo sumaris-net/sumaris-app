@@ -3,6 +3,7 @@ import { SaleValidatorOptions, SaleValidatorService } from './sale.validator';
 import { Moment } from 'moment';
 import {
   AppForm,
+  expansionAnimation,
   isEmptyArray,
   isNilOrBlank,
   MatAutocompleteField,
@@ -21,7 +22,6 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { UntypedFormControl } from '@angular/forms';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { expansionAnimation } from '@app/shared/material/material.animations';
 
 @Component({
   selector: 'app-form-sale',

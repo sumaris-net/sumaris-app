@@ -7,7 +7,6 @@ import {
   FilterFn,
   fromDateISOString,
   isNotEmptyArray,
-  isNotNil,
   toDateISOString,
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
@@ -21,6 +20,7 @@ export class ProgramFilter extends BaseReferentialFilter<ProgramFilter, Program>
   withProperty?: string;
   minUpdateDate?: Moment;
   acquisitionLevelLabels?: string[];
+  excludedAcquisitionLevelLabels?: string[];
   strategyIds: number[];
 
   constructor() {
@@ -35,6 +35,7 @@ export class ProgramFilter extends BaseReferentialFilter<ProgramFilter, Program>
     this.withProperty = source.withProperty;
     this.minUpdateDate = fromDateISOString(source.minUpdateDate);
     this.acquisitionLevelLabels = source.acquisitionLevelLabels;
+    this.excludedAcquisitionLevelLabels = source.excludedAcquisitionLevelLabels;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -69,6 +70,10 @@ export class ProgramFilter extends BaseReferentialFilter<ProgramFilter, Program>
     // Filter on acquisition levels
     if (isNotEmptyArray(this.acquisitionLevelLabels)) {
       filterFns.push((entity) => (entity.acquisitionLevelLabels || []).some((label) => this.acquisitionLevelLabels.includes(label)));
+    }
+
+    if (isNotEmptyArray(this.excludedAcquisitionLevelLabels)) {
+      filterFns.push((entity) => !(entity.acquisitionLevelLabels || []).some((label) => this.excludedAcquisitionLevelLabels.includes(label)));
     }
 
     return filterFns;

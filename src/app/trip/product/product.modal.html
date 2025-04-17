@@ -59,6 +59,7 @@
             fill="solid"
             expand="block"
             shape="round"
+            [disabled]="(form.form | formGetValue: 'individualCount') <= 0"
             [title]="'TRIP.PRODUCT.EDIT.BTN_INDIVIDUAL_SAMPLING' | translate"
             (click)="save($event, 'sampling')"
           >

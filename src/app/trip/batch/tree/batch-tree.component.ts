@@ -14,6 +14,9 @@ import {
   isNotNilOrBlank,
   LocalSettingsService,
   ReferentialRef,
+  RxStateProperty,
+  RxStateRegister,
+  RxStateSelect,
   toBoolean,
   toNumber,
   UsageMode,
@@ -50,7 +53,6 @@ import { RxState } from '@rx-angular/state';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { RxConcurrentStrategyNames } from '@rx-angular/cdk/render-strategies';
 import { qualityFlagInvalid } from '@app/data/services/model/model.utils';
-import { RxStateProperty, RxStateRegister, RxStateSelect } from '@sumaris-net/ngx-components';
 
 export interface IBatchTreeComponent extends IAppTabEditor {
   programLabel: string;
@@ -683,6 +685,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     this.batchGroupsTable.showWeightColumns = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_ENABLE);
     this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
     this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
+    this.batchGroupsTable.showMeasuresButton = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_BUTTON_ENABLE);
     this.batchGroupsTable.samplingRatioFormat = samplingRatioFormat;
     this.batchGroupsTable.allowIndividualCountOnly = allowIndividualCountOnly;
     this.batchGroupsTable.enableWeightLengthConversion = this.enableWeightLengthConversion;

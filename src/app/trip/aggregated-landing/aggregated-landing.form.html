@@ -5,17 +5,7 @@
   </ion-item>
 
   <mat-menu #optionsMenu="matMenu" xPosition="after">
-    <ng-template matMenuContent let-activity="activity" let-index="index">
-      <button
-        mat-menu-item
-        [title]="'COMMON.BTN_EDIT' | translate"
-        (click)="openTripClick(activity)"
-        [disabled]="!activity || !activity.tripId || !activity.observedLocationId"
-      >
-        <mat-icon><ion-icon name="boat"></ion-icon></mat-icon>
-        <ion-label translate>AGGREGATED_LANDING.OPEN_TRIP</ion-label>
-      </button>
-
+    <ng-template matMenuContent let-index="index">
       <button *ngIf="!options?.readonly" mat-menu-item [title]="'COMMON.BTN_DELETE' | translate" (click)="removeActivity(index)">
         <mat-icon>delete_outline</mat-icon>
         <ion-label translate>COMMON.BTN_DELETE</ion-label>
@@ -26,13 +16,15 @@
   <ion-grid class="ion-no-padding ion-margin-top">
     <ion-row>
       <ion-col class="ion-padding">
-        <mat-swipe-field
-          formControlName="date"
-          [items]="dates"
-          [displayWith]="displayDateFn"
-          [equals]="compareDateFn"
-          [debug]="debug"
-        ></mat-swipe-field>
+        <ion-item lines="none">
+          <ion-button slot="start" fill="clear" color="dark" (click)="goPrevious()" [disabled]="!canGoPrevious()">
+            <ion-icon slot="icon-only" name="chevron-back-outline"></ion-icon>
+          </ion-button>
+          <ion-label>{{ form | formGetValue: 'date' | dateFormat: { pattern: 'dddd L' } }}</ion-label>
+          <ion-button slot="end" fill="clear" color="dark" (click)="goNext()" [disabled]="!canGoNext()">
+            <ion-icon slot="icon-only" name="chevron-forward-outline"></ion-icon>
+          </ion-button>
+        </ion-item>
       </ion-col>
     </ion-row>
 
@@ -46,12 +38,17 @@
 
             <div class="toolbar-spacer"></div>
 
+            @let activity = activities[i];
             <button
               mat-icon-button
-              [title]="'COMMON.BTN_OPTIONS' | translate"
-              [matMenuTriggerFor]="optionsMenu"
-              [matMenuTriggerData]="{ index: i, activity: activities[i] }"
+              [title]="'AGGREGATED_LANDING.OPEN_TRIP' | translate"
+              (click)="openTripClick(activity)"
+              [disabled]="!activity || !activity.tripId || !activity.observedLocationId"
             >
+              <mat-icon><ion-icon name="boat"></ion-icon></mat-icon>
+            </button>
+
+            <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="optionsMenu" [matMenuTriggerData]="{ index: i }">
               <mat-icon>more_vert</mat-icon>
             </button>
           </mat-toolbar>

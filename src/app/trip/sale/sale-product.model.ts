@@ -1,10 +1,11 @@
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
-import { isNil, isNilOrNaN, isNotEmptyArray, isNotNil, isNotNilOrNaN, ObjectMap, ReferentialUtils, round } from '@sumaris-net/ngx-components';
+import { isNil, isNotEmptyArray, isNotNil, isNotNilOrNaN, ObjectMap, ReferentialUtils, round } from '@sumaris-net/ngx-components';
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { Product } from '../product/product.model';
 import { Packet, PacketUtils } from '../packet/packet.model';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { MathUtils } from '@app/shared/math.utils';
 
 export class SaleProduct extends Product {
   // static TYPENAME = 'SaleProductVO'; // fixme: This VO don't exists, keep its TYPENAME ?
@@ -128,6 +129,7 @@ export class SaleProductUtils {
 
   static productsToAggregatedSaleProduct(products: Product[], pmfms: DenormalizedPmfmStrategy[]): SaleProduct[] {
     const target: SaleProduct[] = [];
+    const saleProductDetailsByRankOrder: Record<number, { averageWeightPrice: number; weight: number }[]> = {};
 
     (products || []).forEach((product) => {
       const saleProduct = this.productToSaleProduct(product, pmfms);
@@ -136,10 +138,6 @@ export class SaleProductUtils {
       if (ReferentialUtils.isEmpty(saleProduct.taxonGroup)) throw new Error('this saleProduct has no taxonGroup');
 
       // aggregate weight price to packaging price
-      saleProduct.averagePackagingPrice = saleProduct.averageWeightPrice;
-      saleProduct.averagePackagingPriceCalculated = isNil(saleProduct.averagePackagingPrice);
-      saleProduct.averageWeightPrice = undefined;
-
       const aggregatedSaleProduct = target.find((a) => a.rankOrder === saleProduct.rankOrder);
       if (aggregatedSaleProduct) {
         // Some assertions
@@ -155,9 +153,13 @@ export class SaleProductUtils {
 
         // Sum values
         if (aggregatedSaleProduct.weight && saleProduct.weight) aggregatedSaleProduct.weight += saleProduct.weight;
-        if (aggregatedSaleProduct.averagePackagingPrice && saleProduct.averagePackagingPrice)
-          aggregatedSaleProduct.averagePackagingPrice += saleProduct.averagePackagingPrice;
         if (aggregatedSaleProduct.totalPrice && saleProduct.totalPrice) aggregatedSaleProduct.totalPrice += saleProduct.totalPrice;
+
+        // keep details
+        saleProductDetailsByRankOrder[saleProduct.rankOrder].push({
+          averageWeightPrice: saleProduct.averageWeightPrice,
+          weight: saleProduct.weight,
+        });
 
         // Keep id
         if (saleProduct.id) {
@@ -170,7 +172,27 @@ export class SaleProductUtils {
         if (saleProduct.id) saleProduct.productIdByTaxonGroup[saleProduct.taxonGroup.id] = saleProduct.id;
         // just add to aggregation
         target.push(saleProduct);
+        // keep details
+        saleProductDetailsByRankOrder[saleProduct.rankOrder] = [
+          {
+            averageWeightPrice: saleProduct.averageWeightPrice,
+            weight: saleProduct.weight,
+          },
+        ];
+        saleProduct.averagePackagingPriceCalculated = isNil(saleProduct.averageWeightPrice);
+        saleProduct.averageWeightPrice = undefined;
       }
+    });
+
+    // Compute average packaging price
+    target.forEach((saleProduct) => {
+      const details = saleProductDetailsByRankOrder[saleProduct.rankOrder];
+      if (details) {
+        const averagePrice = MathUtils.average(details.map((detail) => detail.averageWeightPrice));
+        const packagingWeight = saleProduct.weight / saleProduct.subgroupCount;
+        saleProduct.averagePackagingPrice = round(averagePrice * packagingWeight);
+      }
+      saleProduct.totalPrice = round(saleProduct.totalPrice);
     });
 
     return target;
@@ -237,13 +259,14 @@ export class SaleProductUtils {
         product.saleType = saleProduct.saleType;
 
         // get or calculate average weight
-        const compositionAverageRatio = PacketUtils.getCompositionAverageRatio(packet, composition);
-        let averageWeight = composition.weight;
-        if (isNilOrNaN(averageWeight)) {
-          averageWeight = compositionAverageRatio * packet.weight;
-        }
-        product.weight = round((averageWeight * saleProduct.subgroupCount) / packet.number);
+        const compositionWeight = composition.weight ?? PacketUtils.getCompositionWeight(packet, composition);
+        product.weight = (compositionWeight * saleProduct.subgroupCount) / packet.number;
         product.weightCalculated = true;
+
+        // compute prices
+        const averagePacketWeight = packet.weight / packet.number;
+        const averageWeightPrice = saleProduct.averagePackagingPrice / averagePacketWeight;
+        const totalWeightPrice = averageWeightPrice * product.weight;
 
         // sale rank order
         MeasurementValuesUtils.setFormValue(product.measurementValues, pmfms, PmfmIds.SALE_RANK_ORDER, saleProduct.rankOrder);
@@ -253,9 +276,7 @@ export class SaleProductUtils {
           product.measurementValues,
           pmfms,
           PmfmIds.AVERAGE_WEIGHT_PRICE,
-          isNotNilOrNaN(saleProduct.averagePackagingPrice) && !saleProduct.averagePackagingPriceCalculated
-            ? round(compositionAverageRatio * saleProduct.averagePackagingPrice)
-            : undefined
+          !saleProduct.averagePackagingPriceCalculated ? averageWeightPrice : undefined
         );
 
         // total price
@@ -263,9 +284,7 @@ export class SaleProductUtils {
           product.measurementValues,
           pmfms,
           PmfmIds.TOTAL_PRICE,
-          isNotNilOrNaN(saleProduct.totalPrice) && !saleProduct.totalPriceCalculated
-            ? round(compositionAverageRatio * saleProduct.totalPrice)
-            : undefined
+          !saleProduct.totalPriceCalculated ? totalWeightPrice : undefined
         );
 
         // add to target
@@ -289,7 +308,7 @@ export class SaleProductUtils {
         saleProduct,
         (object, valueName) => !!object[valueName],
         (object, valueName) => object[valueName],
-        (object, valueName, value) => (object[valueName] = round(value)),
+        (object, valueName, value) => (object[valueName] = value),
         (object, valueName) => (object[valueName] = undefined),
         true,
         'individualCount'
@@ -311,7 +330,7 @@ export class SaleProductUtils {
         saleProduct,
         (object, valueName) => !!object[valueName],
         (object, valueName) => object[valueName],
-        (object, valueName, value) => (object[valueName] = round(value)),
+        (object, valueName, value) => (object[valueName] = value),
         (object, valueName) => (object[valueName] = undefined),
         false,
         'subgroupCount',

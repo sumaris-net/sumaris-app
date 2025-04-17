@@ -9,11 +9,10 @@ import {
   LoadResult,
   ReferentialUtils,
   round,
+  toBoolean,
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
-
 import { IWithPacketsEntity, Packet, PacketComposition, PacketIndexes, PacketUtils } from './packet.model';
 import { PacketValidatorService } from './packet.validator';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -34,7 +33,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
   compositionHelper: FormArrayHelper<PacketComposition>;
   compositionFocusIndex = -1;
   compositionEditedIndex: number;
-  $packetCount = new BehaviorSubject<number>(undefined);
+  packetCount: number;
   $packetIndexes = new BehaviorSubject<number[]>(undefined);
 
   @Input() mobile: boolean;
@@ -56,10 +55,6 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
 
   get compositionsFormArray(): UntypedFormArray {
     return this.form.controls.composition as UntypedFormArray;
-  }
-
-  get packetCount() {
-    return this.$packetCount.value;
   }
 
   get value(): any {
@@ -149,8 +144,9 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     const numberControl = this.form.get('number');
     this.registerSubscription(
       numberControl.valueChanges.pipe(startWith(numberControl.value)).subscribe((packetCount) => {
-        this.$packetCount.next(Math.max(1, Math.min(6, packetCount || 0)));
-        this.$packetIndexes.next([...Array(this.$packetCount.value).keys()]);
+        this.packetCount = Math.max(1, Math.min(6, packetCount || 0));
+        this.$packetIndexes.next([...Array(this.packetCount).keys()]);
+        this.validatorService.updateFormGroup(this.form, { packetCount: this.packetCount, withComposition: true });
         this.computeTotalWeight();
         this.computeTaxonGroupWeight();
       })
@@ -193,18 +189,10 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
 
     try {
       this.computing = true;
-      const totalWeight = this.form.controls.weight.value || 0;
-      const compositions: UntypedFormGroup[] = (this.compositionsFormArray.controls as UntypedFormGroup[]) || [];
 
+      const compositions: UntypedFormGroup[] = (this.compositionsFormArray.controls as UntypedFormGroup[]) || [];
       for (const composition of compositions) {
-        const ratios: number[] = [];
-        PacketIndexes.forEach((index) => {
-          const ratio = composition.controls['ratio' + index].value;
-          if (isNotNilOrNaN(ratio)) ratios.push(ratio);
-        });
-        const sum = ratios.reduce((a, b) => a + b, 0);
-        const avg = sum / ratios.length || 0;
-        composition.controls.weight.setValue(round((avg / 100) * totalWeight));
+        composition.controls.weight.setValue(round(PacketUtils.getCompositionWeight(this.value, composition.value)));
       }
     } finally {
       this.computing = false;
@@ -222,7 +210,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
         if (isNotNilOrNaN(weight)) sampledWeights.push(weight);
       });
       const sum = sampledWeights.reduce((a, b) => a + b, 0);
-      const avg = round(sum / sampledWeights.length || 0);
+      const avg = sum / sampledWeights.length || 0;
       const number = this.form.controls.number.value || 0;
       this.form.controls.weight.setValue(round(avg * number));
     } finally {
@@ -248,9 +236,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     this.markForCheck();
   }
 
-  addComposition(event?: Event) {
-    event?.stopPropagation();
-
+  addComposition() {
     this.compositionHelper.add();
 
     this.editComposition(this.compositionHelper.size() - 1);
@@ -281,6 +267,25 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
         this.markForCheck();
       }, 500);
     }
+  }
+
+  // TODO move to ngx-components (replace existing filterNumberInput in inputs.ts)
+  filterNumberInput(event: KeyboardEvent, opts?: { allowNegative?: boolean; allowDecimal?: boolean; decimalSeparator?: string }) {
+    // console.debug('filterNumberInput', event, opts);
+    const allowNegative = toBoolean(opts?.allowNegative, true);
+    const allowDecimal = toBoolean(opts?.allowDecimal, true);
+    const decimalSeparator = opts?.decimalSeparator ?? /,|./;
+    // Accept number entered, some control keys and decimal character if allowed
+    if (
+      event.key.match(/[0-9]|Arrow(Up|Down|Left|Right)|Delete|Backspace|Enter|Tab|Home|End/) ||
+      (allowDecimal && event.key.match(decimalSeparator)) ||
+      (allowNegative && event.key === '-')
+    ) {
+      return;
+    }
+    // Ignore input
+    event.preventDefault();
+    return;
   }
 
   protected markForCheck() {

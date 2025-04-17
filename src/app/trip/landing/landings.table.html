@@ -287,14 +287,24 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-mdc-cell-date-time">
         <ion-label translate>LANDING.TABLE.DATE_TIME</ion-label>
       </th>
-      <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row">
-        <ion-text *ngIf="getLandingDate(row.currentData); let landingDateTime">
-          {{ landingDateTime | dateFormat: { time: true } }}
-          <ion-text *ngIf="mobile" class="computed">
-            <br />
-            <small>{{ landingDateTime | dateFromNow }}</small>
+      <td mat-cell class="mat-mdc-cell-date-time" *matCellDef="let row" (click)="focusColumn = 'dateTime'">
+        @if (row.editing) {
+          <mat-date-time-field
+            floatLabel="never"
+            [formControl]="row.validator | formGetControl: 'dateTime'"
+            [autofocus]="focusColumn == 'dateTime'"
+            [required]="true"
+            [compact]="true"
+          ></mat-date-time-field>
+        } @else {
+          <ion-text *ngIf="getLandingDate(row.currentData); let landingDateTime">
+            {{ landingDateTime | dateFormat: { time: true } }}
+            <ion-text *ngIf="mobile" class="computed">
+              <br />
+              <small>{{ landingDateTime | dateFromNow }}</small>
+            </ion-text>
           </ion-text>
-        </ion-text>
+        }
       </td>
     </ng-container>
 
@@ -457,26 +467,29 @@
           <button mat-icon-button [title]="'COMMON.BTN_DELETE' | translate" (click)="cancelOrDelete($event, row)">
             <mat-icon>delete</mat-icon>
           </button>
-        } @else if (detailEditor === 'trip') {
-          <!-- Open trip page -->
-          <button
-            mat-icon-button
-            [color]="row.currentData.tripId ? 'primary' : 'medium'"
-            [title]="'LANDING.TABLE.BTN_OPEN_TRIP' | translate"
-            (click)="confirmAndEditTrip($event, row)"
-          >
-            <ion-icon name="boat" slot="icon-only"></ion-icon>
-          </button>
-        } @else if (detailEditor === 'sale') {
-          <!-- Open sale page -->
-          <button
-            mat-icon-button
-            [color]="(row.currentData.saleIds | isArrayLength: { equals: 1 }) ? 'primary' : 'dark'"
-            [title]="'LANDING.TABLE.BTN_OPEN_SALE' | translate"
-            (click)="confirmAndEditSale($event, row)"
-          >
-            <ion-icon name="pricetag" slot="icon-only"></ion-icon>
-          </button>
+        }
+        @if (row.valid) {
+          @if (detailEditor === 'trip') {
+            <!-- Open trip page -->
+            <button
+              mat-icon-button
+              [color]="row.currentData.tripId ? 'primary' : 'medium'"
+              [title]="'LANDING.TABLE.BTN_OPEN_TRIP' | translate"
+              (click)="confirmAndEditTrip($event, row)"
+            >
+              <ion-icon name="boat" slot="icon-only"></ion-icon>
+            </button>
+          } @else if (detailEditor === 'sale') {
+            <!-- Open sale page -->
+            <button
+              mat-icon-button
+              [color]="(row.currentData.saleIds | isArrayLength: { equals: 1 }) ? 'primary' : 'dark'"
+              [title]="'LANDING.TABLE.BTN_OPEN_SALE' | translate"
+              (click)="confirmAndEditSale($event, row)"
+            >
+              <ion-icon name="pricetag" slot="icon-only"></ion-icon>
+            </button>
+          }
         }
       </td>
     </ng-container>

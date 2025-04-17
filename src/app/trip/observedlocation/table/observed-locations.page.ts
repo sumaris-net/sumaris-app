@@ -58,8 +58,13 @@ export class ObservedLocationsPage
   extends AppRootDataTable<ObservedLocation, ObservedLocationFilter, ObservedLocationService, any, number, ObservedLocationsPageState>
   implements OnInit
 {
+  static getDefaultLocationLevelIds() {
+    return [LocationLevelIds.AUCTION, LocationLevelIds.PORT];
+  }
+
   @RxStateSelect() protected landingsTitle$: Observable<string>;
   protected selectedSegment = 'observations';
+  protected programLocationLevelIds: number[];
 
   @RxStateProperty() protected landingsTitle: string;
 
@@ -184,10 +189,13 @@ export class ObservedLocationsPage
 
     // Locations combo (filter)
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
-      service: this.referentialRefService,
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          levelIds: isNotEmptyArray(this.programLocationLevelIds) ? this.programLocationLevelIds : ObservedLocationsPage.getDefaultLocationLevelIds(),
+        }),
       filter: {
         entityName: 'Location',
-        levelIds: [LocationLevelIds.AUCTION, LocationLevelIds.PORT],
       },
       mobile: this.mobile,
     });
@@ -412,6 +420,7 @@ export class ObservedLocationsPage
     // Allow to filter on program, if user can access more than one program
     this.showFilterProgram = this.defaultShowFilterProgram && (this.isAdmin || !this.filter?.program?.label);
     this.showFilterSamplingStrata = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE);
+    this.programLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
 
     // Hide program if cannot change it
     this.showProgramColumn = this.showFilterProgram;
@@ -426,15 +435,16 @@ export class ObservedLocationsPage
   protected async resetProgram() {
     await super.resetProgram();
 
-    this.showFilterProgram = this.defaultShowFilterProgram;
-    this.showProgramColumn = this.defaultShowFilterProgram;
-    this.showFilterSamplingStrata = toBoolean(ProgramProperties.OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE.defaultValue, false);
-
-    // Show endDateTime
-    this.showEndDateTimeColumn = toBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE.defaultValue, false);
-
     // Title
     this.landingsTitle = LANDING_TABLE_DEFAULT_I18N_PREFIX + 'TITLE';
+
+    this.showFilterProgram = this.defaultShowFilterProgram;
+    this.showFilterSamplingStrata = toBoolean(ProgramProperties.OBSERVED_LOCATION_SAMPLING_STRATA_ENABLE.defaultValue, false);
+
+    this.programLocationLevelIds = undefined;
+
+    this.showProgramColumn = this.defaultShowFilterProgram;
+    this.showEndDateTimeColumn = toBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE.defaultValue, false);
   }
 
   protected markForCheck() {
@@ -443,5 +453,10 @@ export class ObservedLocationsPage
 
   protected resetContext() {
     this.context.reset();
+  }
+
+  resetFilter() {
+    super.resetFilter();
+    this.emitRefresh();
   }
 }

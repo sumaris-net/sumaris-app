@@ -108,7 +108,9 @@
               [readonly]="hasIndividualCount"
               required
             />
-            <mat-error *ngIf="!hasIndividualCount && saleForm.controls.ratio.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+            <mat-error *ngIf="!hasIndividualCount && (saleForm | formGetControl: 'ratio').hasError('required')" translate>
+              ERROR.FIELD_REQUIRED
+            </mat-error>
           </mat-form-field>
         </td>
 
@@ -214,7 +216,7 @@
               [style.visibility]="last ? 'visible' : 'hidden'"
               [disabled]="disabled"
               [title]="'COMMON.BTN_ADD' | translate"
-              (click)="addSale($event)"
+              (click)="addSale()"
               [tabindex]="tabindex + 3 + i * 9 + 7"
             >
               <mat-icon>add</mat-icon>

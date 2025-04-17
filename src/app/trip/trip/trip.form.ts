@@ -20,6 +20,7 @@ import {
   DateUtils,
   EntityUtils,
   equals,
+  expansionAnimation,
   fromDateISOString,
   isEmptyArray,
   isNotEmptyArray,
@@ -58,7 +59,6 @@ import { combineLatest } from 'rxjs';
 import { Moment } from 'moment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { SortDirection } from '@angular/material/sort';
-import { expansionAnimation } from '@app/shared/material/material.animations';
 import { TRIP_FEATURE_DEFAULT_PROGRAM_FILTER } from '@app/trip/trip.config';
 
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;

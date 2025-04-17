@@ -31,6 +31,7 @@ import {
   EntityServiceLoadOptions,
   EntityUtils,
   equals,
+  expansionAnimation,
   fadeInOutAnimation,
   FilesUtils,
   fromDateISOString,
@@ -80,7 +81,6 @@ import { StrategyFilter } from '@app/referential/services/filter/strategy.filter
 import { RxState } from '@rx-angular/state';
 import { ExpenseForm } from '@app/trip/expense/expense.form';
 import { OperationType } from '@app/trip/operation/operation.form';
-import { expansionAnimation } from '@app/shared/material/material.animations';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -702,7 +702,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.showOperationTable = this.showOperationTable || (this.showGearTable && isNotEmptyArray(data.gears));
 
     // Enable expenses tab if has the program
-    this.showExpensesForm = this.showExpensesForm || !this.isNewData;
+    this.showExpensesForm = this.showExpensesForm && isNotNilOrBlank(this.programLabel);
     if (this.showExpensesForm) {
       this.expenseForm.realignInkBar();
     }

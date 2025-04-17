@@ -9,6 +9,7 @@ import {
   AppFormArray,
   DateUtils,
   equals,
+  expansionAnimation,
   fromDateISOString,
   isEmptyArray,
   isNil,
@@ -38,7 +39,6 @@ import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER } from '@app/trip/trip.config'
 import { Observable, of } from 'rxjs';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { expansionAnimation } from '@app/shared/material/material.animations';
 
 export interface ObservedLocationFormState extends MeasurementsFormState {
   showObservers: boolean;

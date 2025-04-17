@@ -4,7 +4,9 @@
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
-
+  @if (debug) {
+    <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+  }
   <table class="mat-mdc-table" [class.mobile]="mobile">
     <thead>
       <!-- header row -->
@@ -169,7 +171,7 @@
                 [style.visibility]="last ? 'visible' : 'hidden'"
                 [disabled]="disabled"
                 [title]="'COMMON.BTN_ADD' | translate"
-                (click)="addSale($event)"
+                (click)="addSale()"
                 [tabindex]="tabindex + 3 + i * 7 + 5"
               >
                 <mat-icon>add</mat-icon>
@@ -177,7 +179,7 @@
               <button
                 type="button"
                 mat-icon-button
-                *ngIf="salesEditedIndex === i && !disabled && saleFormArray?.controls && saleFormArray?.controls.length > 1"
+                *ngIf="salesEditedIndex === i && !disabled && saleFormArray?.controls | isArrayLength: { greaterThan: 0 }"
                 [class.visible-hover-row]="!mobile"
                 [tabindex]="-1"
                 [title]="'COMMON.BTN_DELETE' | translate"
@@ -192,3 +194,20 @@
     </tbody>
   </table>
 </form>
+<ng-template #debugPanel>
+  <app-debug title="Packet sale Form">
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          <br />
+          enabled: {{ enabled }}
+          <br />
+          dirty: {{ dirty }}
+          <br />
+          valid: {{ valid }}
+          <br />
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>

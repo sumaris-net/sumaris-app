@@ -102,6 +102,18 @@ form.form-container {
         padding-left: var(--padding-left);
       }
     }
+
+    &.computed {
+      input[type='number']::-webkit-outer-spin-button,
+      input[type='number']::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      input[type='number'] {
+        -moz-appearance: textfield;
+      }
+    }
   }
 
   & > ion-grid > ion-col:has(ion-label) {
