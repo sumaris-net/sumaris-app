@@ -274,6 +274,7 @@
           <!-- Vessel -->
           <ion-col size="12" size-lg="6">
             <mat-autocomplete-field
+              #vesselSnapshotField
               *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
               [placeholder]="'ACTIVITY_CALENDAR.TABLE.FILTER.VESSEL' | translate"
               formControlName="vesselSnapshot"

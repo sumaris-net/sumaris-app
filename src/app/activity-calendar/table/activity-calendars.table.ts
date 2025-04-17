@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ActivityCalendarService } from '../activity-calendar.service';
 import { ActivityCalendarFilter, ActivityCalendarSynchroImportFilter } from '../activity-calendar.filter';
 import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
@@ -18,6 +18,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
+  MatAutocompleteField,
   MatAutocompleteFieldConfig,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   OfflineFeature,
@@ -62,6 +63,7 @@ import { FileTransferService } from '@app/shared/service/file-transfer.service';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { intersectArrays } from '@app/shared/functions';
 import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
+import { MatAutocomplete } from '@angular/material/autocomplete';
 
 export const ActivityCalendarsTableSettingsEnum = {
   PAGE_ID: 'activity-calendars',
@@ -181,6 +183,8 @@ export class ActivityCalendarsTable
   get filterYearControl(): UntypedFormControl {
     return this.filterForm.controls.year as UntypedFormControl;
   }
+
+  @ViewChild('vesselSnapshotField') vesselSnapshotField: MatAutocompleteField;
 
   constructor(
     injector: Injector,
@@ -356,6 +360,19 @@ export class ActivityCalendarsTable
     });
 
     this.registerSubscription(this.configService.config.pipe(filter(isNotNil)).subscribe((config) => this.onConfigLoaded(config)));
+
+    // Update vessel snapshot field, when year or vessel type changes
+    this.registerSubscription(
+      this.filterForm.get('year').valueChanges.subscribe((year) => {
+        this.vesselSnapshotField.reloadItems();
+      })
+    );
+
+    this.registerSubscription(
+      this.filterForm.get('vesselType').valueChanges.subscribe((year) => {
+        this.vesselSnapshotField.reloadItems();
+      })
+    );
 
     // Clear the existing activityCalendar context
     this.resetContext();
@@ -765,6 +782,16 @@ export class ActivityCalendarsTable
     // Limit type, using the program's vessel types
     if (isNotEmptyArray(this.programVesselTypeIds)) {
       vesselTypeIds = vesselTypeIds ? intersectArrays([vesselTypeIds, this.programVesselTypeIds]) : this.programVesselTypeIds;
+    }
+
+    // Year filter, to have exact vessel name (when has been destoyed ) - fix issue #1070
+    const year = this.filterForm.get('year')?.value;
+    if (isNotNil(year)) {
+      filter = {
+        ...filter,
+        startDate: (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).startOf('year'),
+        endDate: (this.timezone ? DateUtils.moment().tz(this.timezone) : DateUtils.moment()).year(year).endOf('year'),
+      };
     }
 
     return this.vesselSnapshotService.suggest(value, {
