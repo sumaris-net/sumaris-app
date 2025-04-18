@@ -74,6 +74,7 @@ export abstract class AppBaseTable<
   implements OnInit, AfterViewInit
 {
   private _canEdit: boolean;
+  private _showSelectColumn: boolean;
   private _showIdColumn: boolean;
 
   protected readonly translateContext = inject(TranslateContextService);
@@ -94,6 +95,12 @@ export abstract class AppBaseTable<
   @Input({ transform: booleanAttribute }) showPaginator = true;
   @Input({ transform: booleanAttribute }) showFooter = true;
   @Input({ transform: booleanAttribute }) showError = true;
+  @Input({ transform: booleanAttribute }) set showSelectColumn(value: boolean) {
+    this._showSelectColumn = value;
+  }
+  get showSelectColumn() {
+    return this._showSelectColumn ?? (!this.mobile && (this.canEdit || this.canDelete));
+  }
   @Input({ transform: booleanAttribute }) set showIdColumn(value: boolean) {
     this._showIdColumn = value;
   }
@@ -191,7 +198,7 @@ export abstract class AppBaseTable<
 
   ngOnInit() {
     // Set defaults
-    this.showToolbar = toBoolean(this.showToolbar, !this.mobile);
+    this.showToolbar = this.showToolbar ?? !this.mobile;
 
     super.ngOnInit();
 
@@ -367,6 +374,7 @@ export abstract class AppBaseTable<
       this.selection.clear(false);
     }
     super.toggleSelectRow(event, row);
+    this.markForCheck();
   }
 
   protected async openRow(id: ID, row: TableElement<T>): Promise<boolean> {

@@ -112,10 +112,6 @@ export class LandingsTable
   @RxStateProperty() protected observedCount: number;
   @RxStateProperty() protected availableTaxonGroups: TaxonGroupRef[];
 
-  // TODO BLA refactor this !!
-  protected readonly isRowNotSelectable = (item: TableElement<Landing>): boolean => {
-    return this.isSaleDetailEditor && this.isLandingRandom(item);
-  };
   @Output() openTrip = new EventEmitter<TableElement<Landing>>();
   @Output() newTrip = new EventEmitter<TableElement<Landing>>();
   @Output() openSale = new EventEmitter<TableElement<Landing>>();
@@ -922,4 +918,8 @@ export class LandingsTable
     this.availableTaxonGroups = await this.programRefService.loadTaxonGroups(this.programLabel, { strategyId: this.strategyId });
     return this.availableTaxonGroups;
   }
+
+  protected readonly isRowNotSelectable = (item: TableElement<Landing>): boolean => {
+    return this.isSaleDetailEditor && this.isLandingRandom(item);
+  };
 }

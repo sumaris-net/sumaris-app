@@ -11,6 +11,7 @@ import { RxUnpatch } from '@rx-angular/template/unpatch';
 import { AppErrorItem } from '@app/shared/error/error-item.component';
 import { AppWarningItem } from '@app/shared/error/warning-item.component';
 import { DebounceTimePipe } from '@app/shared/pipes/debounceTime.pipe';
+import { AppSelectColumnModule } from '@app/shared/table/select-column/select-column.module';
 
 @NgModule({
   imports: [
@@ -23,6 +24,7 @@ import { DebounceTimePipe } from '@app/shared/pipes/debounceTime.pipe';
 
     // Sub modules
     MatFormFieldsSkeletonModule,
+    AppSelectColumnModule,
 
     // Standalone components
     AppErrorItem,
@@ -55,6 +57,7 @@ import { DebounceTimePipe } from '@app/shared/pipes/debounceTime.pipe';
 
     //Sub modules
     MatFormFieldsSkeletonModule,
+    AppSelectColumnModule,
 
     // Standalone components
     AppErrorItem,
