@@ -68,9 +68,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     target.rankOrder = this.rankOrderOnVessel; // this.rankOrder is not persisted
 
     // Parent
-    target.tripId = this.tripId;
     target.trip = this.trip?.asObject(opts) || undefined;
-    target.observedLocationId = this.observedLocationId;
     target.observedLocation = this.observedLocation?.asObject(opts) || undefined;
 
     // Samples
@@ -78,12 +76,7 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     target.samplesCount =
       (this.samples && this.samples.filter((s) => s.measurementValues && isNotNilOrBlank(s.measurementValues[PmfmIds.TAG_ID])).length) || undefined;
 
-    target.saleIds = this.saleIds;
-
-    // Strategy
-    target.strategy = this.strategy?.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*keep for field*/ });
-
-    if (opts && opts.minify) {
+    if (opts?.minify) {
       delete target.rankOrderOnVessel;
 
       target.observedLocationId = toNumber(target.observedLocationId, target.observedLocation?.id);
@@ -92,7 +85,12 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
       if (target.strategy?.label && PmfmIds.STRATEGY_LABEL !== -1) {
         target.measurementValues[PmfmIds.STRATEGY_LABEL] = target.strategy.label;
       }
+
+      // Strategy
       delete target.strategy;
+    } else {
+      // Strategy
+      target.strategy = this.strategy?.asObject({ ...opts, ...NOT_MINIFY_OPTIONS /*keep for field*/ });
     }
 
     return target;

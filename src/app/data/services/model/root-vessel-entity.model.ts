@@ -22,6 +22,14 @@ export abstract class DataRootVesselEntity<
   asObject(options?: O): any {
     const target = super.asObject(options);
     target.vesselSnapshot = (this.vesselSnapshot && this.vesselSnapshot.asObject({ ...options, ...NOT_MINIFY_OPTIONS })) || undefined;
+    if (options?.minify) {
+      // Clean unused properties, in pod
+      if (target.vesselSnapshot) {
+        delete target.vesselSnapshot.registrationId;
+        delete target.vesselSnapshot.registrationStartDate;
+        delete target.vesselSnapshot.registrationEndDate;
+      }
+    }
     return target;
   }
 
