@@ -30,6 +30,7 @@ import { Moment } from 'moment';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { debounceTime, mergeMap } from 'rxjs/operators';
 import { AppBaseTable } from '@app/shared/table/base.table';
+import { TableElement } from '@e-is/ngx-material-table';
 
 export interface SelectVesselsForDataModalOptions {
   programLabel: string;
@@ -269,6 +270,13 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
 
   get canValidate(): boolean {
     return (this.isNewVessel && this.vesselForm && this.vesselForm.valid) || this.hasSelection();
+  }
+
+  clickRow(table: AppBaseTable<any, any>, row: TableElement<any>) {
+    table.toggleSelectRow(null, row);
+    if (!this.allowMultiple && this.canValidate) {
+      this.close();
+    }
   }
 
   protected markForCheck() {

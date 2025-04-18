@@ -54,7 +54,6 @@ export class GearPhysicalFeaturesTable extends BaseMeasurementsTable<GearPhysica
   @Input() timezone: string = DateUtils.moment().tz();
   @Input() year: number;
 
-  @Input() showSelectColumn = true;
   @Input() noResultLabel = 'COMMON.NO_RESULT';
   @Input() noResultColor: AppColors;
 
@@ -114,10 +113,10 @@ export class GearPhysicalFeaturesTable extends BaseMeasurementsTable<GearPhysica
     this.autoLoad = true;
     this.sticky = true;
 
-    this.showMetierColumn = false;
-    this.showGearColumn = true;
     this.showSelectColumn = true;
     this.showIdColumn = true;
+    this.showMetierColumn = false;
+    this.showGearColumn = true;
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.ACTIVITY_CALENDAR_GEAR_PHYSICAL_FEATURES;

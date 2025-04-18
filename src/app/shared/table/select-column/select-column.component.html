@@ -1,0 +1,22 @@
+<ng-container [matColumnDef]="name" [sticky]="table.sticky && !hidden">
+  <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="hidden" [class]="classList">
+    @if (!hidden) {
+      <mat-checkbox
+        (change)="$event ? table.masterToggle() : null"
+        [checked]="table.selection | isAllSelected: table"
+        [indeterminate]="table.selection | isNotAllSelected: table"
+        [tabIndex]="-1"
+      ></mat-checkbox>
+    }
+  </th>
+  <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="hidden" [class]="classList">
+    @let hiddenCheckbox = hidden || (hiddenCheckboxIf && (row | asBoolean: hiddenCheckboxIf));
+    @if (!hiddenCheckbox) {
+      <mat-checkbox (click)="table.toggleSelectRow($event, row)" [checked]="table.selection | isSelected: row" [tabIndex]="-1"></mat-checkbox>
+    }
+  </td>
+
+  <td mat-footer-cell *matFooterCellDef>
+    <ng-content select="[matFooter]"></ng-content>
+  </td>
+</ng-container>
