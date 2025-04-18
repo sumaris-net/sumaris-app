@@ -12,9 +12,10 @@
 }
 
 .mat-mdc-table {
-
   .mat-column-vessel {
+    min-width: 200px;
     max-width: 200px;
+    width: 200px;
     padding-right: 5px;
   }
 
@@ -26,9 +27,7 @@
 
   .mat-mdc-header-row,
   .mat-mdc-row {
-
     .mat-column-vessel {
-
     }
 
     .comments-italic {
@@ -47,11 +46,13 @@
 
     .mat-mdc-header-cell.mat-column-day {
       ion-label {
-        margin-inline-start: 4px;
-        margin-inline-end: 4px;
-        display: block;
-        text-align: center;
+        text-align: left;
         white-space: break-spaces;
+        vertical-align: sub;
+      }
+      ion-icon {
+        height: 1em;
+        width: 1em;
       }
     }
     .mat-mdc-cell.mat-column-day:hover {

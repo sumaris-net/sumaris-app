@@ -12,10 +12,9 @@
 
 .mat-mdc-table {
   --mat-row-max-height: 56px;
-  --mat-cell-horizontal-padding: 4;
+  --mat-cell-horizontal-padding: 4px;
   --mat-column-actions-min-width: 98px;
   --mat-column-actions-max-width: 98px;
-
 
   .mat-mdc-header-row,
   .mat-mdc-row {
@@ -39,6 +38,5 @@
         min-width: 50px;
       }
     }
-
   }
 }

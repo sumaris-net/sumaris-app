@@ -33,7 +33,7 @@
       <ion-col class="ion-padding-start">
         <!-- Total price (computed) -->
         <mat-form-field class="mat-form-field-disabled computed">
-          <mat-label>{{ totalPriceCalculated }}</mat-label>
+          <mat-label>{{ totalPriceCalculated | round }}</mat-label>
           <input matInput type="text" hidden />
         </mat-form-field>
       </ion-col>

@@ -209,7 +209,7 @@ export abstract class AppRootDataTable<
 
     // Init program, when loaded (or reset)
     this._state.hold(this.program$, (program) => {
-      if (program?.label) {
+      if (isNotNilOrBlank(program?.label)) {
         return this.setProgram(program);
       } else {
         return this.resetProgram();
@@ -841,7 +841,7 @@ export abstract class AppRootDataTable<
     });
   }
 
-  protected async loadProgram(programLabel?: string, filter?: Partial<ProgramFilter>): Promise<Program | undefined> {
+  protected async loadProgram(programLabel?: string, filter?: Partial<ProgramFilter>): Promise<Program | null> {
     // Load by label
     if (isNotNilOrBlank(programLabel)) {
       try {

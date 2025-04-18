@@ -29,7 +29,9 @@
         [disabled]="true"
         [canEdit]="false"
         [canDelete]="false"
-        (onOpenRow)="selectRow($event)"
+        [canPress]="false"
+        [multipleSelection]="allowMultiple"
+        (onClickRow)="landingsTable.toggleSelectRow(null, $event)"
         (onNewRow)="close($event)"
         [debug]="debug"
       ></app-landings-table>
@@ -48,6 +50,7 @@
         #vesselsTable
         [canEdit]="false"
         [canDelete]="false"
+        [canPress]="false"
         [showIdColumn]="false"
         [showToolbar]="true"
         [showSearchbar]="true"
@@ -58,7 +61,8 @@
         [showOfflineMode]="showOfflineVessels"
         [showBasePortLocationColumn]="showBasePortLocationColumn"
         [synchronizationStatus]="defaultVesselSynchronizationStatus"
-        (onOpenRow)="selectRow($event)"
+        [multipleSelection]="allowMultiple"
+        (onClickRow)="vesselsTable.toggleSelectRow(null, $event)"
         (onNewRow)="close($event)"
       ></app-vessels-table>
     </mat-tab>

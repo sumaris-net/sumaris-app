@@ -14,6 +14,7 @@ export const TRIP_FEATURE_NAME = 'trip';
 export const TRIP_FEATURE_DEFAULT_PROGRAM_FILTER: Partial<ProgramFilter> = Object.freeze({
   statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
   acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION],
+  excludedAcquisitionLevelLabels: [AcquisitionLevelCodes.LANDING],
 });
 export const OBSERVED_LOCATION_FEATURE_NAME = 'observedLocation';
 export const OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER: Partial<ProgramFilter> = Object.freeze({

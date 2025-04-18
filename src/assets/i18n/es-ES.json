@@ -714,11 +714,7 @@
     "PASSWORD": "Contraseña",
     "FIRST_NAME": "Nombre",
     "LAST_NAME": "Apellido",
-    "DEPARTMENT": {
-      "TITLE": "Organismo",
-      "LABEL": "Código del organismo",
-      "NAME": "Etiqueta del organismo"
-    },
+    "DEPARTMENT": "Organismo",
     "STATUS": "Estado",
     "PUBKEY": "Clave pública",
     "PROFILE": "Perfil",

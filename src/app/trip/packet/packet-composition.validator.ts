@@ -24,7 +24,7 @@ export class PacketCompositionValidatorService extends DataEntityValidatorServic
     PacketIndexes.forEach((index) => {
       formConfig['ratio' + index] = [
         data?.['ratio' + index] || null,
-        Validators.compose([SharedValidators.integer, Validators.min(0), Validators.max(100)]),
+        Validators.compose([SharedValidators.integer, Validators.min(1), Validators.max(100)]),
       ];
     });
 

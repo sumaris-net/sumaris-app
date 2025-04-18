@@ -562,7 +562,7 @@
       </ion-col>
     </ion-row>
 
-    <ion-row [@expansionInOutAnimation]="vesselAssociatedGearIds && showVesselAssociated ? 'expanded' : 'collapsed'">
+    <ion-row [@expansionAnimation]="vesselAssociatedGearIds && showVesselAssociated">
       <ion-col size="12" size-md="3" size-lg="3">
         <ion-label class="ion-float-end">
           {{ 'TRIP.OPERATION.EDIT.ASSOCIATED_VESSEL' | translate }}

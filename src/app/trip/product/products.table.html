@@ -234,30 +234,30 @@
           </button>
         } @else if (showActionButtons) {
           <!-- sampling -->
-          <button
-            mat-icon-button
-            *ngIf="showActionButtons && (row.validator | formGetValue: 'individualCount') > 0"
-            [title]="'TRIP.PRODUCT.LIST.INDIVIDUAL_SAMPLING' | translate"
-            (click)="openSampling($event, row)"
-            [color]="(row.currentData.samples | isNotEmptyArray) ? 'primary' : undefined"
-            [hidden]="readOnly"
-          >
-            <mat-icon
-              [matBadge]="row.currentData.samples?.length | badgeNumber"
-              [matBadgeHidden]="row.currentData.samples | isEmptyArray"
-              matBadgeColor="accent"
-              matBadgeSize="small"
-              matBadgePosition="above after"
+          @if ((row.validator | formGetValue: 'individualCount') > 0) {
+            <button
+              mat-icon-button
+              [title]="'TRIP.PRODUCT.LIST.INDIVIDUAL_SAMPLING' | translate"
+              (click)="openSampling($event, row)"
+              [color]="(row.currentData.samples | isNotEmptyArray) ? 'primary' : undefined"
+              [hidden]="readOnly"
             >
-              assessment
-            </mat-icon>
-          </button>
+              <mat-icon
+                [matBadge]="row.currentData.samples?.length | badgeNumber"
+                [matBadgeHidden]="row.currentData.samples | isEmptyArray"
+                matBadgeColor="accent"
+                matBadgeSize="small"
+                matBadgePosition="above after"
+              >
+                assessment
+              </mat-icon>
+            </button>
+          }
 
           <!-- product sale -->
           <button
             mat-icon-button
             color="light"
-            *ngIf="showActionButtons"
             [title]="'TRIP.PRODUCT.LIST.PRODUCT_SALE' | translate"
             (click)="openProductSale($event, row)"
             [color]="(row.currentData.saleProducts | isNotEmptyArray) ? 'primary' : undefined"

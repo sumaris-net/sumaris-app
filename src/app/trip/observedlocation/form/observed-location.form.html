@@ -28,7 +28,7 @@
     </ion-row>
 
     <!-- Sampling strata -->
-    <ion-row [@expansionInOutAnimation]="showSamplingStrata ? 'expanded' : 'collapsed'">
+    <ion-row [@expansionAnimation]="showSamplingStrata">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label class="ion-float-end hidden-xs hidden-sm">{{ 'OBSERVED_LOCATION.SAMPLING_SCHEME' | translateContext: i18nSuffix }}</ion-label>
       </ion-col>
@@ -205,7 +205,7 @@
 
     <!-- Observers -->
     @for (observerForm of observersForm?.controls; track i; let i = $index; let first = $first; let last = $last) {
-      <ion-row [@expansionInOutAnimation]="showObservers ? 'expanded' : 'collapsed'">
+      <ion-row [@expansionAnimation]="showObservers">
         <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
           <ion-label class="ion-float-end" *ngIf="first" translate>OBSERVED_LOCATION.EDIT.OBSERVERS</ion-label>
         </ion-col>

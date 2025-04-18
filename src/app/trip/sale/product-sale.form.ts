@@ -7,7 +7,6 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { Subscription } from 'rxjs';
 import { SaleProduct, SaleProductUtils } from './sale-product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 @Component({
   selector: 'app-product-sale-form',
@@ -86,6 +85,11 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
     super.ngOnDestroy();
   }
 
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.enable(opts);
+    setTimeout(() => this.markAsPristine(), 0);
+  }
+
   async setValue(data: Product, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     if (!data) return;
     this._data = data;
@@ -115,11 +119,8 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
     for (const saleForm of (this.saleFormArray.controls as UntypedFormGroup[]) || []) {
       this._saleSubscription.add(
         saleForm.valueChanges.subscribe(() => {
-          const dirty = saleForm.dirty;
           this.computePrices(saleForm.controls);
-
-          // Restore previous state - fix OBSDEB bug
-          if (!dirty) saleForm.markAsPristine();
+          this.markAsDirty();
         })
       );
     }
@@ -142,7 +143,7 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
         controls,
         (object, valueName) => AppFormUtils.isControlHasInput(object, valueName),
         (object, valueName) => object[valueName].value,
-        (object, valueName, value1) => AppFormUtils.setCalculatedValue(object, valueName, value1),
+        (object, valueName, value) => AppFormUtils.setCalculatedValue(object, valueName, value),
         (object, valueName) => AppFormUtils.resetCalculatedValue(object, valueName),
         true,
         'individualCount'
@@ -182,10 +183,8 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
     return control;
   }
 
-  addSale(event?: Event) {
-    event?.stopPropagation();
+  addSale() {
     this.salesHelper.add();
-
     this.initSubscription();
 
     this.editSale(this.salesHelper.size() - 1);

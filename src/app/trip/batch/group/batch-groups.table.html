@@ -547,7 +547,7 @@
     <button mat-icon-button [title]="'COMMON.BTN_DELETE' | translate" (click)="cancelOrDelete($event, row)" [tabIndex]="-1">
       <mat-icon>delete</mat-icon>
     </button>
-  } @else if (allowSubBatches && (!qvPmfm || mobile)) {
+  } @else if (showMeasuresButton && allowSubBatches && (!qvPmfm || mobile)) {
     <!-- open individual measures -->
     <button
       mat-icon-button

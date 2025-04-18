@@ -55,7 +55,7 @@
 
     <!-- Prent: Observed location -->
     @let observedLocationControl = observedLocationControl$ | async;
-    <ion-row [@expansionInOutAnimation]="observedLocationControl ? 'expanded' : 'collapsed'">
+    <ion-row [@expansionAnimation]="observedLocationControl">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label class="ion-float-end hidden-xs hidden-sm">
           {{ 'LANDING.EDIT.OBSERVED_LOCATION' | translateContext: i18nSuffix }}
@@ -119,7 +119,7 @@
     </ion-row>
 
     <!-- Vessel -->
-    <ion-row [@expansionInOutAnimation]="showVessel ? 'expanded' : 'collapsed'">
+    <ion-row [@expansionAnimation]="showVessel">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>

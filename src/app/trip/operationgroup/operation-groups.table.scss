@@ -7,10 +7,9 @@
   }
 }
 .mat-mdc-table {
-
   --mat-row-height: 52px;
   --mat-row-max-height: 140px;
-  --mat-cell-horizontal-padding: 4;
+  --mat-cell-horizontal-padding: 4px;
 
   .mat-mdc-header-row,
   .mat-mdc-row {
@@ -20,7 +19,6 @@
     .mat-column-metier {
       min-width: 175px;
     }
-
 
     .mat-column-gear,
     .mat-column-targetSpecies {
@@ -36,7 +34,7 @@
       }
     }
 
-    .mat-mdc-cell app-pmfm-field{
+    .mat-mdc-cell app-pmfm-field {
       padding-left: 7px;
     }
   }

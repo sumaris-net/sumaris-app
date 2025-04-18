@@ -211,7 +211,7 @@ export class AppComponent implements OnInit {
     const departmentAttributes = this.settings.getFieldDisplayAttributes('department');
     const departmentDefinition = <FormFieldDefinition>{
       key: 'department',
-      label: 'USER.DEPARTMENT.TITLE',
+      label: 'USER.DEPARTMENT',
       type: 'entity',
       autocomplete: {
         suggestFn: (value, filter) =>

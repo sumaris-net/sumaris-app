@@ -12,6 +12,7 @@ import {
   notNilOrDefault,
   referentialToString,
   ReferentialUtils,
+  round,
   toDateISOString,
   toNumber,
 } from '@sumaris-net/ngx-components';
@@ -225,7 +226,7 @@ export abstract class PmfmValueUtils {
       }
       case 'integer':
       case 'double':
-        return isNotNil(value) ? value : null;
+        return isNotNil(value) ? (opts.pmfm.maximumNumberDecimals > 0 ? round(value, opts.pmfm.maximumNumberDecimals) : value) : null;
       case 'string':
         return value || null;
       case 'date':

@@ -19,6 +19,7 @@ import {
   isNotNilOrBlank,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
+  RxStateRegister,
   toBoolean,
   TranslateContextService,
 } from '@sumaris-net/ngx-components';
@@ -33,7 +34,6 @@ import { PopoverController } from '@ionic/angular';
 import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
 import { Popovers } from '@app/shared/popover/popover.utils';
 import { timer } from 'rxjs';
-import { RxStateRegister } from '@sumaris-net/ngx-components';
 import { RxState } from '@rx-angular/state';
 
 export const BASE_TABLE_SETTINGS_ENUM = {
@@ -288,7 +288,9 @@ export abstract class AppBaseAsyncTable<
 
     // Update the form content
     if (this.filterForm && (!opts || opts.emitEvent !== false)) {
-      this.filterForm.patchValue(filter.asObject(), { emitEvent: false });
+      this.filterForm.patchValue(filter.asObject(), {
+        emitEvent: this.mobile, // Force emit in mobile - fix issue #1085
+      });
     }
 
     return super.setFilter(filter as F, opts);

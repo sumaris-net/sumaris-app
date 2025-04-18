@@ -7,6 +7,8 @@ import {
   isNil,
   isNotEmptyArray,
   PromiseEvent,
+  RxStateProperty,
+  RxStateSelect,
 } from '@sumaris-net/ngx-components';
 import { IWithPacketsEntity, Packet, PacketFilter, PacketUtils } from './packet.model';
 import { PacketValidatorService } from './packet.validator';
@@ -19,7 +21,6 @@ import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enu
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BaseMeasurementsTableState } from '@app/data/measurement/measurements-table.class';
-import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { RxState } from '@rx-angular/state';
 import { AppBaseTable } from '@app/shared/table/base.table';
 
@@ -351,6 +352,7 @@ export class PacketsTable
         pmfms: this._pmfms,
         disabled: this.disabled,
         mobile: this.mobile,
+        debug: this.debug,
       },
       backdropDismiss: false,
       cssClass: 'modal-large',

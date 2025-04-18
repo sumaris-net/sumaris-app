@@ -42,7 +42,6 @@ export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectO
     super.fromObject(source);
     this.entityName = source.entityName || Metier.ENTITY_NAME;
     this.gear = source.gear && GearRef.fromObject(source.gear);
-    console.log('TODO', source.gear);
     this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup);
     this.properties = (source.properties && { ...source.properties }) || undefined;
 
