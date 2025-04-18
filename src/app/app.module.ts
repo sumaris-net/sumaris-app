@@ -445,7 +445,7 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         { title: 'MENU.ABOUT', action: 'about', matIcon: 'help_outline', color: 'medium', cssClass: 'visible-xs' },
         // Logout
         { title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', color: 'medium hidden-mobile' },
-        { title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', color: 'danger visible-mobile' },
+        { title: 'MENU.LOGOUT', action: 'logout', icon: 'log-out', profile: 'GUEST', color: 'medium visible-mobile' },
       ],
     },
     // Home buttons
