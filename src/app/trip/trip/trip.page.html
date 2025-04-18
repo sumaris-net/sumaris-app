@@ -187,6 +187,7 @@
         <ion-grid class="ion-no-padding">
           <ion-row>
             <ion-col class="ion-padding">
+              @let showSales = salesMaximum > 1;
               <!-- trip -->
               <app-form-trip
                 #tripForm
@@ -242,7 +243,7 @@
                             <button
                               type="button"
                               mat-icon-button
-                              *ngIf="last"
+                              *ngIf="last && i < salesMaximum - 1"
                               [disabled]="disabledSaleAdd"
                               [title]="'COMMON.BTN_ADD' | translate"
                               (click)="addSale()"

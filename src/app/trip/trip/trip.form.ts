@@ -74,7 +74,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   private _showSamplingStrata: boolean;
   private _showObservers: boolean;
   private _showMetiers: boolean;
-  private _showSales: boolean;
+  private _salesMaximum: number;
   private _returnFieldsRequired: boolean;
   private _locationSuggestLengthThreshold: number;
   private _lastValidatorOpts: any;
@@ -106,15 +106,15 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     return this._showSamplingStrata;
   }
 
-  @Input({ transform: booleanAttribute }) set showSales(value: boolean) {
-    if (this._showSales !== value) {
-      this._showSales = value;
+  @Input({ transform: booleanAttribute }) set salesMaximum(value: number) {
+    if (this._salesMaximum !== value) {
+      this._salesMaximum = value;
       if (!this.loading) this.updateFormGroup();
     }
   }
 
-  get showSales(): boolean {
-    return this._showSales;
+  get salesMaximum(): number {
+    return this._salesMaximum;
   }
 
   @Input({ transform: booleanAttribute }) set showObservers(value: boolean) {
@@ -592,7 +592,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       minDurationInHours: this.minDurationInHours,
       maxDurationInHours: this.maxDurationInHours,
       withSamplingStrata: this.showSamplingStrata,
-      withSales: this.showSales,
+      salesMaximum: this.salesMaximum,
       withMetiers: this.showMetiers,
       withObservers: this.showObservers,
     };

@@ -132,7 +132,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   protected showRecorder = true;
   protected showObservers = true;
   protected showSaleForm = false;
-  protected showSales = false;
+  protected salesMaximum = 1;
   protected disabledSaleRemove = false;
   protected disabledSaleAdd = false;
   protected saleLocationLevelIds: number[];
@@ -161,11 +161,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   get saleAppFormArrayEnabledCnt(): number {
     // for debugging only
     const Ena = this.saleAppFormArray?.controls.filter((c) => c.enabled).length;
-    if (Ena < this.saleAppFormArrayCnt) {
-      //en faisant ça ça marche
-      // this.saleAppFormArray?.controls.forEach( c => c.enable());
-      // Ena = this.saleAppFormArray?.controls.filter( c => c.enabled).length;
-    }
     return Ena;
   }
   get saleAppFormArrayCnt(): number {
@@ -183,7 +178,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   get saleAppFormArray() {
-    console.debug(this.logPrefix + 'saleAppFormArray()', this.tripForm.form.get('sales'));
+    //console.debug(this.logPrefix + 'saleAppFormArray()', this.tripForm.form.get('sales'));
     return this.tripForm.form.get('sales') as AppFormArray<Sale, UntypedFormGroup>;
   }
 
@@ -472,8 +467,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
     // Sale form
     this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
-    this.showSales = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALES_ENABLE);
-    this.tripForm.showSales = this.showSales;
+    this.salesMaximum = program.getPropertyAsInt(ProgramProperties.TRIP_SALES_MAXIMUM);
+    this.tripForm.salesMaximum = this.salesMaximum;
 
     this.saleLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_SALE_LOCATION_LEVEL_IDS);
 
@@ -1094,9 +1089,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   protected async getJsonValueToSave(): Promise<any> {
     const json = await super.getJsonValueToSave();
 
-    //json.sale = !this.saleForm.empty ? this.saleForm.value : null;
-    json.sales = this.saleAppFormArray.value.map((form) => form.value);
-
     return json;
   }
 
@@ -1109,12 +1101,6 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       await this.physicalGearsTable.save();
     }
     data.gears = this.physicalGearService.value;
-
-    // add sales values
-    this.saleAppFormArray.value
-      .map((form) => form.value)
-      .filter(isNotEmptyArray)
-      .forEach((value) => data.sales.push(value));
 
     return data;
   }

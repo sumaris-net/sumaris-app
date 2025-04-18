@@ -2613,6 +2613,7 @@
       "TRIP_LOCATION_LEVEL_IDS": "Marea: Nivel(es) de lugar",
       "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Marea > Lugares: N.º mín. de caracteres para búsqueda",
       "TRIP_SALE_ENABLE": "Marea: ¿Ingresar la venta?",
+      "TRIP_SALES_MAXIMUM": "Marea: Máxima de ventas",
       "TRIP_SALE_LOCATION_LEVEL_IDS": "Marea > Venta: Nivel(es) de lugar",
       "TRIP_SAMPLING_STRATA_ENABLE": "Marea: ¿Ingresar la línea del plan de muestreo?",
       "TRIP_OBSERVERS_ENABLE": "Marea: ¿Ingresar los observadores?",

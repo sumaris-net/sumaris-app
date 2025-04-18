@@ -28,7 +28,7 @@ import { FocusMonitor } from '@angular/cdk/a11y';
 export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withSamplingStrata?: boolean;
   withSale?: boolean;
-  withSales?: boolean;
+  salesMaximum?: number;
   withMeasurements?: boolean;
   withMetiers?: boolean;
   withFishingAreas?: boolean;
@@ -73,7 +73,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
       );
     }
 
-    if (opts.withSales) {
+    if (opts.salesMaximum) {
       form.addControl(
         'sales',
         this.getSalesArray(data?.sales, {
@@ -114,10 +114,10 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
         // fg.valueChanges.subscribe((value) => {
         //   console.debug(this.logPrefix + `sale.valueChanges`, value);
         // });
-        console.debug(this.logPrefix + `getSalesArray()`, fg, fg.enabled);
+        //console.debug(this.logPrefix + `getSalesArray()`, fg, fg.enabled);
         //fg.enable();
         //this.saleValidator.updateFormGroup(fg, { ...opts, withVessel: false, withProgram: false });
-        console.debug(this.logPrefix + `getSalesArray() after updateFormGroup`, fg, fg.enabled);
+        //console.debug(this.logPrefix + `getSalesArray() after updateFormGroup`, fg, fg.enabled);
         return fg;
       }, // Utilisation du SaleValidatorService pour chaque vente
       Sale.equals, // Comparaison des ventes
@@ -130,14 +130,14 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
 
     // propagation du changement de statut du sale array vers ses enfants
     formArray.statusChanges.subscribe((status) => {
-      console.debug(this.logPrefix + `salesArray.statusChanges`, status);
+      //console.debug(this.logPrefix + `salesArray.statusChanges`, status);
       formArray.controls.forEach((sale) => {
         if (status !== 'DISABLED' && !sale.enabled) {
           sale.enable({ emitEvent: false });
         } else if (status === 'DISABLED' && sale.enabled) {
           sale.disable({ emitEvent: false });
         }
-        console.debug(this.logPrefix + `salesArray.statusChanges`, sale, sale.enabled);
+        //console.debug(this.logPrefix + `salesArray.statusChanges`, sale, sale.enabled);
       });
     });
 
@@ -147,7 +147,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
       formArray.patchValue(data);
     }
 
-    console.debug(this.logPrefix + `(${data?.[0]?.program?.id}) getSalesArray()`, formArray.controls);
+    //console.debug(this.logPrefix + `(${data?.[0]?.program?.id}) getSalesArray()`, formArray.controls);
     return formArray;
   }
 
@@ -183,7 +183,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     }
 
     // Add sales
-    if (opts.withSales) {
+    if (opts.salesMaximum) {
       console.debug(this.logPrefix + `(${opts?.program?.id}) getFormGroupConfig() withSales`, data?.sales);
       formConfig.sales = this.getSalesArray(data?.sales, { required: false, enabled: true });
     }
@@ -251,7 +251,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     }
 
     // Sale array
-    if (opts?.withSales) {
+    if (opts?.salesMaximum) {
       console.debug(this.logPrefix + `(${opts?.program?.id}) updateFormGroup() before`, form.controls.sales);
       if (!form.controls.sales) form.addControl('sales', this.getSalesArray(null, { required: false, enabled: true }));
       if (enabled) {
@@ -357,7 +357,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
       )
     );
     opts.withSale = toBoolean(opts.withSale, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE), false));
-    opts.withSales = toBoolean(opts.withSales, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_SALES_ENABLE), false));
+    opts.salesMaximum = toNumber(opts.salesMaximum, toNumber(opts.program?.getPropertyAsInt(ProgramProperties.TRIP_SALES_MAXIMUM), 1));
     opts.withMeasurements = toBoolean(opts.withMeasurements, !!opts.program);
     opts.returnFieldsRequired = toBoolean(opts.returnFieldsRequired, !opts.isOnFieldMode);
     opts.minDurationInHours = toNumber(opts.minDurationInHours, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_MIN_DURATION_HOURS));
