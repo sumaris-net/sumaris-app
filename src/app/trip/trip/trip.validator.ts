@@ -106,7 +106,20 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     const required = !opts || opts.required !== false;
 
     const formArray = new AppFormArray<Sale, UntypedFormGroup>(
-      (sale) => this.saleValidator.getFormGroup(sale, { ...opts, withVessel: false, withProgram: false }), // Utilisation du SaleValidatorService pour chaque vente
+      (sale) => {
+        const fg = this.saleValidator.getFormGroup(sale, { ...opts, withVessel: false, withProgram: false });
+        // fg.statusChanges.subscribe((status) => {
+        //   console.debug(this.logPrefix + `sale.statusChanges`, status);
+        // });
+        // fg.valueChanges.subscribe((value) => {
+        //   console.debug(this.logPrefix + `sale.valueChanges`, value);
+        // });
+        console.debug(this.logPrefix + `getSalesArray()`, fg, fg.enabled);
+        //fg.enable();
+        //this.saleValidator.updateFormGroup(fg, { ...opts, withVessel: false, withProgram: false });
+        console.debug(this.logPrefix + `getSalesArray() after updateFormGroup`, fg, fg.enabled);
+        return fg;
+      }, // Utilisation du SaleValidatorService pour chaque vente
       Sale.equals, // Comparaison des ventes
       Sale.isEmpty, // Vérification si une vente est vide
       {
@@ -114,6 +127,19 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
         validators: required ? SharedFormArrayValidators.requiredArrayMinLength(1) : null, // Validation pour s'assurer qu'il y a au moins une vente
       }
     );
+
+    // propagation du changement de statut du sale array vers ses enfants
+    formArray.statusChanges.subscribe((status) => {
+      console.debug(this.logPrefix + `salesArray.statusChanges`, status);
+      formArray.controls.forEach((sale) => {
+        if (status !== 'DISABLED' && !sale.enabled) {
+          sale.enable({ emitEvent: false });
+        } else if (status === 'DISABLED' && sale.enabled) {
+          sale.disable({ emitEvent: false });
+        }
+        console.debug(this.logPrefix + `salesArray.statusChanges`, sale, sale.enabled);
+      });
+    });
 
     // Initialiser les données si elles existent
     if (data) {
