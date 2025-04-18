@@ -23,6 +23,7 @@ import {
   GalleryMode,
   IAppForm,
   Image,
+  ImageGallerySizes,
   InMemoryEntitiesService,
   isNil,
   LocalSettingsService,
@@ -83,6 +84,11 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy, IAppForm {
   @Input() showAddCardButton: boolean;
   @Input() autoLoad = true;
   @Input() cardTemplate: TemplateRef<{ $implicit: ImageAttachment; mode: GalleryMode }>;
+  @Input() imageSizes: ImageGallerySizes = {
+    mosaic: 'medium',
+    list: 'medium',
+    modal: 'large',
+  };
 
   // FIXME: need to hidden buttons (in HTML), etc. when disabled
   @Input() set disabled(value: boolean) {

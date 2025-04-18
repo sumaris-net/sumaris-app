@@ -128,7 +128,7 @@
     "@rx-angular/state": "^18.1.0",
     "@rx-angular/template": "^18.0.3",
     "@sgratzl/chartjs-chart-boxplot": "~3.9.1",
-    "@sumaris-net/ngx-components": "18.7.12",
+    "@sumaris-net/ngx-components": "18.7.15",
     "angular-split": "~18.0.0",
     "apollo-angular": "~7.2.1",
     "apollo-link-logger": "~2.0.1",
@@ -171,7 +171,7 @@
     "reveal.js-plugins": "^4.2.4",
     "roboto-fontface": "~0.10.0",
     "rxjs": "~7.8.1",
-    "swiper": "^9.4.1",
+    "swiper": "^11.1.15",
     "tslib": "^2.7.0",
     "util": "^0.12.5",
     "uuid": "~7.0.3"
