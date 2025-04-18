@@ -87,7 +87,7 @@ export class VesselSnapshot extends Entity<VesselSnapshot> {
   startDate: Moment;
   endDate: Moment;
   exteriorMarking: string;
-  registrationId: number; // TODO remove this ?
+  registrationId: number;
   registrationCode: string;
   intRegistrationCode: string;
   registrationStartDate: Moment;
