@@ -135,16 +135,7 @@
                 [expertiseAreaProperties]="expertiseAreaProperties$ | async"
                 (onSubmit)="save($event)"
                 [debug]="debug"
-              >
-                <!-- fishing area form-->
-                <app-fishing-area-form
-                  #fishingAreaForm
-                  [showError]="true"
-                  [showDistanceToCoastGradient]="false"
-                  [showDepthGradient]="false"
-                  [showNearbySpecificArea]="false"
-                ></app-fishing-area-form>
-              </app-form-sale>
+              ></app-form-sale>
             </ion-col>
             <!-- Meta  -->
             <ion-col class="ion-no-padding" size="12" size-xl="3">
