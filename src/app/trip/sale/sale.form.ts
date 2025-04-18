@@ -153,7 +153,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
       // Combo: vessels
       this.vesselSnapshotService.getAutocompleteFieldOptions().then((opts) => this.registerAutocompleteField('vesselSnapshot', opts));
     } else {
-      this.form.get('vesselSnapshot').clearValidators();
+      this.form.get('vesselSnapshot')?.clearValidators();
     }
 
     // Combo location

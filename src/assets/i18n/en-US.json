@@ -1567,6 +1567,7 @@
     "TITLE_PREFIX": "<small>Occasion: {{location}} - {{date}}</small>",
     "TITLE": "Sale",
     "SALE_FIELD": "Sale:",
+    "SALES_FIELD": "Sales :",
     "DATE_TIME": "Date/Time",
     "START": "Start sale:",
     "START_DATE": "Start date",

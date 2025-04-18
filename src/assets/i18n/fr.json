@@ -1682,6 +1682,7 @@
     "TITLE_PREFIX": "<small>Sortie : {{location}} - {{date}}<br></small>",
     "TITLE": "Vente",
     "SALE_FIELD": "Vente :",
+    "SALES_FIELD": "Ventes :",
     "DATE_TIME": "Date/heure",
     "START": "Début de la vente :",
     "START_DATE": "Date début",

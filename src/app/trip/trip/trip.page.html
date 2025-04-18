@@ -195,6 +195,7 @@
                 [showFavorites]="showFavorites$ | async"
                 (onSubmit)="save($event)"
               >
+                <!-- TODO OLM gérer ici le cas d'une vente unique (si nécessaire ou supprimer ceci)-->
                 <!-- debug -->
                 <ion-row *ngIf="debug" beforeObservers>
                   <ion-col offset="0" offset-md="2" offset-lg="3">
@@ -205,10 +206,10 @@
                 <ion-row
                   class="ion-no-padding"
                   beforeObservers
-                  [@expansionInOutAnimation]="showSaleForm && (measurementsForm.readySubject | async) ? 'expanded' : 'collapsed'"
+                  [@expansionInOutAnimation]="showSaleForm && showSales && (measurementsForm.readySubject | async) ? 'expanded' : 'collapsed'"
                 >
                   <ion-col size="12" size-md="2" size-lg="3">
-                    <ion-label class="ion-float-end" translate>SALE.SALE_FIELD</ion-label>
+                    <ion-label class="ion-float-end" translate>SALE.SALES_FIELD</ion-label>
                   </ion-col>
                   <ion-col>
                     @let saleFormArrayControl = tripForm.form.get('sales');
@@ -522,10 +523,15 @@
           editor.isOnFieldMode: {{ isOnFieldMode }}
           <br />
           editor.forceMeasurementAsOptional: {{ forceMeasurementAsOptional }}
+        </ion-col>
+        <ion-col>
+          <b>Ventes</b>
           <br />
-          editor.showSales: {{ showSales }}
+          editor.showSaleForm: {{ showSaleForm }} (vente)
           <br />
-          editor.showSaleForm: {{ showSaleForm }}
+          editor.showSales: {{ showSales }} (ventes multiples)
+          <br />
+          this.tripForm.showSales : {{ tripForm.showSales }}
         </ion-col>
         <ion-col>
           form.ready: {{ tripForm.readySubject | async }}
