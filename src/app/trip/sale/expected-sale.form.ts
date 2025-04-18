@@ -89,7 +89,7 @@ export class ExpectedSaleForm extends AppFormProvider<MeasurementsForm> implemen
       MeasurementValuesUtils.setFormValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_WEIGHT_PRICE, saleProduct.averageWeightPrice);
       MeasurementValuesUtils.setFormValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_PACKAGING_PRICE, saleProduct.averagePackagingPrice);
       MeasurementValuesUtils.setFormValue(target.measurementValues, pmfms, PmfmIds.TOTAL_PRICE, saleProduct.totalPrice);
-      this.totalPriceCalculated += saleProduct?.totalPrice;
+      this.totalPriceCalculated += saleProduct.totalPrice;
 
       return Product.fromObject(target);
     });

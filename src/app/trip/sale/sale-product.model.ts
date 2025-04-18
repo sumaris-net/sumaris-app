@@ -121,7 +121,7 @@ export class SaleProductUtils {
       target.averagePackagingPriceCalculated = isNil(target.averagePackagingPrice);
       const totalPrice = MeasurementValuesUtils.getFormValue(product.measurementValues, pmfms, PmfmIds.TOTAL_PRICE);
       target.totalPrice = isNotNilOrNaN(totalPrice) ? +totalPrice : undefined;
-      target.totalPriceCalculated = isNotNilOrNaN(target.totalPrice);
+      target.totalPriceCalculated = isNotNil(target.totalPrice);
     }
 
     return target;
