@@ -2477,7 +2477,7 @@
       "TRIP_LOCATION_LEVEL_IDS": "Trip: Location level(s)",
       "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Trip > Location: Min nb char. to search",
       "TRIP_SALE_ENABLE": "Trip: Enter the sale?",
-      "TRIP_SALES_ENABLE": "Trip: Enter multiple sales ?",
+      "TRIP_SALES_MAXIMUM": "Trip: Maximum number of sales",
       "TRIP_SALE_LOCATION_LEVEL_IDS": "Trip > Sale: Location level(s)",
       "TRIP_SAMPLING_STRATA_ENABLE": "Trip: Enter sampling strata?",
       "TRIP_OBSERVERS_ENABLE": "Trip: Enter observers?",

@@ -2593,7 +2593,7 @@
       "TRIP_LOCATION_LEVEL_IDS": "Viagem: Nível(is) de local",
       "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Viagem > Locais: nº caract. mín para pesquisa",
       "TRIP_SALE_ENABLE": "Viagem: Registar a venda?",
-      "TRIP_SALES_ENABLE": "Viagem: Entrar com várias vendas?",
+      "TRIP_SALES_MAXIMUM": "Viagem: Número máximo de vendas",
       "TRIP_SALE_LOCATION_LEVEL_IDS": "Viagem > Venda: Nível(is) de local",
       "TRIP_SAMPLING_STRATA_ENABLE": "Viagem: Registar a linha de plano de amostragem?",
       "TRIP_OBSERVERS_ENABLE": "Viagem: Registar os observadores?",

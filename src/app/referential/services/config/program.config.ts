@@ -149,11 +149,11 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean',
   },
-  TRIP_SALES_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.trip.sales.enable',
-    label: 'PROGRAM.OPTIONS.TRIP_SALES_ENABLE',
-    defaultValue: 'false',
-    type: 'boolean',
+  TRIP_SALES_MAXIMUM: <FormFieldDefinition>{
+    key: 'sumaris.trip.sales.maximum',
+    label: 'PROGRAM.OPTIONS.TRIP_SALES_MAXIMUM',
+    defaultValue: 1,
+    type: 'integer',
   },
   TRIP_SALE_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.sale.location.level.ids',
