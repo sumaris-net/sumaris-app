@@ -8,7 +8,6 @@ import {
   isNotNil,
   isNotNilOrNaN,
   ReferentialAsObjectOptions,
-  ReferentialRef,
   referentialToString,
   ReferentialUtils,
 } from '@sumaris-net/ngx-components';
@@ -182,6 +181,7 @@ export class PacketComposition extends DataEntity<PacketComposition> {
     super.fromObject(source);
     this.rankOrder = source.rankOrder || undefined;
     this.taxonGroup = (source.taxonGroup && TaxonGroupRef.fromObject(source.taxonGroup)) || undefined;
+    this.weight = source.weight;
     const ratios = source.ratios || [];
     PacketIndexes.forEach((index) => (this['ratio' + index] = ratios[index] || source['ratio' + index]));
     return this;
@@ -214,6 +214,20 @@ export class PacketUtils {
 
   static getComposition(packet: Packet) {
     return (packet && packet.composition && packet.composition.map((composition) => referentialToString(composition.taxonGroup)).join('\n')) || '';
+  }
+
+  static getCompositionWeight(packet: Packet, composition: PacketComposition): number {
+    const weights: number[] = [];
+    PacketIndexes.forEach((index) => {
+      const sampledWeight = packet['sampledWeight' + index];
+      const ratio = composition['ratio' + index];
+      if (isNotNilOrNaN(sampledWeight) && isNotNilOrNaN(ratio)) {
+        weights.push((sampledWeight * ratio) / 100);
+      }
+    });
+    const sampledTotalWeight = weights.reduce((a, b) => a + b, 0);
+    const sampledPacketCount = PacketUtils.getSampledPacketCount(packet);
+    return sampledPacketCount > 0 ? (sampledTotalWeight * packet.number) / sampledPacketCount : 0;
   }
 
   static getCompositionAverageRatio(packet: Packet, composition: PacketComposition): number {

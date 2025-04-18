@@ -195,6 +195,7 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
     const json = super.loadFilter(sources);
     return {
       synchronizationStatus: this.synchronizationStatus,
+      ...this.filter,
       ...json,
     };
   }

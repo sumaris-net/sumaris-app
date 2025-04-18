@@ -80,7 +80,6 @@
             [placeholder]="'TRIP.OPERATION.LIST.METIER' | translate"
             [readonly]="!row.editing || mobile"
             [config]="autocompleteFields.metier"
-            (blur)="onMetierChange($event, row)"
             required
           ></mat-autocomplete-field>
         } @else {

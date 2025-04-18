@@ -6,7 +6,6 @@ import { ModalController } from '@ionic/angular';
 import {
   AppForm,
   DateFormatService,
-  DisplayFn,
   fadeInOutAnimation,
   filterNotNil,
   firstNotNilPromise,
@@ -16,7 +15,7 @@ import {
   NetworkService,
   SharedValidators,
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
+import { BehaviorSubject, combineLatest } from 'rxjs';
 import { distinctUntilChanged, filter } from 'rxjs/operators';
 import { AggregatedLandingService } from './aggregated-landing.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
@@ -26,7 +25,7 @@ import { getMaxRankOrder } from '@app/data/services/model/model.utils';
 import { environment } from '@environments/environment';
 
 export class AggregatedLandingFormOption {
-  dates: Observable<Moment[]> | Moment[];
+  dates: Moment[];
   initialDate: Moment | undefined;
   programLabel: string;
   acquisitionLevel: string;
@@ -96,7 +95,8 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
   onRefresh = new EventEmitter<any>();
   programLabel: string;
   acquisitionLevel: string;
-  dates: Observable<Moment[]> | Moment[];
+  dateIndex: number = 0;
+  dates: Moment[];
 
   constructor(
     injector: Injector,
@@ -119,18 +119,20 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
   }
 
   ngOnInit() {
-    if (isNil(this._options)) {
+    if (isNil(this.options)) {
       console.warn('[aggregated-landing-form] No option found, the form will be unusable');
     }
 
-    this.dates = this._options?.dates;
-    this.programLabel = this._options?.programLabel;
-    this.acquisitionLevel = this._options?.acquisitionLevel;
+    this.dates = this.options?.dates;
+    this.programLabel = this.options?.programLabel;
+    this.acquisitionLevel = this.options?.acquisitionLevel;
+    this.dateIndex = this.dates.findIndex((d) => d.isSame(this.options?.initialDate));
 
     const form = this.formBuilder.group({
-      date: [this._options?.initialDate, Validators.compose([Validators.required, SharedValidators.validDate])],
+      date: [this.dates[this.dateIndex], Validators.compose([Validators.required, SharedValidators.validDate])],
       activities: this.formBuilder.array([]),
     });
+
     this.setForm(form);
 
     this.form.controls.activities.valueChanges
@@ -150,7 +152,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     const dateControl = this.form.get('date');
     this.registerSubscription(
       combineLatest([dateControl.valueChanges.pipe(distinctUntilChanged()), filterNotNil(this.$data)]).subscribe((_) =>
-        this.showAtDate(dateControl.value)
+        this.showAtDate(this.dates[this.dateIndex])
       )
     );
 
@@ -179,14 +181,6 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
         stop: this.destroySubject,
       });
     }
-  }
-
-  get displayDateFn(): DisplayFn {
-    return (obj: any) => this.dateFormat.transform(obj, { pattern: 'dddd L' }).toString();
-  }
-
-  compareDateFn(d1: Moment, d2: Moment) {
-    return (d1 && d2 && d1.isSame(d2)) || false;
   }
 
   openTripClick(activity: VesselActivity) {
@@ -238,8 +232,12 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     this.activitiesForm.clear();
 
     // Add each activity with helper.add()
-    for (const activity of this.activities) {
-      this.activitiesHelper.add(activity);
+    if (this.activities.length === 0) {
+      this.addActivity();
+    } else {
+      for (const activity of this.activities) {
+        this.activitiesHelper.add(activity);
+      }
     }
 
     this.enable();
@@ -267,9 +265,24 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     this.$data.getValue().vesselActivities = newActivities;
   }
 
+  protected goNext() {
+    this.dateIndex++;
+    this.form.get('date').setValue(this.dates[this.dateIndex]);
+  }
+  protected goPrevious() {
+    this.dateIndex--;
+    this.form.get('date').setValue(this.dates[this.dateIndex]);
+  }
+
+  protected canGoNext() {
+    return this.dateIndex < this.dates.length - 1;
+  }
+
+  protected canGoPrevious() {
+    return this.dateIndex > 0;
+  }
+
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
-  protected readonly console = console;
 }

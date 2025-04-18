@@ -35,7 +35,9 @@
             type="number"
             pattern="[0-9]*"
             step="1"
+            min="1"
             [tabIndex]="tabindex + 1"
+            (keydown)="filterNumberInput($event, { allowNegative: false, allowDecimal: false })"
             (click)="selectInputContent($event)"
             (focusin)="compositionEditedIndex = null"
             required
@@ -98,11 +100,12 @@
               matInput
               autocomplete="off"
               type="number"
-              decimal="true"
               step="0.1"
+              min="0"
               [formControlName]="'sampledWeight' + index"
               [tabIndex]="tabindex + 10 + (index + 1) * 100"
               (click)="selectInputContent($event)"
+              (keydown)="filterNumberInput($event, { allowNegative: false, allowDecimal: true })"
             />
             <ion-text color="medium" class="text-italic" matSuffix>kg</ion-text>
           </mat-form-field>
@@ -146,10 +149,12 @@
                   type="number"
                   pattern="[0-9]*"
                   step="1"
+                  min="0"
                   max="100"
                   [tabIndex]="tabindex + 10 + (packetIndex + 1) * 100 + i"
                   [formControl]="control"
                   (click)="selectInputContent($event)"
+                  (keydown)="filterNumberInput($event, { allowNegative: false, allowDecimal: false })"
                 />
                 <ion-text color="medium" class="text-italic" matSuffix>%</ion-text>
                 <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -160,7 +165,7 @@
 
         <!-- computed weight -->
         <td class="mat-mdc-cell mat-column-small ion-text-center">
-          <ion-label color="primary" class="text-italic">{{ compositionForm.get('weight').value }} kg</ion-label>
+          <ion-label color="primary" class="text-italic">{{ compositionForm | formGetValue: 'weight' }} kg</ion-label>
         </td>
 
         <!-- buttons -->
@@ -173,7 +178,7 @@
               [style.visibility]="last ? 'visible' : 'hidden'"
               [disabled]="disabled"
               [title]="'COMMON.BTN_ADD' | translate"
-              (click)="addComposition($event)"
+              (click)="addComposition()"
               [tabindex]="tabindex + 999"
             >
               <mat-icon>add</mat-icon>
@@ -218,12 +223,15 @@
         *ngFor="let index of $packetIndexes | async; even as colEven"
         [class.even]="colEven"
       >
-        <ion-text *ngIf="form.get('sampledRatio' + index).value; let sampledRatio" [color]="sampledRatio > 100 ? 'danger' : 'primary'" class="error">
-          <small *ngIf="sampledRatio > 100">
-            <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          </small>
-          {{ sampledRatio }} %
-        </ion-text>
+        @if (form | formGetValue: 'sampledWeight' + index) {
+          @let sampledRatio = form | formGetValue: 'sampledRatio' + index;
+          <ion-label [color]="sampledRatio !== 100 ? 'danger' : 'primary'" class="error">
+            @if (sampledRatio !== 100) {
+              <ion-icon color="danger" name="alert-circle"></ion-icon>
+            }
+            {{ sampledRatio }} %
+          </ion-label>
+        }
       </td>
       <td class="mat-mdc-cell mat-column-small"></td>
       <td class="mat-mdc-cell mat-column-actions"></td>

@@ -492,7 +492,7 @@
     "PROGRAMS": "Programmes",
     "EXTRACTIONS": "Extractions",
     "MAP": "Cartes",
-    "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
+    "FOOTER_VERSION_ABOUT": "v{{version}} | À propos",
     "LOCAL_SETTINGS": "Paramètres",
     "SYSTEM_DIVIDER": "Système",
     "SERVER": "Paramètres système",
@@ -717,11 +717,9 @@
     "PASSWORD": "Mot de passe",
     "FIRST_NAME": "Prénom",
     "LAST_NAME": "Nom",
-    "DEPARTMENT": {
-      "TITLE": "Organisme",
-      "LABEL": "Code organisme",
-      "NAME": "Libellé organisme"
-    },
+    "CREATION_DATE": "Date de création",
+    "UPDATE_DATE": "Date de mise à jour",
+    "DEPARTMENT": "Organisme",
     "STATUS": "Etat",
     "PUBKEY": "Clé publique",
     "PROFILE": "Profil",
@@ -2650,6 +2648,7 @@
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Capture > Mesures individuelles : Espèces scientifiques ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Capture > Mesures individuelles : Espèces commerciales ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_UNIT": "Capture > Mesures individuelles : Unité de poids",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_BUTTON_ENABLE": "Capture > Mesures individuelles: Afficher le bouton des mesures individuelles",
       "TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE": "Capture > Mesures individuelles : Calcul poids par RTP ?",
       "TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID": "Capture > Pays (ID) pour les équivalents poids vifs",
       "TRIP_SAMPLE_ENABLE": "Marée > Échantillon : Activer ?",
@@ -3332,6 +3331,11 @@
         "NAME": "Générique",
         "INDIVIDUAL_COUNT": "Nombre d'individus total",
         "SUBSAMPLE_INDIVIDUAL_COUNT": "Nombre d'individus échantillonnés"
+      },
+      "P03": {
+        "TITLE": "Sorties > PO3",
+        "TITLE_PROGRAM": "Sorties > PO3 {{label}}",
+        "NAME": "P03"
       },
       "ACTIMONIT": {
         "TITLE": "Avancement des calendriers d'activité",

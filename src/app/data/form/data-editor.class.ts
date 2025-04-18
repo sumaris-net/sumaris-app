@@ -607,7 +607,7 @@ export abstract class AppDataEntityEditor<
 
   /* -- DEV methods -- */
 
-  protected devToggleDebug() {
+  devToggleDebug() {
     this.debug = !this.debug;
     this.markForCheck();
 

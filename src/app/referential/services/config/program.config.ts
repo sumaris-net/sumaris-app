@@ -473,6 +473,12 @@ export const ProgramProperties = Object.freeze({
     // No default value (keep PMFM unit)
     //defaultValue: UnitLabel.KG
   },
+  TRIP_BATCH_MEASURE_INDIVIDUAL_BUTTON_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.individual.button.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_INDIVIDUAL_BUTTON_ENABLE',
+    defaultValue: 'true',
+    type: 'boolean',
+  },
   TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.batch.rankOrder.compute',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE',
@@ -1465,6 +1471,7 @@ export const ProgramProperties = Object.freeze({
       <Property>{ key: 'APASE', value: 'EXTRACTION.FORMAT.APASE.NAME' },
       <Property>{ key: 'VESSEL', value: 'EXTRACTION.FORMAT.VESSEL.NAME' },
       <Property>{ key: 'ACTIMONIT', value: 'EXTRACTION.FORMAT.ACTIMONIT.NAME' },
+      <Property>{ key: 'P03', value: 'EXTRACTION.FORMAT.P03.NAME' },
     ],
     autocomplete: {
       columnNames: ['key', 'value'],

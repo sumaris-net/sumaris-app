@@ -33,7 +33,7 @@
 
         <ion-button
           [fill]="invalid ? 'clear' : 'solid'"
-          [disabled]="disabled || loading || invalid"
+          [disabled]="disabled || loading || invalid || !dirty"
           (click)="saveAndClose($event)"
           (keyup.enter)="saveAndClose($event)"
           color="tertiary"

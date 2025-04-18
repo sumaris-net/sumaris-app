@@ -114,11 +114,10 @@
       [stickyEnd]="stickyEnd || (mobile && hasSingleSelectedRow)"
       (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
       (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
-      (backward)="confirmAndBackward($event.event, $event.row)"
       (forward)="confirmAndForward($event.event, $event.row)"
       [canCancel]="false"
       [dirtyIcon]="!mobile"
-      [cellTemplate]="cellTemplate"
+      [cellTemplateStart]="cellTemplate"
       (optionsClick)="openSelectColumnsModal($event)"
     >
       <ng-template #cellTemplate let-row>

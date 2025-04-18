@@ -25,6 +25,8 @@ import {
   ReferentialUtils,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
+  RxStateProperty,
+  RxStateSelect,
   SETTINGS_DISPLAY_COLUMNS,
   TableSelectColumnsComponent,
   toBoolean,
@@ -51,7 +53,6 @@ import { hasFlag } from '@app/shared/flags.utils';
 import { OverlayEventDetail } from '@ionic/core';
 import { MeasurementsTableValidatorOptions } from '@app/data/measurement/measurements-table.validator';
 import { environment } from '@environments/environment';
-import { RxStateProperty, RxStateSelect } from '@sumaris-net/ngx-components';
 import { RxState } from '@rx-angular/state';
 import { ContextService } from '@app/shared/context.service';
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
@@ -277,6 +278,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
   @Input() enableWeightLengthConversion: boolean;
   @Input() labelPrefix: string; // Prefix to use for BatchGroup.label. If empty, will use the acquisitionLevel
+  @Input() showMeasuresButton: boolean;
 
   @Input() set showWeightColumns(value: boolean) {
     if (this._showWeightColumns !== value) {

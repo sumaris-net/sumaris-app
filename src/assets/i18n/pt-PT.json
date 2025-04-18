@@ -715,11 +715,7 @@
     "PASSWORD": "Palavra-passe",
     "FIRST_NAME": "Nome próprio",
     "LAST_NAME": "Apelido",
-    "DEPARTMENT": {
-      "TITLE": "Organismo",
-      "LABEL": "Código do organismo",
-      "NAME": "Nome do organismo"
-    },
+    "DEPARTMENT": "Organismo",
     "STATUS": "Estado",
     "PUBKEY": "Chave pública",
     "PROFILE": "Perfil",

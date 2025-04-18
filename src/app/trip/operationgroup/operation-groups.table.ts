@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
 import { InMemoryEntitiesService, isNil, LocalSettingsService, ReferentialRef, referentialToString } from '@sumaris-net/ngx-components';
 import { MetierService } from '@app/referential/services/metier.service';
-import { OperationGroup } from '../trip/trip.model';
+import { OperationGroup, OperationUtils } from '../trip/trip.model';
 import { environment } from '@environments/environment';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { IOperationGroupModalOptions, OperationGroupModal } from '@app/trip/operationgroup/operation-group.modal';
@@ -26,7 +26,7 @@ export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
       provide: InMemoryEntitiesService,
       useFactory: () =>
         new InMemoryEntitiesService<OperationGroup, OperationGroupFilter>(OperationGroup, OperationGroupFilter, {
-          equals: OperationGroup.equals,
+          equals: OperationUtils.equals,
           sortByReplacement: { id: 'rankOrder' },
         }),
     },
@@ -104,6 +104,8 @@ export class OperationGroupTable
       mobile: this.mobile,
     });
 
+    this.registerSubscription(this.registerCellValueChanges('metier').subscribe(() => this.onMetierChange(this.editedRow)));
+
     // Add sort replacement
     this.memoryDataService.addSortByReplacement('gear', this.displayAttributes.gear[0]);
     this.memoryDataService.addSortByReplacement('taxonGroup', this.displayAttributes.taxonGroup[0]);
@@ -160,17 +162,20 @@ export class OperationGroupTable
     return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrderOnPeriod || 0), 0);
   }
 
-  async onMetierChange($event: FocusEvent, row: TableElement<OperationGroup>) {
-    if (row && row.currentData && row.currentData.metier) {
-      console.debug('[operation-group.table] onMetierChange', $event, row.currentData.metier);
-      const operationGroup: OperationGroup = row.currentData;
+  async onMetierChange(row: TableElement<OperationGroup>) {
+    if (row) {
+      const metierRef = row.currentData.metier;
+      if (this.debug) {
+        console.debug('[operation-group.table] onMetierChange', metierRef);
+      }
 
-      if (operationGroup.metier?.id && (!operationGroup.metier?.gear || !operationGroup.metier?.taxonGroup)) {
+      if (metierRef?.id && (!metierRef?.gear || !metierRef?.taxonGroup)) {
         // First, load the Metier (with children)
-        const metier = await this.metierService.load(operationGroup.metier.id);
+        const metier = await this.metierService.load(metierRef.id);
 
         // affect to current row
-        row.validator.controls['metier'].setValue(metier);
+        row.validator.controls['metier'].setValue(metier, { emitEvent: false });
+        this.markForCheck();
       }
     }
   }

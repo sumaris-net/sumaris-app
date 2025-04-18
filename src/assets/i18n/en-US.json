@@ -41,7 +41,7 @@
     "BTN_VALIDATE_AND_CLOSE": "Validate and close",
     "BTN_VALIDATE_WITH_SHORTCUT_HELP": "Validate (Ctrl+Enter)",
     "BTN_VALIDATE_AND_CONTINUE": "Validate and continue",
-    "BTN_VALIDATE_AND_NEW": "Valider et new",
+    "BTN_VALIDATE_AND_NEW": "Validate and new",
     "BTN_NOT_SAVE": "do NOT save",
     "BTN_SAVE": "Save",
     "BTN_SAVE_WITH_SHORTCUT": "<u>S</u>ave",
@@ -715,11 +715,9 @@
     "PASSWORD": "Password",
     "FIRST_NAME": "First name",
     "LAST_NAME": "Last name",
-    "DEPARTMENT": {
-      "TITLE": "Organization",
-      "LABEL": "Organization code",
-      "NAME": "Organization name"
-    },
+    "CREATION_DATE": "Creation date",
+    "UPDATE_DATE": "Update date",
+    "DEPARTMENT": "Organization",
     "STATUS": "State",
     "PUBKEY": "Public key",
     "PROFILE": "Profile",
@@ -1952,6 +1950,11 @@
     "BAIT": {
       "AMOUNT": "Bait amount",
       "PACKAGING": "Packaging"
+    },
+    "TAB_GEAR": "Gear",
+    "GEAR": {
+      "AMOUNT": "Gear amount",
+      "PACKAGING": "Packaging"
     }
   },
   "FISHING_AREA": {
@@ -2313,7 +2316,7 @@
       }
     },
     "STATUS_ENUM": {
-      "ENABLE": "Enable",
+      "ENABLE": "Enabled",
       "DISABLE": "Disabled",
       "TEMPORARY": "Temporary",
       "DELETED": "Deletion in progress"
@@ -2517,6 +2520,7 @@
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Catch > Individual measure: Scientific species?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Catch > Individual measure: Commercial species?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_UNIT": "Catch > Individual measure: Weight unit",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_BUTTON_ENABLE": "Catch > Individual measure: Button enable",
       "TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE": "Catch > Individual measure: Compute weight by WLR?",
       "TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID": "Catch > Country (ID) for alive weight equivalences",
       "TRIP_SAMPLE_ENABLE": "Sample : Enable?",
@@ -3175,6 +3179,11 @@
           "AC": "Activity calendar (AC)",
           "AM": "Data entry monitoring (AM)"
         }
+      },
+      "P03": {
+        "TITLE": "Occasions > PO3",
+        "TITLE_PROGRAM": "Occasions > PO3 {{label}}",
+        "NAME": "P03"
       },
       "STRAT": {
         "TITLE": "Data collection strategies",

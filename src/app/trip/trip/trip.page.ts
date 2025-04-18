@@ -31,6 +31,7 @@ import {
   EntityServiceLoadOptions,
   EntityUtils,
   equals,
+  expansionAnimation,
   fadeInOutAnimation,
   FilesUtils,
   fromDateISOString,
@@ -100,7 +101,7 @@ export interface TripPageState extends RootDataEntityEditorState {
   selector: 'app-trip-page',
   templateUrl: './trip.page.html',
   styleUrls: ['./trip.page.scss'],
-  animations: [fadeInOutAnimation, expansionInOutAnimation],
+  animations: [fadeInOutAnimation, expansionAnimation],
   providers: [
     { provide: APP_DATA_ENTITY_EDITOR, useExisting: forwardRef(() => TripPage) },
     {
@@ -747,7 +748,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     this.showOperationTable = this.showOperationTable || (this.showGearTable && isNotEmptyArray(data.gears));
 
     // Enable expenses tab if has the program
-    this.showExpensesForm = this.showExpensesForm || !this.isNewData;
+    this.showExpensesForm = this.showExpensesForm && isNotNilOrBlank(this.programLabel);
     if (this.showExpensesForm) {
       this.expenseForm.realignInkBar();
     }

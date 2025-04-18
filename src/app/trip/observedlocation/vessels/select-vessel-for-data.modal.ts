@@ -17,7 +17,7 @@ import { Landing } from '../../landing/landing.model';
 import { VesselService } from '@app/vessel/services/vessel-service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 import { VesselsTable } from '@app/vessel/list/vessels.table';
-import { AppFormUtils, AppTable, ConfigService, isEmptyArray, isNil, isNotNil, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
+import { AppFormUtils, ConfigService, isEmptyArray, isNil, isNotNil, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { VesselForm } from '@app/vessel/form/form-vessel';
 import { Vessel } from '@app/vessel/services/model/vessel.model';
@@ -29,6 +29,7 @@ import { SynchronizationStatus } from '@app/data/services/model/model.utils';
 import { Moment } from 'moment';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { debounceTime, mergeMap } from 'rxjs/operators';
+import { AppBaseTable } from '@app/shared/table/base.table';
 
 export interface SelectVesselsForDataModalOptions {
   programLabel: string;
@@ -94,7 +95,7 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
     return table && table.loading;
   }
 
-  get table(): AppTable<any> {
+  get table(): AppBaseTable<any, any> {
     return (this.showVessels && this.vesselsTable) || (this.showLandings && this.landingsTable);
   }
 
@@ -190,19 +191,6 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
 
   ngOnDestroy() {
     this._subscription.unsubscribe();
-  }
-
-  async selectRow(row) {
-    const table = this.table;
-    if (row && table) {
-      if (!this.allowMultiple) {
-        table.selection.clear();
-        table.selection.select(row);
-        await this.close();
-      } else {
-        table.selection.select(row);
-      }
-    }
   }
 
   async close(event?: any): Promise<boolean> {

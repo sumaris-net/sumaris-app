@@ -41,7 +41,7 @@ export class ProductSaleModal extends AppEntityEditorModal<Product> implements O
   }
 
   protected registerForms() {
-    this.addChildForm(this.productSaleForm);
+    this.addForm(null, this.productSaleForm);
   }
 
   async ngOnInit() {

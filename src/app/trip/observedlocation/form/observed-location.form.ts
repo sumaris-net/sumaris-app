@@ -9,6 +9,7 @@ import {
   AppFormArray,
   DateUtils,
   equals,
+  expansionAnimation,
   fromDateISOString,
   isEmptyArray,
   isNil,
@@ -38,7 +39,6 @@ import { OBSERVED_LOCATION_DEFAULT_PROGRAM_FILTER } from '@app/trip/trip.config'
 import { Observable, of } from 'rxjs';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { expansionInOutAnimation } from '@app/shared/material/material.animations';
 
 export interface ObservedLocationFormState extends MeasurementsFormState {
   showObservers: boolean;
@@ -49,7 +49,7 @@ export interface ObservedLocationFormState extends MeasurementsFormState {
   templateUrl: './observed-location.form.html',
   styleUrls: ['./observed-location.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [expansionInOutAnimation],
+  animations: [expansionAnimation],
   providers: [RxState],
 })
 export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation, ObservedLocationFormState> implements OnInit {

@@ -21,7 +21,6 @@ import {
   Property,
   ReferentialRef,
   SharedValidators,
-  slideUpDownAnimation,
   splitByProperty,
   StatusIds,
   toBoolean,
@@ -64,11 +63,15 @@ export interface TripTableState extends AppRootDataTableState {}
   styleUrls: ['./trips.table.scss'],
   providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  animations: [slideUpDownAnimation],
 })
 export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, any, number, TripTableState> implements OnInit, OnDestroy {
-  protected programVesselTypeIds: number[];
+  static getDefaultLocationLevelIds = () => {
+    return [LocationLevelIds.PORT];
+  };
+
   protected configVesselTypeIds: number[] = [];
+  protected programVesselTypeIds: number[];
+  protected programLocationLevelIds: number[];
 
   @Input() showFilterProgram = true;
   @Input() showFilterSamplingStrata = false; // Can be override by setProgram() or resetProgram()
@@ -190,10 +193,14 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
 
     // Locations combo (filter)
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
-      service: this.referentialRefService,
+      suggestFn: (value, filter) =>
+        this.referentialRefService.suggest(value, {
+          ...filter,
+          levelIds: isNotEmptyArray(this.programLocationLevelIds) ? this.programLocationLevelIds : TripTable.getDefaultLocationLevelIds(),
+        }),
+
       filter: {
         entityName: 'Location',
-        levelId: LocationLevelIds.PORT,
       },
       mobile: this.mobile,
     });
@@ -588,9 +595,11 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
     this.showFilterProgram = this.defaultShowFilterProgram && (this.isAdmin || !this.filter?.program?.label);
     this.showFilterSamplingStrata = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLING_STRATA_ENABLE);
 
+    this.programVesselTypeIds = program.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS) || [];
+    this.programLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_LOCATION_LEVEL_IDS);
+
     // Hide program if cannot change it
     this.showProgramColumn = this.showFilterProgram;
-    this.programVesselTypeIds = program.getPropertyAsNumbers(ProgramProperties.VESSEL_FILTER_DEFAULT_TYPE_IDS) || [];
     this.showVesselTypeColumn = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
 
     this.enableReport = program.getPropertyAsBoolean(ProgramProperties.TRIP_REPORT_ENABLE);
@@ -604,9 +613,12 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter, TripService, a
     await super.resetProgram();
 
     this.showFilterProgram = this.defaultShowFilterProgram;
-    this.showProgramColumn = this.defaultShowFilterProgram;
     this.showFilterSamplingStrata = toBoolean(ProgramProperties.TRIP_SAMPLING_STRATA_ENABLE.defaultValue, false);
-    this.programVesselTypeIds = null;
+
+    this.programVesselTypeIds = undefined;
+    this.programLocationLevelIds = undefined;
+
+    this.showProgramColumn = this.defaultShowFilterProgram;
     this.showVesselTypeColumn = toBoolean(ProgramProperties.VESSEL_TYPE_ENABLE.defaultValue, false);
     this.enableReport = toBoolean(ProgramProperties.TRIP_REPORT_ENABLE.defaultValue, false);
     const reportTypeByKey = splitByProperty((ProgramProperties.TRIP_REPORT_TYPES.values || []) as Property[], 'key');

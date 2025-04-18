@@ -8,7 +8,6 @@ import { Subscription } from 'rxjs';
 import { fillRankOrder } from '@app/data/services/model/model.utils';
 import { SaleProduct, SaleProductUtils } from './sale-product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 @Component({
   selector: 'app-packet-sale-form',
@@ -42,6 +41,7 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
   }
 
   @Input() mobile: boolean;
+  @Input() debug: boolean;
   @Input() showError = true;
   @Input() usageMode: UsageMode;
   @Input() pmfms: DenormalizedPmfmStrategy[];
@@ -80,6 +80,11 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     super.ngOnDestroy();
   }
 
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.enable(opts);
+    setTimeout(() => this.markAsPristine(), 0);
+  }
+
   setValue(data: Packet, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     if (!data) return;
     this._data = data;
@@ -112,11 +117,8 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     for (const saleForm of (this.saleFormArray.controls as UntypedFormGroup[]) || []) {
       this._saleSubscription.add(
         saleForm.valueChanges.subscribe(() => {
-          const dirty = saleForm.dirty;
           this.computePrices(saleForm.controls);
-
-          // Restore previous state - fix OBSDEB bug
-          if (!dirty) saleForm.markAsPristine();
+          this.markAsDirty();
         })
       );
     }
@@ -167,9 +169,7 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     this.markForCheck();
   }
 
-  addSale(event?: Event) {
-    event?.stopPropagation();
-
+  addSale() {
     this.salesHelper.add();
     this.initSubscription();
 

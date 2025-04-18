@@ -6,7 +6,6 @@ import { Packet } from '../packet/packet.model';
 import { PacketSaleForm } from './packet-sale.form';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { TranslateService } from '@ngx-translate/core';
-// import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 export interface IPacketSaleModalOptions {
   disabled: boolean;
@@ -30,17 +29,22 @@ export class PacketSaleModal implements OnInit, OnDestroy, IPacketSaleModalOptio
   @Input() mobile: boolean;
   @Input() pmfms: DenormalizedPmfmStrategy[];
   @Input() disabled: boolean;
+  @Input() debug: boolean;
 
   get enabled() {
     return this.packetSaleForm.enabled;
   }
 
   get valid(): boolean {
-    return this.packetSaleForm?.valid || false;
+    return this.packetSaleForm.valid ?? false;
   }
 
   get invalid(): boolean {
-    return this.packetSaleForm?.invalid || false;
+    return this.packetSaleForm.invalid ?? false;
+  }
+
+  get dirty(): boolean {
+    return this.packetSaleForm.dirty ?? false;
   }
 
   constructor(

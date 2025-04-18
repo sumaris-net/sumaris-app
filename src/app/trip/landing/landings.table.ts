@@ -385,7 +385,7 @@ export class LandingsTable
 
     // Load taxon groups (if need)
     const hasTaxonGroupId = pmfms.some((pmfm) => pmfm.id === PmfmIds.TAXON_GROUP_ID);
-    let availableTaxonGroups: TaxonGroupRef[] = hasTaxonGroupId ? await this.loadAvailableTaxonGroups() : [];
+    const availableTaxonGroups: TaxonGroupRef[] = hasTaxonGroupId ? await this.loadAvailableTaxonGroups() : [];
 
     // Reset divider (will be set below)
     this.dividerPmfm = null;
@@ -503,6 +503,11 @@ export class LandingsTable
         data.observedLocationId = parent.id;
       }
     }
+
+    // Fill dateTime if on field mode
+    if (isNil(data.dateTime) && this.showDateTimeColumn && this.isOnFieldMode) {
+      data.dateTime = DateUtils.moment();
+    }
   }
 
   setParent(parent: ObservedLocation | Trip | undefined) {
@@ -526,9 +531,9 @@ export class LandingsTable
     }
   }
 
-  toggleSelectRow(event, row) {
+  toggleSelectRow(event: Event | undefined, row: TableElement<Landing>) {
     if (this.isSaleDetailEditor) {
-      event.stopPropagation();
+      event?.stopPropagation();
       if (!this.isLandingRandom(row)) {
         this.selection.toggle(row);
       }
@@ -589,6 +594,10 @@ export class LandingsTable
 
     // default
     return landing.dateTime;
+  }
+
+  async addLandingWithVessel(vessel: VesselSnapshot) {
+    await this.addEntityToTable(Landing.fromObject({ vesselSnapshot: vessel }));
   }
 
   async addRow(event?: any): Promise<boolean> {

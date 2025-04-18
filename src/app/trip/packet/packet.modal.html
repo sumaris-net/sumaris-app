@@ -24,7 +24,7 @@
 </mat-menu>
 
 <ion-content class="ion-no-padding ion-padding-top" cdkTrapFocus>
-  <app-packet-form #form [showParent]="mobile" [mobile]="mobile" [parents]="parents" [parentAttributes]="parentAttributes">
+  <app-packet-form #packetForm [showParent]="mobile" [mobile]="mobile" [parents]="parents" [parentAttributes]="parentAttributes">
     <!-- open packet sale modal -->
     <ion-grid endButtons class="ion-margin-top" *ngIf="enabled">
       <ion-row>
@@ -43,8 +43,15 @@
             <mat-icon slot="start">local_offer</mat-icon>
             <ion-label>
               <span translate>PACKET.COMPOSITION.BTN_SALE</span>
-              <span *ngIf="form.value.saleProducts && form.value.saleProducts.length && form.value.composition && form.value.composition.length">
-                &nbsp; ({{ (form.value.saleProducts.length / form.value.composition.length).toString() }})
+              <span
+                *ngIf="
+                  (packetForm.form | formGetValue: 'saleProducts' | isNotEmptyArray) &&
+                  (packetForm.form | formGetValue: 'composition' | isNotEmptyArray)
+                "
+              >
+                &nbsp;({{
+                  ((packetForm.form | formGetValue: 'saleProducts').length / (packetForm.form | formGetValue: 'composition').length).toString()
+                }})
               </span>
             </ion-label>
           </ion-button>
@@ -68,7 +75,7 @@
 
         <ion-button
           [fill]="invalid ? 'clear' : 'solid'"
-          [disabled]="disabled || loading || invalid"
+          [disabled]="disabled || loading || !dirty || invalid"
           (click)="onSave($event)"
           (keyup.enter)="onSave($event)"
           color="tertiary"

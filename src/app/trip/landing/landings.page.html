@@ -151,77 +151,91 @@
       (keyup.enter)="applyFilterAndClosePanel($event)"
     >
       <ion-grid>
-        <ion-row *rxIf="showFilterProgram || showFilterStrategy">
-          <!-- Program -->
-          <ion-col *rxIf="showFilterProgram">
-            <mat-autocomplete-field
-              [placeholder]="'LANDING.TABLE.PROGRAM' | translate"
-              formControlName="program"
-              [config]="autocompleteFields.program"
-              [clearable]="true"
-            >
-              <ion-icon matPrefix name="contract"></ion-icon>
-            </mat-autocomplete-field>
-          </ion-col>
+        @if (showFilterProgram || showFilterStrategy) {
+          <ion-row>
+            <!-- Program -->
+            @if (showFilterProgram) {
+              <ion-col size="12" size-lg="">
+                <mat-autocomplete-field
+                  [placeholder]="'LANDING.TABLE.PROGRAM' | translate"
+                  formControlName="program"
+                  [config]="autocompleteFields.program"
+                  [clearable]="true"
+                >
+                  <ion-icon matPrefix name="contract"></ion-icon>
+                </mat-autocomplete-field>
+              </ion-col>
+            }
 
-          <!-- Strategy -->
-          <ion-col *rxIf="showFilterStrategy">
-            <mat-autocomplete-field
-              [placeholder]="'LANDING.TABLE.STRATEGY' | translateContext: i18nColumnSuffix"
-              formControlName="strategy"
-              [config]="autocompleteFields.strategy"
-              [clearable]="true"
-            >
-              <mat-icon matPrefix>date_range</mat-icon>
-            </mat-autocomplete-field>
-          </ion-col>
-        </ion-row>
+            <!-- Strategy -->
+            @if (showFilterStrategy) {
+              <ion-col size="12" size-lg="">
+                <mat-autocomplete-field
+                  [placeholder]="'LANDING.TABLE.STRATEGY' | translateContext: i18nColumnSuffix"
+                  formControlName="strategy"
+                  [config]="autocompleteFields.strategy"
+                  [clearable]="true"
+                >
+                  <mat-icon matPrefix>date_range</mat-icon>
+                </mat-autocomplete-field>
+              </ion-col>
+            }
+          </ion-row>
+        }
 
-        <ion-row *rxIf="showFilterLocation || showFilterVessel">
-          <!-- Location -->
-          <ion-col *rxIf="showFilterLocation" size="12" size-lg="6">
-            <mat-autocomplete-field
-              [placeholder]="'LANDING.TABLE.LOCATION' | translate"
-              formControlName="location"
-              [config]="autocompleteFields.location"
-              [clearable]="true"
-            >
-              <mat-icon matPrefix>room</mat-icon>
-            </mat-autocomplete-field>
-          </ion-col>
+        @if (showFilterLocation || showFilterVessel) {
+          <ion-row>
+            <!-- Location -->
+            @if (showFilterLocation) {
+              <ion-col size="12" size-lg="">
+                <mat-autocomplete-field
+                  [placeholder]="'LANDING.TABLE.LOCATION' | translate"
+                  formControlName="location"
+                  [config]="autocompleteFields.location"
+                  [clearable]="true"
+                >
+                  <mat-icon matPrefix>room</mat-icon>
+                </mat-autocomplete-field>
+              </ion-col>
+            }
 
-          <!-- Vessel -->
-          <ion-col *rxIf="showFilterVessel" size="12" size-lg="6">
-            <mat-autocomplete-field
-              *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
-              [placeholder]="'LANDING.TABLE.VESSEL' | translate"
-              formControlName="vesselSnapshot"
-              [config]="autocompleteFields.vesselSnapshot"
-              [clearable]="true"
-            >
-              <ion-icon matPrefix name="boat"></ion-icon>
-            </mat-autocomplete-field>
-          </ion-col>
-        </ion-row>
+            <!-- Vessel -->
+            @if (showFilterVessel) {
+              <ion-col size="12" size-lg="">
+                <mat-autocomplete-field
+                  *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
+                  [placeholder]="'LANDING.TABLE.VESSEL' | translate"
+                  formControlName="vesselSnapshot"
+                  [config]="autocompleteFields.vesselSnapshot"
+                  [clearable]="true"
+                >
+                  <ion-icon matPrefix name="boat"></ion-icon>
+                </mat-autocomplete-field>
+              </ion-col>
+            }
+          </ion-row>
+        }
 
         <!-- Period criteria -->
-        <ion-row *ngIf="showFilterPeriod">
-          <ion-col>
-            <!-- Start date -->
-            <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.START_DATE' | translate" formControlName="startDate" [clearable]="true">
-              <ion-icon matPrefix name="calendar-outline"></ion-icon>
-            </mat-date-field>
-          </ion-col>
+        @if (showFilterPeriod) {
+          <ion-row>
+            <ion-col>
+              <!-- Start date -->
+              <mat-date-field [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.START_DATE' | translate" formControlName="startDate" [clearable]="true">
+                <ion-icon matPrefix name="calendar-outline"></ion-icon>
+              </mat-date-field>
+            </ion-col>
 
-          <ion-col>
-            <!-- End date -->
-            <mat-date-field
-              [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.END_DATE' | translate"
-              formControlName="endDate"
-              [clearable]="true"
-            ></mat-date-field>
-          </ion-col>
-        </ion-row>
+            <ion-col>
+              <!-- End date -->
+              <mat-date-field
+                [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.END_DATE' | translate"
+                formControlName="endDate"
+                [clearable]="true"
+              ></mat-date-field>
+            </ion-col>
+          </ion-row>
+        }
 
         <!-- Recorder criteria -->
         @if (!mobile && showRecorder) {
@@ -335,36 +349,40 @@
           }
 
           <!-- Sample label -->
-          <ion-col *ngIf="showFilterSampleLabel">
-            <mat-form-field>
-              <ion-icon matPrefix name="pricetag"></ion-icon>
-              <input
-                matInput
-                formControlName="sampleLabel"
-                autocomplete="off"
-                [placeholder]="'TRIP.SAMPLE.TABLE.LABEL' | translateContext: i18nColumnSuffix"
-              />
-              <button matSuffix mat-icon-button tabindex="-1" type="button" (click)="filterForm.get('sampleLabel').reset()">
-                <mat-icon>close</mat-icon>
-              </button>
-            </mat-form-field>
-          </ion-col>
+          @if (showFilterSampleLabel) {
+            <ion-col size="12" size-lg="">
+              <mat-form-field>
+                <ion-icon matPrefix name="pricetag"></ion-icon>
+                <input
+                  matInput
+                  formControlName="sampleLabel"
+                  autocomplete="off"
+                  [placeholder]="'TRIP.SAMPLE.TABLE.LABEL' | translateContext: i18nColumnSuffix"
+                />
+                <button matSuffix mat-icon-button tabindex="-1" type="button" (click)="filterForm.get('sampleLabel').reset()">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </mat-form-field>
+            </ion-col>
+          }
 
           <!-- Sample Tag ID -->
-          <ion-col *ngIf="showFilterSampleTagId">
-            <mat-form-field>
-              <ion-icon matPrefix name="pricetag"></ion-icon>
-              <input
-                matInput
-                formControlName="sampleTagId"
-                autocomplete="off"
-                [placeholder]="'TRIP.SAMPLE.PMFM.TAG_ID' | translateContext: i18nColumnSuffix"
-              />
-              <button matSuffix mat-icon-button tabindex="-1" type="button" (click)="filterForm.get('sampleTagId').reset()">
-                <mat-icon>close</mat-icon>
-              </button>
-            </mat-form-field>
-          </ion-col>
+          @if (showFilterSampleTagId) {
+            <ion-col size="12" size-lg="">
+              <mat-form-field>
+                <ion-icon matPrefix name="pricetag"></ion-icon>
+                <input
+                  matInput
+                  formControlName="sampleTagId"
+                  autocomplete="off"
+                  [placeholder]="'TRIP.SAMPLE.PMFM.TAG_ID' | translateContext: i18nColumnSuffix"
+                />
+                <button matSuffix mat-icon-button tabindex="-1" type="button" (click)="filterForm.get('sampleTagId').reset()">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </mat-form-field>
+            </ion-col>
+          }
         </ion-row>
       </ion-grid>
     </form>
