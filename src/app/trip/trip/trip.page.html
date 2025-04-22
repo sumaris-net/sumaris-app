@@ -207,7 +207,7 @@
                 <ion-row
                   class="ion-no-padding"
                   beforeObservers
-                  [@expansionInOutAnimation]="showSaleForm && showSales && (measurementsForm.readySubject | async) ? 'expanded' : 'collapsed'"
+                  [@expansionAnimation]="showSaleForm && showSales && (measurementsForm.readySubject | async) ? 'expanded' : 'collapsed'"
                 >
                   <ion-col size="12" size-md="2" size-lg="3">
                     <ion-label class="ion-float-end" translate>SALE.SALES_FIELD</ion-label>

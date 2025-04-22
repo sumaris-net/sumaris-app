@@ -81,7 +81,6 @@ import { StrategyFilter } from '@app/referential/services/filter/strategy.filter
 import { RxState } from '@rx-angular/state';
 import { ExpenseForm } from '@app/trip/expense/expense.form';
 import { OperationType } from '@app/trip/operation/operation.form';
-import { expansionInOutAnimation } from '@app/shared/material/material.animations';
 import { AppFormArray } from 'ngx-sumaris-components/public_api';
 
 export const TripPageSettingsEnum = {
