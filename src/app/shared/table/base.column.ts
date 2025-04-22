@@ -1,7 +1,8 @@
-import { AppAsyncTable, AppTable } from '@sumaris-net/ngx-components';
 import { ChangeDetectorRef, Directive, inject, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { MatColumnDef, MatTable } from '@angular/material/table';
 import { AsyncTableElement, TableElement } from '@e-is/ngx-material-table';
+import { AppBaseTable } from '@app/shared/table/base.table';
+import { AppBaseAsyncTable } from '@app/shared/table/base.async-table';
 
 export declare type AnyTableElement = TableElement<any> | AsyncTableElement<any>;
 
@@ -10,7 +11,7 @@ export abstract class BaseColumn implements OnInit, OnDestroy {
   protected matTable = inject(MatTable<any>);
   protected cd = inject(ChangeDetectorRef);
 
-  @Input() table: AppTable<any> | AppAsyncTable<any>;
+  @Input() table: AppBaseTable<any, any> | AppBaseAsyncTable<any, any>;
 
   @ViewChild(MatColumnDef) columnDef: MatColumnDef;
 
