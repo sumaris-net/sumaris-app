@@ -2792,6 +2792,7 @@
       "SALE_BATCH_ENABLE": "Sortie > Vente : Activer les lots ?",
       "SALE_BATCH_IMAGES_ENABLE": "Sortie > Vente : Activer les photos ?",
       "SALE_BATCH_CHART_ENABLE": "Sortie > Vente : Activer le graphique ?",
+      "SALE_BATCH_SPECIFIC_TITLE": "Sortie > Vente > Mensurations : Titre spécifique",
       "SALE_METIER_ENABLE": "Sortie > Vente : Métier ?",
       "SALE_FISHING_AREA_LOCATION_LEVEL_IDS": "Sortie > Vente : Zone de pêche: Niveau(x) de lieu",
       "STRATEGY_EDITOR": "Stratégie > Éditeur",

@@ -9,6 +9,7 @@ import {
   firstNotNilPromise,
   FormFieldDefinition,
   ImageAttachment,
+  interpolateString,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
@@ -108,6 +109,7 @@ export interface ISubBatchesModalOptions {
   showIndividualCountOnly: boolean;
   enableImageAttachments: boolean;
   enableChart: boolean;
+  titleSpecific: string;
   animationDuration: number;
 }
 
@@ -247,7 +249,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   @Input() animationDuration = 1500; // 1.5s
   @Input() floatLabel: AppFloatLabelType = 'auto';
   @Input() showFilterForm: boolean = false;
-  @Input() titlePrefix: string = null;
+  @Input() titleSpecific: string = null;
 
   @Input() set i18nSuffix(value: string) {
     this.i18nColumnSuffix = value;
@@ -627,9 +629,8 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
   protected async computeTitle() {
     let titlePrefix;
-
-    if (isNotNil(this.titlePrefix)) {
-      titlePrefix = this.titlePrefix;
+    if (isNotNil(this.titleSpecific)) {
+      titlePrefix = interpolateString(this.titleSpecific, this.parentGroup);
     } else {
       if (!this.showParentGroup && this.parentGroup) {
         const label = BatchUtils.parentToString(this.parentGroup);
@@ -1569,8 +1570,8 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     const numericalPmfmId = this.numericalPmfm.id.toString();
 
     const { min, max } = this.getMinMaxMeasurement(subBatches, numericalPmfmId);
-    this.minInterval = min;
-    this.maxInterval = max;
+    this.minInterval = min === 0 ? null : min;
+    this.maxInterval = max === 0 ? null : max;
   }
 
   protected async onRowBlur(row: TableElement<SubBatch>) {

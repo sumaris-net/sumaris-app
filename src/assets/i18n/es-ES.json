@@ -2752,6 +2752,9 @@
       "PROGRAM_PRIVILEGE_READONLY": "Programa > Derechos de acceso: ¿Solo lectura?",
       "SALE_LOCATION_LEVEL_IDS": "Salida > Venta: Nivel(es) de lugar",
       "SALE_FAVORITES_ENABLE": "Salida > Venta: ¿Activar favoritos?",
+      "SALE_BATCH_IMAGES_ENABLE": "Salida > Venta: ¿Activar imágenes?",
+      "SALE_BATCH_CHART_ENABLE": "Salida > Venta: ¿Activar gráfico?",
+      "SALE_BATCH_SPECIFIC_TITLE": "Salida > Lote > Medidas: Título específico",
       "SALE_BATCH_ENABLE": "Salida > Venta: ¿Activar los lotes?",
       "STRATEGY_EDITOR": "Estrategia > Editor",
       "STRATEGY_EDITOR_ENUM": {

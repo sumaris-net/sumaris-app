@@ -1224,6 +1224,11 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean',
   },
+  SALE_BATCH_SPECIFIC_TITLE: <FormFieldDefinition>{
+    key: 'sumaris.sale.title.specific',
+    label: 'PROGRAM.OPTIONS.SALE_BATCH_SPECIFIC_TITLE',
+    type: 'string',
+  },
 
   SALE_METIER_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.sale.metier.enable',

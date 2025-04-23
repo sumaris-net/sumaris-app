@@ -369,7 +369,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
       }
 
       // Sale location{
-      let saleLocation =
+      const saleLocation =
         this.saleForm.showLocation &&
         this.getSingleControlFavorite('saleLocation', {
           pageFavorites,
@@ -596,9 +596,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
     if (this.batchTree) {
       this.batchTree.program = program;
       this.batchTree.enableImageAttachments = program.getPropertyAsBoolean(ProgramProperties.SALE_BATCH_IMAGES_ENABLE);
-      this.batchTree.enableChart = program.getPropertyAsBoolean(ProgramProperties.SALE_BATCH_CHART_ENABLE);
     }
-
     // Emit ready event (should allow children forms to apply value)
     // If strategy is required, markAsReady() will be called in setStrategy()
     if (!requiredStrategy || (isNewData && this.strategyResolution === 'user-select')) {

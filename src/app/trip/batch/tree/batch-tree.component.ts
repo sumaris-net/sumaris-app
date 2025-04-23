@@ -75,7 +75,6 @@ export interface IBatchTreeComponent extends IAppTabEditor {
   modalOptions: Partial<IBatchGroupModalOptions>;
   filter: BatchFilter;
   enableImageAttachments: boolean;
-  enableChart: boolean;
 
   // Form
   disabled: boolean;
@@ -174,7 +173,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @Input() showAutoFillButton = true;
   @Input() allowQvPmfmGroup = true;
   @Input() enableImageAttachments: boolean;
-  @Input() enableChart: boolean;
+
   @Input() @RxStateProperty() samplingRatioFormat: SamplingRatioFormat;
   @Input() @RxStateProperty() showCatchForm: boolean;
   @Input() @RxStateProperty() showBatchTables: boolean;
@@ -731,7 +730,9 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ICHTHYOMETER_ENABLE)
     );
     this.batchGroupsTable.setSubBatchesModalOption('enableImageAttachments', this.enableImageAttachments);
-    this.batchGroupsTable.setSubBatchesModalOption('enableChart', this.enableChart);
+    this.batchGroupsTable.setSubBatchesModalOption('titleSpecific', program.getProperty(ProgramProperties.SALE_BATCH_SPECIFIC_TITLE));
+    this.batchGroupsTable.setSubBatchesModalOption('enableChart', program.getPropertyAsBoolean(ProgramProperties.SALE_BATCH_CHART_ENABLE));
+
     this.batchGroupsTable.showImageAttachments = this.enableImageAttachments;
 
     if (this.subBatchesTable) {

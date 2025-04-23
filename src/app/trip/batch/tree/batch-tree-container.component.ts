@@ -174,6 +174,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch> implements IBa
   @Input() controlButtonText: 'QUALITY.BTN_CONTROL';
   @Input() enableImageAttachments: boolean;
   @Input() enableChart: boolean;
+  @Input() titleSpecific: string;
 
   @Input() set disabled(value: boolean) {
     if (value && this._enabled) {
