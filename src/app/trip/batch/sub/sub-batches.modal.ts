@@ -904,6 +904,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
   protected async generateDynamicColumns(pmfm: IPmfm) {
     const virtualPmfms: DenormalizedPmfmStrategy[] = [];
+    if (!pmfm || !PmfmUtils.isQualitative(pmfm)) return;
 
     pmfm.qualitativeValues.forEach((pmfmQv) => {
       const virtualPmfm = new DenormalizedPmfmStrategy();
@@ -1278,6 +1279,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     rows = rows.filter((subBatch) => {
       return subBatch.individualCount > 0;
     });
+    await this.setValue(rows);
   }
 
   private async setModalMode(mode: ModalMode, showVirtualColumns?: boolean) {
