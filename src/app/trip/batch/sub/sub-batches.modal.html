@@ -431,6 +431,7 @@
                   [autofocus]="focusColumn == (pmfm.id || index)"
                   [compact]="compactFields"
                   [readonly]="computed"
+                  [placeholder]="pmfm | pmfmName: { html: false }"
                 ></app-pmfm-field>
               } @else if (inlineEdition) {
                 <span
