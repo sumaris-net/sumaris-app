@@ -179,6 +179,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   protected savedTaxonTabs: TaxonNameTab[] = [];
   protected minInterval: number = null;
   protected maxInterval: number = null;
+  protected isRequiredIndividualCount: boolean = true;
 
   chartConfig: DynamicChartConfig = {
     chartType: 'bar',
@@ -347,8 +348,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     this.registerSubscription(
       this.modalForm.get('showSubBatchForm').valueChanges.subscribe((value) => {
         const disable = !value && this.showIndividualCount;
-        // Handle css disabled  effect on table
-        // this.inlineEdition = !disable;
+        this.isRequiredIndividualCount = !disable;
 
         if (disable) {
           this.displayControlMode();

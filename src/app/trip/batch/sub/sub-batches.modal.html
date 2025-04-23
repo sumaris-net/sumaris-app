@@ -478,7 +478,7 @@
                     pattern="[0-9]*"
                     (click)="selectInputContent($event)"
                     [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL.INDIVIDUAL_COUNT' | translate"
-                    required
+                    [required]="isRequiredIndividualCount"
                   />
                   <mat-error *ngIf="row.validator.controls.individualCount.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
                   <mat-error *ngIf="row.validator.controls.individualCount.hasError('min')">
