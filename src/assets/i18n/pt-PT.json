@@ -46,7 +46,8 @@
     "BTN_SAVE": "Salvar",
     "BTN_SAVE_WITH_SHORTCUT": "<u>S</u>alvar",
     "BTN_SAVE_WITH_SHORTCUT_HELP": "Salvar (Ctrl+S)",
-    "BTN_SET_AS_FAVORITE": "Definir como favorito",
+    "BTN_PIN_ITEM": "Fixar item",
+    "BTN_UNPIN_ITEM": "Desafixar item",
     "BTN_ADD_TO_FAVORITES": "Adicionar aos favoritos",
     "BTN_DELETE_FAVORITE": "Remover dos favoritos",
     "BTN_FILTER": "Filtrar",
@@ -4030,6 +4031,3 @@
     "EXPERIMENTAL_FEATURE": "Funcionalidade experimental! Em desenvolvimento."
   }
 }
-
-
-
