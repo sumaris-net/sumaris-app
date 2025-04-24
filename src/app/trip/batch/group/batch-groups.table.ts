@@ -1071,7 +1071,11 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     if (!this.dynamicColumns) return; // skip
     this.displayedColumns = this.getDisplayColumns();
     this.lastUserColumn = lastArrayValue(
-      this.displayedColumns.filter((col) => !BATCH_RESERVED_END_COLUMNS.includes(col) && !RESERVED_END_COLUMNS.includes(col))
+      this.displayedColumns.filter(
+        (col) =>
+          !BATCH_RESERVED_END_COLUMNS.includes(col) && // Exclude images and comments columns
+          !RESERVED_END_COLUMNS.includes(col)
+      )
     );
 
     this.groupColumnStartColSpan =
