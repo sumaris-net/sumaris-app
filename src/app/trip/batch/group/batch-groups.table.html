@@ -214,6 +214,8 @@
                     <app-pmfm-field
                       floatLabel="never"
                       [pmfm]="col.pmfm"
+                      [i18nPrefix]="i18nPmfmPrefix"
+                      [i18nSuffix]="i18nColumnSuffix"
                       [formControl]="control"
                       [autofocus]="focusColumn === col.key"
                       [readonly]="computed"
