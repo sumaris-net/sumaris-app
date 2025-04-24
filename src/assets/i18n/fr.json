@@ -493,7 +493,7 @@
     "PROGRAMS": "Programmes",
     "EXTRACTIONS": "Extractions",
     "MAP": "Cartes",
-    "FOOTER_VERSION_ABOUT": "v{{version}} | à propos",
+    "FOOTER_VERSION_ABOUT": "v{{version}} | À propos",
     "LOCAL_SETTINGS": "Paramètres",
     "SYSTEM_DIVIDER": "Système",
     "SERVER": "Paramètres système",
