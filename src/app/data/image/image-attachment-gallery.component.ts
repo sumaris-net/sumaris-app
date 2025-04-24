@@ -40,7 +40,7 @@ import { getMaxRankOrder } from '@app/data/services/model/model.utils';
   selector: 'app-image-attachment-gallery',
   templateUrl: './image-attachment-gallery.component.html',
   styleUrls: ['./image-attachment-gallery.component.scss'],
-  providers: [
+  /*providers: [
     {
       provide: APP_IMAGE_ATTACHMENT_SERVICE,
       useFactory: () =>
@@ -49,7 +49,7 @@ import { getMaxRankOrder } from '@app/data/services/model/model.utils';
           onSort: (data, sortBy = 'rankOrder', sortDirection) => EntityUtils.sort(data, sortBy, sortDirection),
         }),
     },
-  ],
+  ],*/
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppImageAttachmentGallery implements OnInit, OnDestroy, IAppForm {
@@ -214,7 +214,7 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy, IAppForm {
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
-    @Self() @Inject(APP_IMAGE_ATTACHMENT_SERVICE) protected dataService: InMemoryEntitiesService<ImageAttachment, ImageAttachmentFilter>
+    @Inject(APP_IMAGE_ATTACHMENT_SERVICE) protected dataService: InMemoryEntitiesService<ImageAttachment, ImageAttachmentFilter>
   ) {
     this.dataSource = new EntitiesTableDataSource<ImageAttachment, ImageAttachmentFilter>(ImageAttachment, this.dataService, null, {
       prependNewElements: false,

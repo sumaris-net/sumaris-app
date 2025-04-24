@@ -3,6 +3,9 @@ import { AppReferentialModule } from '../referential/referential.module';
 import { CoreModule, MessageModule } from '@sumaris-net/ngx-components';
 import { StrategySummaryCardComponent } from './strategy/strategy-summary-card.component';
 import { AppImageAttachmentModule } from '@app/data/image/image-attachment.module';
+import { FabButtonModule } from '@app/photo-ia/fab-button/fab-button.module';
+import { ActionBarModule } from '@app/photo-ia/action-bar/action-bar.module';
+import { TaxonCardModule } from '@app/photo-ia/taxon-card/taxon-card.module';
 import { AppSharedModule } from '@app/shared/shared.module';
 import { AppEntityQualityModule } from '@app/data/quality/entity-quality.module';
 import { DevicePositionService } from '@app/data/position/device/device-position.service';
@@ -18,6 +21,9 @@ import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
 
     // Sub modules
     AppImageAttachmentModule,
+    FabButtonModule,
+    ActionBarModule,
+    TaxonCardModule,
     AppEntityQualityModule,
     AppDataEntityPipesModule,
     AppMeasurementModule,
@@ -31,6 +37,9 @@ import { AppMeasurementModule } from '@app/data/measurement/measurement.module';
   exports: [
     // Sub modules
     AppImageAttachmentModule,
+    FabButtonModule,
+    ActionBarModule,
+    TaxonCardModule,
     AppEntityQualityModule,
     AppDataEntityPipesModule,
     AppMeasurementModule,

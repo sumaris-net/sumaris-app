@@ -1,0 +1,18 @@
+<ion-fab slot="fixed" vertical="bottom" horizontal="end" [class.disabled]="disabled">
+  <div class="fab-container">
+    <ion-fab-button color="tertiary" (click)="triggerCamera()" [disabled]="disabled" class="fab-large">
+      <ion-icon name="camera" class="icon-primary"></ion-icon>
+      <ion-icon name="add" class="icon-secondary"></ion-icon>
+    </ion-fab-button>
+
+    <!-- Only show fab list on mobile -->
+    <ion-fab-list side="start" *ngIf="mobile">
+      <ion-fab-button color="light" (click)="triggerGallery()" [disabled]="disabled" class="fab-small">
+        <ion-icon name="images"></ion-icon>
+      </ion-fab-button>
+    </ion-fab-list>
+  </div>
+</ion-fab>
+
+<input type="file" accept="image/*" #fileInput (change)="onFileSelected($event)" style="display: none" />
+<input type="file" accept="image/*" #galleryInput (change)="onFileSelected($event)" style="display: none" />

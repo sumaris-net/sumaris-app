@@ -63,6 +63,7 @@ import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromD
 import { AudioManagement } from '@awesome-cordova-plugins/audio-management/ngx';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TRIP_CONFIG_OPTIONS, TRIP_GRAPHQL_TYPE_POLICIES, TRIP_LOCAL_SETTINGS_OPTIONS, TRIP_STORAGE_TYPE_POLICIES } from './trip/trip.config';
+import { PHOTO_CONFIG_OPTIONS } from './photo-ia/photo.config';
 import { IonicStorageModule } from '@ionic/storage-angular';
 import { IonicModule } from '@ionic/angular';
 import { CacheModule } from 'ionic-cache';
@@ -333,6 +334,7 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
         ...EXTRACTION_CONFIG_OPTIONS,
         ...SCIENTIFIC_CRUISE_CONFIG_OPTIONS,
         ...TRIP_CONFIG_OPTIONS,
+        ...PHOTO_CONFIG_OPTIONS,
         ...ACTIVITY_CALENDAR_CONFIG_OPTIONS,
         ...DEVICE_POSITION_CONFIG_OPTION,
       },
@@ -388,6 +390,13 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
           ifProperty: 'sumaris.activityCalendar.enable',
           titleProperty: 'sumaris.activityCalendar.name',
           cssClass: 'hidden-mobile',
+        },
+        {
+          title: 'MENU.PHOTOS',
+          path: '/photo',
+          icon: 'camera',
+          ifProperty: 'sumaris.photo.enable',
+          titleProperty: 'sumaris.photo.name',
         },
         // Data extraction
         {
@@ -468,6 +477,13 @@ import { MAT_SELECT_CONFIG, MatSelectConfig } from '@angular/material/select';
           profile: 'USER',
           ifProperty: 'sumaris.activityCalendar.enable',
           titleProperty: 'sumaris.activityCalendar.name',
+        },
+        {
+          title: 'MENU.PHOTOS',
+          path: '/photo',
+          icon: 'calendar',
+          ifProperty: 'sumaris.photo.enable',
+          titleProperty: 'sumaris.photo.name',
         },
         { title: '' /*empty divider*/, cssClass: 'visible-mobile' },
       ],

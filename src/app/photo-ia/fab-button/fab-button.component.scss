@@ -1,0 +1,66 @@
+:host {
+  z-index: 1001;
+  display: block;
+  width: 100%;
+}
+
+ion-fab {
+  position: relative !important;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  --background: var(--ion-color-primary);
+  --color: white;
+}
+
+ion-fab-button {
+  font-size: 24px;
+}
+
+.fab-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.fab-large {
+  --size: 120px;
+  width: var(--size);
+  height: var(--size);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+
+  .icon-primary {
+    font-size: 75px;
+  }
+
+  .icon-secondary {
+    position: absolute;
+    font-size: 25px;
+    top: 15%;
+    left: 58%;
+  }
+}
+
+.fab-small {
+  --size: 48px;
+  margin-right: 8px;
+}
+
+// Force fab list to stay open on mobile
+.fab-list-show {
+  display: flex !important;
+  visibility: visible !important;
+  transform: scale(1) !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}

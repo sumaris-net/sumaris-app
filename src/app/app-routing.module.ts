@@ -117,6 +117,12 @@ const routes: Routes = [
     loadChildren: () => import('./activity-calendar/activity-calendar-routing.module').then((m) => m.AppActivityCalendarRoutingModule),
   },
 
+  // Photo
+  {
+    path: 'photo',
+    loadChildren: () => import('./photo-ia/photo-routing.module').then((m) => m.PhotoRoutingModule),
+  },
+
   // Extraction path
   {
     path: 'extraction',

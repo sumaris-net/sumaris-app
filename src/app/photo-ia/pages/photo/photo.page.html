@@ -1,0 +1,44 @@
+<app-toolbar [title]="'MENU.PHOTOS' | translate" color="primary" [canGoBack]="false"></app-toolbar>
+
+<div class="center-container">
+  <div class="empty-state-content">
+    <ion-icon name="fish-outline" class="fish-icon"></ion-icon>
+    <h2>Prenez la photo d'un poisson</h2>
+    <p>Notre IA vous aidera à identifier l'espèce et fournira des informations détaillées</p>
+
+    <ion-card *ngIf="hasImage">
+      <ion-img [src]="currentImage" class="fish-preview"></ion-img>
+
+      <div *ngIf="isAnalyzing" class="ion-text-center ion-padding">
+        <ion-spinner name="crescent"></ion-spinner>
+        <ion-text>
+          <p>Analyse en cours...</p>
+        </ion-text>
+      </div>
+    </ion-card>
+
+    <app-fab-button [disabled]="isAnalyzing" (onImageSelected)="handleImageUpload($event)"></app-fab-button>
+  </div>
+</div>
+
+<ion-modal [isOpen]="isModalOpen" (willDismiss)="closeModal()" [backdropDismiss]="true">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Analysis Results</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeModal()" [strong]="true">OK</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <app-taxon-card
+        [imageUrl]="currentImage"
+        [species]="analysisResult?.species"
+        [confidence]="analysisResult?.confidence"
+        [details]="analysisResult?.details"
+        [isLoading]="isAnalyzing"
+      ></app-taxon-card>
+    </ion-content>
+  </ng-template>
+</ion-modal>
