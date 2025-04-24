@@ -333,6 +333,8 @@
 
             <!-- Compact mode -->
             @if (!mobile) {
+              <mat-divider></mat-divider>
+
               <button mat-menu-item (click)="toggleCompactMode()">
                 <mat-icon *ngIf="compact; else disabledIcon">check_box</mat-icon>
                 <ng-template #disabledIcon>
