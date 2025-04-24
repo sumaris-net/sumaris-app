@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, HostListener, Injector, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { UntypedFormGroup, Validators } from '@angular/forms';
 import {
@@ -19,6 +19,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
+  lastArrayValue,
   LoadResult,
   LocalSettingsService,
   ReferentialRef,
@@ -59,7 +60,6 @@ import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
 import { Program } from '@app/referential/services/model/program.model';
 import { AppImageAttachmentsModal, IImageModalOptions } from '@app/data/image/image-attachment.modal';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -228,7 +228,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   private _showWeightColumns = true;
   private _rowValidatorSubscription: Subscription;
   private _speciesPmfms: IPmfm[]; // Pmfms at species level (when has QV pmfm)
-  private _childrenPmfms: IPmfm[]; // Pmfms ar children levels (if has QV pmfms) or species levels (if no QV Pmfm)
+  private _childrenPmfms: IPmfm[];
+  private _lastUserColumn: string;
 
   @RxStateSelect() protected showSamplingBatchColumns$: Observable<boolean>;
   @RxStateSelect() protected showAutoFillButton$: Observable<boolean>;
@@ -275,6 +276,14 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
   get dirty(): boolean {
     return this.dirtySubject.value || (this.weightMethodForm && this.weightMethodForm.dirty);
+  }
+
+  get lastUserColumn(): string {
+    return this._lastUserColumn;
+  }
+
+  set lastUserColumn(value: string) {
+    this._lastUserColumn = value;
   }
 
   @Input() set showImageAttachments(value: boolean) {
@@ -611,6 +620,13 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   }
 
   /* -- protected methods -- */
+
+  confirmAndBackward(event?: Event, row?: TableElement<BatchGroup>): boolean | Promise<boolean> {
+    // DEBUG
+    console.debug(this.logPrefix + 'confirmAndBackward', event, row);
+
+    return super.confirmAndBackward(event, row);
+  }
 
   protected normalizeEntityToRow(batch: BatchGroup, row: TableElement<BatchGroup>) {
     // When batch has the QV value
@@ -1054,6 +1070,9 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   protected updateColumns() {
     if (!this.dynamicColumns) return; // skip
     this.displayedColumns = this.getDisplayColumns();
+    this.lastUserColumn = lastArrayValue(
+      this.displayedColumns.filter((col) => !BATCH_RESERVED_END_COLUMNS.includes(col) && !RESERVED_END_COLUMNS.includes(col))
+    );
 
     this.groupColumnStartColSpan =
       RESERVED_START_COLUMNS.length + (this.showTaxonGroupColumn ? 1 : 0) + (this.showTaxonNameColumn ? 1 : 0) + RESERVED_END_COLUMNS.length;
