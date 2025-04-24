@@ -1,180 +1,340 @@
-import { Component, inject, Input } from '@angular/core';
+import { Component, Input, ViewEncapsulation, inject } from '@angular/core';
+import { MomentDateAdapter } from '@angular/material-moment-adapter';
+import { MatTableDataSource } from '@angular/material/table';
 import { AppCoreModule } from '@app/core/core.module';
-import { AppDataModule } from '@app/data/data.module';
 import { IComputeStatsOpts } from '@app/data/report/base-report.class';
 import { ReportChunkModule } from '@app/data/report/form/report-chunk.module';
-import { CommonReportContentStats, ReportAppendixSection, ReportContent } from '@app/data/report/report.content.class';
-import { AppReferentialModule } from '@app/referential/referential.module';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { ReportTableContent, ReportTableContentPageDimension, TableHeadPmfmNameReportChunk } from '@app/data/report/report-table.content.class';
+import { CommonReportContentStats, ReportAppendixSection, ReportPmfmsTipsByPmfmIds, TipsReportChunk } from '@app/data/report/report.content.class';
+import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
+import { MethodIds, PmfmIds } from '@app/referential/services/model/model.enum';
+import { IDenormalizedPmfm } from '@app/referential/services/model/pmfm.model';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
-import { Operation } from '@app/trip/trip/trip.model';
-import { EntityAsObjectOptions, isNotEmptyArray, isNotNil, splitById, TreeItemEntityUtils } from '@sumaris-net/ngx-components';
-import { DenormalizedBatch } from '../../denormalized-batch.model';
-import { DenormalizedBatchModule } from '../../denormalized-batch.module';
-import { DenormalizedBatchService } from '../../denormalized-batch.service';
-import { DenormalizedBatchUtils } from '../../denormalized-batch.utils';
-import { TripService } from '@app/trip/trip/trip.service';
+import { DenormalizedBatch } from '@app/trip/denormalized-batch/denormalized-batch.model';
+import { DenormalizedBatchUtils } from '@app/trip/denormalized-batch/denormalized-batch.utils';
+import { EntityAsObjectOptions, ReferentialRef, TreeItemEntityUtils, isNil, isNotNil, isNotNilOrNaN } from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
+import { AppEntityQualityModule } from '@app/data/quality/entity-quality.module';
+import { MethodUtils } from '@app/referential/pmfm/method/method.utils';
+import { DenormalizedBatchModule } from '../../../denormalized-batch/denormalized-batch.module';
+import { AppBatchModule } from '@app/trip/batch/batch.module';
 
-export class DenormalizedBatchReportFormContentStats extends CommonReportContentStats {
-  pmfms: IPmfm[];
-  pmfmsByIds: { [key: number]: IPmfm };
-  denormalizedBatchByOp: {
-    [key: number]: {
-      landing?: DenormalizedBatch[];
-      discard?: DenormalizedBatch[];
-    };
+type TreeComponent = 'blank' | 'trunc' | 'last-leaf' | 'leaf';
+
+export interface DenormalizedBatchFormReportContentPageDimension extends ReportTableContentPageDimension {
+  headerHeight: number;
+  footerHeight: number;
+  tableTitleHeight: number;
+  tableLegendHeight: number;
+  tableHat: number;
+  rowTitleHeight: number;
+  rowHeight: number;
+  colWidthExhaustiveInventory: number;
+  colWidthTaxonGroup: number;
+  colWidthTaxonName: number;
+  colWidthSortCriterions: number;
+  colWidthTitleExhaustiveInventory: number;
+  colWidthTitleExhaustiveInventoryYesNo: number;
+  colWidthMeasure: number;
+  colWidthBlank: number;
+}
+
+export class DenormalizedBatchFormReportContentStats extends CommonReportContentStats {
+  options: {
+    blankFormLineNumberSuite: string[];
   };
-  operationRankOrderByOperationIds: { [key: number]: number };
-
-  fromObject(source: any): void {
-    this.pmfms = source.pmfms.map(DenormalizedPmfmStrategy.fromObject);
-    this.pmfmsByIds = splitById(this.pmfms);
-    this.denormalizedBatchByOp = Object.keys(source.denormalizedBatchByOp).reduce((acc, key) => {
-      acc[key] = {
-        landing: source.denormalizedBatchByOp[key]?.landing.map(DenormalizedBatch.fromObject),
-        discard: source.denormalizedBatchByOp[key]?.discard.map(DenormalizedBatch.fromObject),
-      };
-      return acc;
-    }, {});
-    this.operationRankOrderByOperationIds = source.operationRankOrderByOperationIds;
+  tips: ReportPmfmsTipsByPmfmIds;
+  fromObject(source: any) {
+    super.fromObject(source);
+    this.options = source.options;
+    this.tips = source.tips;
   }
-
   asObject(opts?: EntityAsObjectOptions): any {
     return {
-      pmfms: this.pmfms.map((pmfm) => pmfm.asObject(opts)),
-      denormalizedBatchByOp: Object.keys(this.denormalizedBatchByOp).reduce((acc, key) => {
-        acc[key] = {
-          landing: this.denormalizedBatchByOp[key].landing.map((item: any) => item.asObject(opts)),
-          discard: this.denormalizedBatchByOp[key].discard.map((item: any) => item.asObject(opts)),
-        };
-        return acc;
-      }, {}),
-      operationRankOrderByOperationIds: this.operationRankOrderByOperationIds,
+      ...super.asObject(opts),
+      options: this.options,
+      tips: this.tips,
     };
   }
 }
 
 @Component({
   standalone: true,
-  imports: [AppCoreModule, AppSharedReportModule, AppReferentialModule, AppDataModule, ReportChunkModule, DenormalizedBatchModule],
+  imports: [
+    AppBatchModule,
+    AppCoreModule,
+    AppEntityQualityModule,
+    AppReferentialPipesModule,
+    AppSharedReportModule,
+    ReportChunkModule,
+    TableHeadPmfmNameReportChunk,
+    TipsReportChunk,
+    DenormalizedBatchModule,
+  ],
   selector: 'denormalized-batch-form-report-content',
   templateUrl: './denormalized-batch-form.report.content.html',
-  styleUrls: ['./denormalized-batch-form.report.content.scss', '../../../../data/report/base-form-report.scss'],
+  styleUrls: [
+    './denormalized-batch-form.report.content.scss',
+    '../../../../data/report/base-report.scss',
+    '../../../../data/report/base-form-report.scss',
+  ],
+  encapsulation: ViewEncapsulation.None,
 })
-export class DenormalizedBatchFormReportContent extends ReportContent<Operation[], DenormalizedBatchReportFormContentStats> {
-  protected readonly denormalizedBatchService: DenormalizedBatchService = inject(DenormalizedBatchService);
-  protected readonly tripService: TripService = inject(TripService);
-  protected readonly programRefService: ProgramRefService = inject(ProgramRefService);
+export class DenormalizedBatchFormReportContent extends ReportTableContent<
+  DenormalizedBatch,
+  DenormalizedBatchFormReportContentStats,
+  DenormalizedBatchFormReportContentPageDimension
+> {
+  protected treeIndentByBatchId: { [key: number]: TreeComponent[] } = {};
+  protected sortingValueTextByBatchId: { [key: number]: string[] } = {};
+  protected batchWithCalculatedWeightById: { [key: number]: boolean } = {};
+  protected pages: MatTableDataSource<DenormalizedBatch>[];
+  protected landingDisplayedColumns: string[];
+  protected rootLandingDisplayedColumns: string[];
+  protected dateAdapter: MomentDateAdapter = inject(MomentDateAdapter);
+  protected methodIds = MethodIds;
 
-  @Input({ required: true }) tripId: number;
+  @Input({ required: true }) pmfms: {
+    sortingBatch: IDenormalizedPmfm[];
+    sortingBatchIndividual: IDenormalizedPmfm[];
+  };
+  @Input({ required: true }) pmfmsByIds: {
+    sortingBatch: { [key: number]: IDenormalizedPmfm };
+    sortingBatchIndividual: { [key: number]: IDenormalizedPmfm };
+  };
+  @Input({ required: true }) displayAttributes: {
+    location: string[];
+    taxonGroup: string[];
+    vesselSnapshot: string[];
+  };
+  @Input() headerDate: Moment;
+  @Input() headerVessel: ReferentialRef;
+  @Input() headerLocation: VesselSnapshot;
+  @Input({ required: true }) footerText: string;
+  @Input({ required: true }) type: 'landing' | 'discard' | 'sale';
 
   constructor() {
-    super(Array<Operation>, DenormalizedBatchReportFormContentStats);
+    super(DenormalizedBatch, DenormalizedBatchFormReportContentStats);
   }
 
-  dataAsObject(source: Operation[], opts?: EntityAsObjectOptions) {
-    throw new Error('Method not implemented.');
+  async ngOnStart(opts?: any): Promise<void> {
+    await super.ngOnStart(opts);
+    if (!this.isBlankForm) {
+      this.landingDisplayedColumns = this.computeLandingDisplayedColumns();
+      this.rootLandingDisplayedColumns = this.computeRootDisplayedColumns();
+      if (isNotNil(this.data)) {
+        this.pages = this.computePagesRows(this.data);
+      } else {
+        this.pages = [];
+      }
+    }
   }
 
   computeAppendixBlocks(): ReportAppendixSection[] {
-    // NOTE: There is not tips in ths reports
-    return [];
+    this.checkIfStatsAreComputed();
+    return [
+      {
+        title: this.translate.instant('SALE.BATCH.REPORT.TITLE'),
+        blocks: this.flatPmfmTipsForAnnex([this.stats.tips]),
+      },
+    ];
   }
 
   protected async computeStats(
-    data: Operation[],
-    _?: IComputeStatsOpts<DenormalizedBatchReportFormContentStats>
-  ): Promise<DenormalizedBatchReportFormContentStats> {
-    let stats = new DenormalizedBatchReportFormContentStats();
+    data: DenormalizedBatch,
+    opts?: IComputeStatsOpts<DenormalizedBatchFormReportContentStats>
+  ): Promise<DenormalizedBatchFormReportContentStats> {
+    const stats = new DenormalizedBatchFormReportContentStats();
 
-    const strategyId = this.strategy?.id;
+    stats.options = {
+      blankFormLineNumberSuite: ['0.0', '0.1', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9'],
+    };
 
-    stats.pmfms = isNotNil(strategyId)
-      ? [
-          ...(await this.programRefService.loadProgramPmfms(this.program.label, {
-            acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH,
-            strategyId,
-          })),
-          ...(await this.programRefService.loadProgramPmfms(this.program.label, {
-            acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL,
-            strategyId,
-          })),
-        ]
+    stats.headerItems = [];
+    if (isNotNil(this.headerVessel))
+      stats.headerItems.push(
+        `${this.translate.instant('SALE.BATCH.REPORT.HEADER.VESSEL')}${this.translate.instant('COMMON.COLON')} ${this.headerVessel}`
+      );
+    if (isNotNil(this.headerLocation))
+      stats.headerItems.push(
+        `${this.translate.instant('SALE.BATCH.REPORT.HEADER.VESSEL')}${this.translate.instant('COMMON.COLON')} ${this.headerLocation}`
+      );
+    if (isNotNil(this.headerDate))
+      stats.headerItems.push(
+        `${this.translate.instant('SALE.BATCH.REPORT.HEADER.SELL_DATE_TIME')}${this.translate.instant('COMMON.COLON')} ${this.headerDate}`
+      );
+
+    stats.tips = this.isBlankForm
+      ? this.computeReportPmfmsTips(
+          [[0, this.pmfms.sortingBatch.length]],
+          [
+            this.pmfmsByIds.sortingBatch[PmfmIds.SIZE_UNLI_CAT],
+            this.pmfmsByIds.sortingBatch[PmfmIds.DRESSING],
+            this.pmfmsByIds.sortingBatchIndividual[PmfmIds.SEX],
+          ],
+          this.limitTipsToShowOnAppendix
+        )[0]
       : [];
-
-    stats.pmfmsByIds = splitById(stats.pmfms);
-
-    stats.operationRankOrderByOperationIds = data.reduce((acc, op) => {
-      acc[op.id] = op.rankOrder;
-      return acc;
-    }, []);
-
-    stats = await this.computeDenormalizedBatchByOp(data, stats);
-
-    // header items
-    {
-      stats.headerItems = [
-        this.translate.instant('TRIP.REPORT.FORM.TRIP_DEPARTURE_DATE_TIME') +
-          this.translate.instant('COMMON.COLON') +
-          ' ' +
-          (this.isBlankForm ? '...../...../......' : this.departureDateTime),
-        this.translate.instant('TRIP.REPORT.FORM.VESSEL_NAME') +
-          this.translate.instant('COMMON.COLON') +
-          ' ' +
-          (this.isBlankForm ? '.................................' : this.vesselName),
-      ];
-    }
 
     return stats;
   }
 
-  private async computeDenormalizedBatchByOp(
-    data: Operation[],
-    stats: DenormalizedBatchReportFormContentStats
-  ): Promise<DenormalizedBatchReportFormContentStats> {
-    stats.denormalizedBatchByOp = {};
+  protected computePageDimensions(): DenormalizedBatchFormReportContentPageDimension {
+    const colWidthExhaustiveInventory = 30;
+    const colWidthTaxonGroup = 130;
+    const colWidthTaxonName = 130;
+    const colWidthSortCriterions = 200;
+    const colWidthTitleExhaustiveInventory = colWidthExhaustiveInventory + colWidthTaxonGroup + colWidthTaxonName;
+    const colWidthTitleExhaustiveInventoryYesNo = colWidthSortCriterions / 2 + 0.5;
+    const colWidthMeasure =
+      (this.parentPageDimensions.availableWidthForTablePortrait -
+        colWidthExhaustiveInventory -
+        colWidthTaxonGroup -
+        colWidthTaxonName -
+        colWidthSortCriterions) /
+        5 -
+      1;
+    const headerHeight = 100;
+    const footerHeight = 40;
+    const tableHat = 25;
+    const tableTitleHeight = 30;
+    const tableLegendHeight = 40;
+    const rowTitleHeight = 70;
+    return {
+      ...super._computePageDimensions(),
+      headerHeight,
+      footerHeight,
+      tableHat,
+      tableTitleHeight,
+      tableLegendHeight,
+      rowTitleHeight,
+      rowHeight: 38,
+      colWidthExhaustiveInventory,
+      colWidthTaxonGroup,
+      colWidthTaxonName,
+      colWidthSortCriterions,
+      colWidthTitleExhaustiveInventory,
+      colWidthTitleExhaustiveInventoryYesNo,
+      colWidthMeasure,
+      colWidthBlank: this.parentPageDimensions.availableWidthForTablePortrait / 9,
+    };
+  }
 
-    // Ensures that batches be denormalized for this trip before generate report
-    await this.tripService.denormalizeTrip(this.tripId);
+  protected computeRootDisplayedColumns(): string[] {
+    return [
+      'exhaustiveInventory',
+      'rootSortingCriterion1',
+      'rootSortingCriterion2',
+      'rootTotalWeight',
+      'rootTotalIndiv',
+      'faction',
+      'rootWeight',
+      'rootNbIndiv',
+    ];
+  }
 
-    for (const op of data) {
-      const denormalizedBatches = (await this.denormalizedBatchService.loadAll(0, 1000, null, null, { operationId: op.id })).data;
-      const [catchBatch] = DenormalizedBatchUtils.arrayToTree(denormalizedBatches);
+  protected computeLandingDisplayedColumns(): string[] {
+    return ['exhaustiveInventory', 'taxonGroup', 'taxonName', 'sortCriterions', 'totalWeight', 'totalIndiv', 'faction', 'weight', 'nbIndiv'];
+  }
 
-      // Copy sampling batch properties to parent
-      const samplingBatches = denormalizedBatches
-        .filter((b) => DenormalizedBatchUtils.isSamplingBatch(b))
-        .map((b) => {
-          const parent = b.parent;
-          parent.samplingRatio = b.samplingRatio;
-          parent.samplingRatioText = b.samplingRatioText;
-          parent.weight = b.weight;
-          parent.indirectWeight = b.indirectWeight;
-          parent.individualCount = b.individualCount;
-          parent.indirectIndividualCount = b.indirectIndividualCount;
-          return b;
-        });
+  protected computeDiscardDisplayColumn(): string[] {
+    return [];
+  }
 
-      // Exclude not visible batches
-      const landings = catchBatch && TreeItemEntityUtils.filterRecursively(catchBatch, (b) => b?.isLanding && !samplingBatches.includes(b));
-      const discards = catchBatch && TreeItemEntityUtils.filterRecursively(catchBatch, (b) => b?.isDiscard && !samplingBatches.includes(b));
+  protected isRootBatch(index: number, batch: DenormalizedBatch) {
+    return isNil(batch.parent?.parent);
+  }
 
-      // Compute tre indent text
-      [landings, discards].filter(isNotEmptyArray).forEach((batches) => {
-        DenormalizedBatchUtils.filterTreeComponents(batches[0], (b) => !DenormalizedBatchUtils.isSamplingBatch(b));
-        DenormalizedBatchUtils.computeTreeIndent(batches[0], [], false, { html: true });
+  protected isEstimatedElevateWeight(batch: DenormalizedBatch) {
+    return isNotNilOrNaN(batch.weight) && batch.weight === batch.elevateWeight && MethodUtils.isEstimated(batch.weightMethodId);
+  }
+
+  protected isComputedElevateWeight(batch: DenormalizedBatch) {
+    return isNotNilOrNaN(batch.elevateWeight) && (batch.elevateWeight !== batch.weight || MethodUtils.isComputed(batch.weightMethodId));
+  }
+
+  protected isComputedElevateIndividualCount(batch: DenormalizedBatch) {
+    return isNotNilOrNaN(batch.elevateIndividualCount) && batch.elevateIndividualCount !== batch.individualCount;
+  }
+
+  protected isComputedSampleWeight(batch: DenormalizedBatch) {
+    return isNotNilOrNaN(batch.indirectContextWeight) && MethodUtils.isComputed(batch.weightMethodId);
+  }
+
+  protected isEstimatedSampleWeight(batch: DenormalizedBatch) {
+    return isNotNilOrNaN(batch.indirectContextWeight) && MethodUtils.isEstimated(batch.weightMethodId);
+  }
+
+  protected isComputedIndividualCount(batch: DenormalizedBatch) {
+    return (
+      (isNotNilOrNaN(batch.individualCount) || isNotNilOrNaN(batch.indirectIndividualCount)) &&
+      batch.individualCount !== batch.indirectIndividualCount
+    );
+  }
+
+  protected hasElevationRatioInParent(batch: DenormalizedBatch) {
+    return batch.weight !== batch.elevateWeight || batch.individualCount !== batch.elevateIndividualCount;
+  }
+
+  private computePagesRows(catchBatch: DenormalizedBatch): MatTableDataSource<DenormalizedBatch>[] {
+    const rows = this.computeBatch(catchBatch);
+    const pagesSlice = this.computePageSlice(rows.length);
+    return pagesSlice.map((slice) => new MatTableDataSource(rows.slice(slice.start, slice.end)));
+  }
+
+  private computePageSlice(nbLines: number) {
+    const availableSpaceForTheTable =
+      this.parentPageDimensions.pageHeight -
+      this.pageDimensions.headerHeight -
+      this.pageDimensions.footerHeight -
+      this.pageDimensions.tableHat -
+      this.pageDimensions.tableTitleHeight -
+      this.pageDimensions.rowTitleHeight;
+    const nbMaxTableRow = Math.trunc(availableSpaceForTheTable / this.pageDimensions.rowHeight);
+    const result = [];
+    for (let i = 0; i < nbLines; i = i + nbMaxTableRow) {
+      const start = i;
+      const end = i + nbMaxTableRow;
+      result.push({ start, end });
+    }
+    return result;
+  }
+
+  private computeBatch(catchBatch: DenormalizedBatch) {
+    const denormalizedBatches = TreeItemEntityUtils.treeToArray(catchBatch);
+
+    // Copy sampling batch properties to parent
+    const samplingBatches = denormalizedBatches
+      .filter((b) => DenormalizedBatchUtils.isSamplingBatch(b))
+      .map((b) => {
+        const parent = b.parent;
+        parent.samplingRatio = b.samplingRatio;
+        parent.samplingRatioText = b.samplingRatioText;
+        parent.weight = b.weight;
+        parent.indirectWeight = b.indirectWeight;
+        parent.individualCount = b.individualCount;
+        parent.indirectIndividualCount = b.indirectIndividualCount;
+        return b;
       });
 
-      if (isNotEmptyArray(landings) || isNotEmptyArray(discards))
-        stats.denormalizedBatchByOp[op.id] = {
-          landing: landings,
-          discard: discards,
-        };
-    }
+    // Exclude not visible batches
+    const visibleBatch =
+      catchBatch &&
+      TreeItemEntityUtils.filterRecursively(catchBatch, (b) => {
+        return (
+          (((this.type === 'landing' || this.type === 'sale') && b?.isLanding) || (this.type === 'discard' && b?.isDiscard)) &&
+          !samplingBatches.includes(b)
+        );
+      });
 
-    return stats;
+    visibleBatch
+      .filter((batch, index) => this.isRootBatch(index, batch))
+      .forEach((rootVisibleBatch) => {
+        DenormalizedBatchUtils.filterTreeComponents(rootVisibleBatch, (b) => !DenormalizedBatchUtils.isSamplingBatch(b));
+        DenormalizedBatchUtils.computeTreeIndent(rootVisibleBatch, [], false, { html: true });
+      });
+
+    return visibleBatch;
   }
 }

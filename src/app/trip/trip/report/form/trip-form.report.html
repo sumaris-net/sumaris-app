@@ -125,7 +125,7 @@
           [isPrintingPDF]="isPrintingPDF"
           [titleComplement]="stats.hasPmfm.cameraUsed ? 'TRIP.REPORT.FORM.WITH_OR_WITHOUT_CAMERA' : undefined"
           [footerText]="stats.options.footerText"
-          [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
+          [limitTipsToShowOnAppendix]="stats.options.maxTipsToGoAppendix"
         ></trip-table-form-report-content>
       } @else {
         <!-- TODO: Move this section in it own component -->
@@ -264,7 +264,7 @@
                   {{
                     stats.measurementValues
                       | mapGet: stats.pmfmIdsMap.NB_FISHERMEN
-                      | pmfmValue: { pmfm: stats.pmfmsByIds | mapGet: stats.pmfmIdsMap.NB_FISHERMEN }
+                      | pmfmValue: { pmfm: stats.pmfmsByIds.trip | mapGet: stats.pmfmIdsMap.NB_FISHERMEN }
                   }}
                 </ion-col>
               }
@@ -364,14 +364,14 @@
           }
 
           <!-- Other features section -->
-          @if (stats.pmfms | isNotEmptyArray) {
+          @if (stats.pmfms.trip | isNotEmptyArray) {
             <ion-grid class="report-section">
               <ion-row class="section-title">
                 <ion-col>
                   <h3>{{ 'TRIP.REPORT.FORM.TRIP.OTHER_FEATURES' | translate }}</h3>
                 </ion-col>
               </ion-row>
-              @for (pmfm of stats.pmfms; track pmfm.id) {
+              @for (pmfm of stats.pmfms.trip; track pmfm.id) {
                 <ion-row class="form-field">
                   <ion-col class="form-label" size="6">
                     {{ pmfm | pmfmName: { i18nPrefix: i18nContext.pmfmPrefix, i18nSuffix: i18nContext.suffix } }}
@@ -428,7 +428,7 @@
           [data]="data.gears"
           [hiddenPmfms]="stats.options.hiddenPmfms"
           [multiTrip]="stats.options.multiTrip"
-          [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
+          [limitTipsToShowOnAppendix]="stats.options.maxTipsToGoAppendix"
           [isPrintingPDF]="isPrintingPDF"
           [i18nContext]="i18nContext"
           [isBlankForm]="isBlankForm"
@@ -472,7 +472,7 @@
             [hideComments]="stats.hasPmfm.cameraUsed"
             [enablePosition]="stats.options.enablePosition"
             [useColumnGearNumber]="stats.options.gearHasLabel"
-            [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
+            [limitTipsToShowOnAppendix]="stats.options.maxTipsToGoAppendix"
           ></operation-with-child-form-report-content>
 
           <!-- Add one more page, without camera-->
@@ -499,7 +499,7 @@
               [enablePosition]="stats.options.enablePosition"
               [hideComments]="false"
               [useColumnGearNumber]="stats.options.gearHasLabel"
-              [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
+              [limitTipsToShowOnAppendix]="stats.options.maxTipsToGoAppendix"
             ></operation-with-child-form-report-content>
           }
         } @else {
@@ -523,7 +523,7 @@
             [parentPageDimensions]="pageDimensions"
             [cameraUsed]="stats.options.cameraUsed"
             [enablePosition]="stats.options.enablePosition"
-            [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
+            [limitTipsToShowOnAppendix]="stats.options.maxTipsToGoAppendix"
           ></operation-with-child-form-report-content>
         }
       } @else {
@@ -546,30 +546,64 @@
           [revealOptions]="revealOptions"
           [parentPageDimensions]="pageDimensions"
           [enablePosition]="stats.options.enablePosition"
-          [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
+          [limitTipsToShowOnAppendix]="stats.options.maxTipsToGoAppendix"
         ></operation-form-report-content>
       }
 
       <!-- DenormalizedBatch by operations -->
       @if (stats.options.enableBatch) {
-        <denormalized-batch-form-report-content
-          [rankOrder]="40"
-          [stats]="stats?.reportComponents?.[40]"
-          [tripId]="data.id"
-          [data]="data.operations"
-          [parentPageDimensions]="pageDimensions"
-          [isPrintingPDF]="isPrintingPDF"
-          [i18nContext]="i18nContext"
-          [isBlankForm]="isBlankForm"
-          [program]="stats.program"
-          [strategy]="stats.strategy"
-          [logoHeadRightUrl]="stats.options.logoHeadRightUrl"
-          [logoHeadLeftUrl]="stats.options.logoHeadLeftUrl"
-          [footerText]="stats.options.footerText"
-          [departureDateTime]="data.departureDateTime"
-          [vesselName]="data.vesselSnapshot?.name"
-          [revealOptions]="revealOptions"
-        ></denormalized-batch-form-report-content>
+        @for (operation of data.operations; track operation.id) {
+          <denormalized-batch-form-report-content
+            [rankOrder]="4000 + $index * 10 + $index"
+            [stats]="stats?.reportComponents?.[4000 + $index * 10 + $index]"
+            [data]="stats.catchBatchByOperationId | mapGet: operation.id"
+            [type]="'landing'"
+            [parentPageDimensions]="pageDimensions"
+            [revealOptions]="revealOptions"
+            [i18nContext]="i18nContext"
+            [program]="stats.program"
+            [strategy]="stats.strategy"
+            [isBlankForm]="isBlankForm"
+            [logoHeadLeftUrl]="stats.options.logoHeadLeftUrl"
+            [logoHeadRightUrl]="stats.options.logoHeadRightUrl"
+            [isPrintingPDF]="false"
+            [limitTipsToShowOnAppendix]="stats.options.maxTipsToGoAppendix"
+            [displayAttributes]="stats.options.displayAttributes"
+            [pmfms]="{ sortingBatch: stats.pmfms.sortingBatch, sortingBatchIndividual: stats.pmfms.sortingBatchIndividual }"
+            [pmfmsByIds]="{ sortingBatch: stats.pmfmsByIds.sortingBatch, sortingBatchIndividual: stats.pmfmsByIds.sortingBatchIndividual }"
+            [displayAttributes]="stats.options.displayAttributes"
+            [headerDate]="isBlankForm ? fillBlank : (operation.startDateTime | dateFormat: { pattern: stats.options.datePattern })"
+            [headerVessel]="
+              isBlankForm ? fillBlank : (data.vesselSnapshot | referentialToString: { properties: stats.options.displayAttributes.vesselSnapshot })
+            "
+            [footerText]="stats.options.footerText"
+          ></denormalized-batch-form-report-content>
+          <denormalized-batch-form-report-content
+            [rankOrder]="4000 + $index * 10 + $index"
+            [stats]="stats?.reportComponents?.[4000 + $index * 10 + $index + 1]"
+            [data]="stats.catchBatchByOperationId | mapGet: operation.id"
+            [type]="'discard'"
+            [parentPageDimensions]="pageDimensions"
+            [revealOptions]="revealOptions"
+            [i18nContext]="i18nContext"
+            [program]="stats.program"
+            [strategy]="stats.strategy"
+            [isBlankForm]="isBlankForm"
+            [logoHeadLeftUrl]="stats.options.logoHeadLeftUrl"
+            [logoHeadRightUrl]="stats.options.logoHeadRightUrl"
+            [isPrintingPDF]="false"
+            [limitTipsToShowOnAppendix]="stats.options.maxTipsToGoAppendix"
+            [displayAttributes]="stats.options.displayAttributes"
+            [pmfms]="{ sortingBatch: stats.pmfms.sortingBatch, sortingBatchIndividual: stats.pmfms.sortingBatchIndividual }"
+            [pmfmsByIds]="{ sortingBatch: stats.pmfmsByIds.sortingBatch, sortingBatchIndividual: stats.pmfmsByIds.sortingBatchIndividual }"
+            [displayAttributes]="stats.options.displayAttributes"
+            [headerDate]="isBlankForm ? fillBlank : (operation.startDateTime | dateFormat: { pattern: stats.options.datePattern })"
+            [headerVessel]="
+              isBlankForm ? fillBlank : (data.vesselSnapshot | referentialToString: { properties: stats.options.displayAttributes.vesselSnapshot })
+            "
+            [footerText]="stats.options.footerText"
+          ></denormalized-batch-form-report-content>
+        }
       }
 
       <!-- Sample by operation -->
@@ -579,7 +613,7 @@
         [data]="data.operations"
         [hiddenPmfms]="stats.options.hiddenPmfms"
         [multiTrip]="stats.options.multiTrip"
-        [limitTipsToShowOnAppendix]="stats.options.limitTipsToShowOnAppendix"
+        [limitTipsToShowOnAppendix]="stats.options.maxTipsToGoAppendix"
         [isPrintingPDF]="isPrintingPDF"
         [i18nContext]="{ prefix: 'TRIP.SAMPLE.PMFM.', suffix: i18nContext.suffix }"
         [isBlankForm]="isBlankForm"

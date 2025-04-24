@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
-import { ReferentialService, ReferentialServiceLoadOptions } from '@app/referential/services/referential.service';
-import { AccountService, EntitySaveOptions, GraphqlService, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { Method } from '@app/referential/pmfm/method/method.model';
-import { FullReferential } from '@app/referential/services/model/referential.model';
+import { ReferentialService } from '@app/referential/services/referential.service';
+import { AccountService, GraphqlService, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 
 @Injectable({ providedIn: 'root' })
 export class MethodService extends ReferentialService<Method> {

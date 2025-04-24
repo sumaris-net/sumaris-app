@@ -116,6 +116,10 @@ html.print-pdf .reveal .slides section {
       color: var(--ion-color-danger);
     }
 
+    .estimated {
+      text-decoration: underline;
+    }
+
     color: var(--text-color);
 
     ion-icon {

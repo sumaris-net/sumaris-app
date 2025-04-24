@@ -130,10 +130,11 @@
           [displayAttributes]="stats.options.displayAttributes"
           [observedSpecie]="stats.observedSpeciesByIds | mapGet: (stats.mappings.saleIdToObservedSpeciesId | mapGet: sale.id)"
         ></sale-form-report-content>
-        <batch-form-report-content
+        <denormalized-batch-form-report-content
           [rankOrder]="3000 + $index * 10 + $index"
           [stats]="stats?.reportComponents?.[3000 + $index * 10 + $index]"
-          [data]="sale.catchBatch"
+          [data]="stats.catchBatchBySaleId | mapGet: sale.id"
+          [type]="'sale'"
           [parentPageDimensions]="pageDimensions"
           [revealOptions]="revealOptions"
           [i18nContext]="i18nContext"
@@ -147,12 +148,11 @@
           [displayAttributes]="stats.options.displayAttributes"
           [pmfms]="{ sortingBatch: stats.pmfms.sortingBatch, sortingBatchIndividual: stats.pmfms.sortingBatch }"
           [pmfmsByIds]="{ sortingBatch: stats.pmfmsByIds.sortingBatch, sortingBatchIndividual: stats.pmfmsByIds.sortingBatchIndividual }"
-          [displayAttributes]="stats.options.displayAttributes"
-          [saleDate]="sale.startDateTime"
-          [saleLocation]="sale.saleLocation"
-          [vesselSnapshot]="sale.vesselSnapshot"
+          [headerVessel]="
+            isBlankForm ? fillBlank : (sale.vesselSnapshot | referentialToString: { properties: stats.options.displayAttributes.vesselSnapshot })
+          "
           [footerText]="stats.options.footerText"
-        ></batch-form-report-content>
+        ></denormalized-batch-form-report-content>
       }
 
       <report-appendix

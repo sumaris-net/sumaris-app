@@ -2678,6 +2678,7 @@ input DenormalizedBatchesFilterVOInput {
     qualityFlagIds: [Int]
     recorderDepartmentId: Int
     saleId: Int
+    saleIds: [Int]
     tripId: Int
 }
 

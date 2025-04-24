@@ -49,6 +49,8 @@ import { CommonReport, FormReportPageDimensions } from './common-report.class';
 import { ReportAppendix } from './report-appendix';
 import { ReportAppendixSection, ReportContent } from './report.content.class';
 
+export const FILL_BLANK = Array(30).fill('.').join('');
+
 export const ReportDataPasteFlags = Object.freeze({
   NONE: 0,
   DATA: 1,

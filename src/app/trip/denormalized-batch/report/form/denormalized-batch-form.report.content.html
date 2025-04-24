@@ -1,265 +1,388 @@
 @if (loaded) {
   <app-reveal #reveal [options]="revealOptions">
-    @for (opId of stats.denormalizedBatchByOp | mapKeys; track opId) {
-      @if (stats.denormalizedBatchByOp | mapGet: opId; as batchesByType) {
-        @if (isPrintingPDF) {
-          <section>
-            @if (batchesByType | mapGet: 'landing'; as batches) {
-              @for (batchesChunk of batches | splitArrayInChunks: 24; track $index; let isLastBatchesChunk = $last , isFirstBatchesChunk = $first) {
-                <section *sectionDef class="portrait">
-                  <ng-content *ngTemplateOutlet="landingSection; context: { index: $index, opId: opId, batchesChunk: batchesChunk }"></ng-content>
-                </section>
-              }
-            }
-            @if (batchesByType | mapGet: 'discard'; as batches) {
-              @for (batchesChunk of batches | splitArrayInChunks: 24; track $index; let isLastBatchesChunk = $last , isFirstBatchesChunk = $first) {
-                <section *sectionDef class="portrait">
-                  <ng-content
-                    *ngTemplateOutlet="
-                      discardSection;
-                      context: {
-                        index: $index,
-                        opId: opId,
-                        isFirstBatchesChunk: isFirstBatchesChunk,
-                        batches: batches,
-                        batchesChunk: batchesChunk,
-                        isLastBatchesChunk: isLastBatchesChunk,
+    @if (isBlankForm) {
+      <section *sectionDef class="portrait" [style.--page-horizontal-margin]="this.parentPageDimensions.pageHorizontalMargin">
+        <page-header-form-report-chunk
+          [i18nContext]="i18nContext"
+          [title]="'SALE.BATCH.REPORT.TITLE'"
+          [items]="stats.headerItems"
+          [logoRightUrl]="logoHeadRightUrl"
+          [logoLeftUrl]="logoHeadLeftUrl"
+        ></page-header-form-report-chunk>
+        <ion-grid class="report-section ion-no-padding ion-no-margin">
+          <ion-row class="section-title">
+            <ion-col size="6">
+              <h3>{{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.TITLE' | translate }}</h3>
+            </ion-col>
+            <ion-col class="form-label ion-text-end" size="4">
+              {{ 'SALE.BATCH.REPORT.BLANK.FIELDS.MEASURE_UNIT' | translate }}
+              {{ 'COMMON.COLON' | translate }}
+            </ion-col>
+            <ion-col class="form-value vertical-centred-content horizontal-centred-content" size="1">
+              mm
+              <ion-icon name="square-outline"></ion-icon>
+            </ion-col>
+            <ion-col class="form-value vertical-centred-content horizontal-centred-content" size="1">
+              cm
+              <ion-icon name="square-outline"></ion-icon>
+            </ion-col>
+          </ion-row>
+          <ion-row [style.border]="'solid 3px'">
+            <ion-col size="4">
+              <ng-content *ngTemplateOutlet="batchColumn"></ng-content>
+            </ion-col>
+            <ion-col size="4">
+              <ng-content *ngTemplateOutlet="batchColumn"></ng-content>
+            </ion-col>
+            <ion-col size="4">
+              <ng-content *ngTemplateOutlet="batchColumn"></ng-content>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+        <tips-report-chunk [tips]="stats.tips | mapValues | arraySort: sortByTipsIndex"></tips-report-chunk>
+        <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
+      </section>
+      <ng-template #batchColumn>
+        <ng-content *ngTemplateOutlet="headerChunk"></ng-content>
+        <ng-content *ngTemplateOutlet="linesChunk"></ng-content>
+        <ng-content *ngTemplateOutlet="linesChunk"></ng-content>
+        <ng-content *ngTemplateOutlet="linesChunk"></ng-content>
+        <ng-content *ngTemplateOutlet="linesChunk"></ng-content>
+        <ng-content *ngTemplateOutlet="totalIndChunk"></ng-content>
+      </ng-template>
+      <ng-template #headerChunk>
+        <table class="blank-table" [style.--col-width]="pageDimensions.colWidthBlank">
+          <tr>
+            <th>{{ 'SALE.BATCH.REPORT.BLANK.FIELDS.SPECIES_CATEGORY' | translate }}(1)</th>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <th>{{ 'SALE.BATCH.REPORT.BLANK.FIELDS.PRESENTATION' | translate }}(2)</th>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <th>{{ 'SALE.BATCH.REPORT.BLANK.FIELDS.WEIGHT' | translate }}</th>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <th>{{ 'SALE.BATCH.REPORT.BLANK.FIELDS.FRACTION' | translate }}</th>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <th>{{ 'SALE.BATCH.REPORT.BLANK.FIELDS.SEX' | translate }}(3)</th>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <th>{{ 'SALE.BATCH.REPORT.BLANK.FIELDS.OTHER' | translate }}</th>
+            <td></td>
+            <td></td>
+          </tr>
+        </table>
+      </ng-template>
+      <ng-template #linesChunk>
+        <table class="blank-table" [style.--col-width]="pageDimensions.colWidthBlank">
+          @for (item of stats.options.blankFormLineNumberSuite; track $index) {
+            <tr>
+              <th>{{ item }}</th>
+              <td></td>
+              <td></td>
+            </tr>
+          }
+        </table>
+      </ng-template>
+      <ng-template #totalIndChunk>
+        <table class="blank-table" [style.--col-width]="pageDimensions.colWidthBlank">
+          <tr>
+            <th>{{ 'SALE.BATCH.REPORT.BLANK.FIELDS.TOTAL_IND' | translate }}</th>
+            <td></td>
+            <td></td>
+          </tr>
+        </table>
+      </ng-template>
+    } @else {
+      @if (pages | isNotEmptyArray) {
+        @for (page of pages; track $index) {
+          <section *sectionDef class="portrait" [style.--page-horizontal-margin]="this.parentPageDimensions.pageHorizontalMargin">
+            <page-header-form-report-chunk
+              [i18nContext]="i18nContext"
+              [title]="'SALE.BATCH.REPORT.TITLE'"
+              [items]="stats.headerItems"
+              [logoRightUrl]="logoHeadRightUrl"
+              [logoLeftUrl]="logoHeadLeftUrl"
+              [pageNumber]="$index + 1"
+            ></page-header-form-report-chunk>
+
+            <ion-grid class="report-section ion-no-padding ion-no-margin">
+              <ion-row class="section-title">
+                <ion-col>
+                  <h3>
+                    @switch (type) {
+                      @case ('landing') {
+                        {{ 'TRIP.REPORT.FORM.BATCH.TITLE_LANDING' | translate }}
                       }
-                    "
-                  ></ng-content>
-                </section>
-              }
-            }
-          </section>
-        } @else {
-          <section *sectionDef>
-            @if (batchesByType | mapGet: 'landing'; as batches) {
-              @for (batchesChunk of batches | splitArrayInChunks: 24; track $index; let isLastBatchesChunk = $last , isFirstBatchesChunk = $first) {
-                <section class="portrait">
-                  <ng-content *ngTemplateOutlet="landingSection; context: { index: $index, opId: opId, batchesChunk: batchesChunk }"></ng-content>
-                </section>
-              }
-            }
-            @if (batchesByType | mapGet: 'discard'; as batches) {
-              @for (batchesChunk of batches | splitArrayInChunks: 24; track $index; let isLastBatchesChunk = $last , isFirstBatchesChunk = $first) {
-                <section class="portrait">
-                  <ng-content
-                    *ngTemplateOutlet="
-                      discardSection;
-                      context: {
-                        index: $index,
-                        opId: opId,
-                        isFirstBatchesChunk: isFirstBatchesChunk,
-                        batches: batches,
-                        batchesChunk: batchesChunk,
-                        isLastBatchesChunk: isLastBatchesChunk,
+                      @case ('discard') {
+                        {{ 'TRIP.REPORT.FORM.BATCH.TITLE_DISCARD' | translate }}
                       }
-                    "
-                  ></ng-content>
-                </section>
-              }
-            }
+                      @case ('sale') {
+                        {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.TITLE' | translate }}
+                      }
+                    }
+                  </h3>
+                </ion-col>
+              </ion-row>
+              <ion-row class="border-right border-left" [style.height]="'30px'" [style.border-width]="'2px'">
+                <ion-col
+                  class="fixed-width vertical-centred-content ion-padding-horizontal border-top"
+                  [style.--ion-padding]="'12px'"
+                  [style.border-top-width]="'2px'"
+                  [style.--col-width]="this.pageDimensions.colWidthTitleExhaustiveInventory"
+                >
+                  {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.EXHAUSTIVE_INVENTORY' | translateContext: i18nContext.suffix }}
+                </ion-col>
+                <ion-col
+                  class="fixed-width vertical-centred-content border-top"
+                  [style.border-top-width]="'2px'"
+                  [style.--col-width]="this.pageDimensions.colWidthTitleExhaustiveInventoryYesNo"
+                >
+                  <ion-icon [style.font-size]="'1.5em'" [name]="data.exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+                  &nbsp;
+                  {{ 'COMMON.YES' | translate }}
+                </ion-col>
+                <ion-col
+                  class="border-right fixed-width vertical-centred-content border-top"
+                  [style.border-width]="'2px'"
+                  [style.--col-width]="this.pageDimensions.colWidthTitleExhaustiveInventoryYesNo"
+                >
+                  <ion-icon [style.font-size]="'1.5em'" [name]="!data.exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+                  &nbsp;
+                  {{ 'COMMON.NO' | translate }}
+                </ion-col>
+                <ion-col
+                  class="fixed-width border-right no-border-top border-bottom"
+                  [style.border-width]="'2px'"
+                  [style.--col-width]="pageDimensions.colWidthMeasure * 2 - 1"
+                ></ion-col>
+                <ion-col class="fixed-width vertical-centred-content horizontal-centred-content border-top" [style.border-width]="'2px'">
+                  {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.SAMPLE' | translate }}
+                </ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col>
+                  <mat-table
+                    #batchTable
+                    class="no-border-top"
+                    [dataSource]="page"
+                    [style.border-bottom-width]="'2px'"
+                    [style.--row-height]="pageDimensions.rowHeight"
+                    [style.--row-title-height]="pageDimensions.rowTitleHeight"
+                  >
+                    <!-- common column -->
+                    <ng-container matColumnDef="exhaustiveInventory">
+                      <mat-header-cell
+                        *matHeaderCellDef
+                        class="centred font-compact"
+                        [style.--col-width]="pageDimensions.colWidthExhaustiveInventory"
+                      >
+                        <mat-icon class="mat-icon mat-icon-sm">arrow_downward</mat-icon>
+                      </mat-header-cell>
+                      <mat-cell
+                        *matCellDef="let batch"
+                        class="padding-medium font-compact"
+                        [style.--col-width]="pageDimensions.colWidthExhaustiveInventory"
+                      >
+                        <ion-icon [style.font-size]="'1.1em'" [name]="batch.exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
+                      </mat-cell>
+                    </ng-container>
+                    <ng-container matColumnDef="faction">
+                      <mat-header-cell *matHeaderCellDef class="centred font-compact border-top">
+                        {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.FRACTION' | translateContext: i18nContext.suffix }}
+                      </mat-header-cell>
+                      <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
+                        <span [class.computed]="!(batchWithCalculatedWeightById | mapGet: batch.id)">
+                          {{ batch.samplingRatioText }}
+                        </span>
+                      </mat-cell>
+                    </ng-container>
+                    <!-- root column -->
+                    <ng-container matColumnDef="rootSortingCriterion1">
+                      <mat-cell
+                        *matCellDef="let batch"
+                        class="padding-medium font-compact"
+                        [style.--col-width]="pageDimensions.colWidthTaxonGroup + pageDimensions.colWidthTaxonName"
+                      >
+                        <b>
+                          {{ batch.sortingValuesText }}
+                        </b>
+                      </mat-cell>
+                    </ng-container>
+                    <ng-container matColumnDef="rootSortingCriterion2">
+                      <mat-cell
+                        *matCellDef="let batch"
+                        class="padding-medium font-compact"
+                        [style.--col-width]="pageDimensions.colWidthSortCriterions"
+                      >
+                        @if (batch.qualityFlagId | qualityFlagInvalid) {
+                          <ion-icon [name]="batch.qualityFlagId | qualityFlagToIcon" color="danger"></ion-icon>
+                        }
+                        <b>
+                          {{ batch.sortingValuesText }}
+                        </b>
+                      </mat-cell>
+                    </ng-container>
+                    <ng-container matColumnDef="rootTotalWeight">
+                      <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
+                        <!--@if (!batch | asBoolean: hasElevationRatioInParent) {-->
+                        <span
+                          [class.computed]="batch | asBoolean: isComputedElevateWeight"
+                          [class.estimated]="batch | asBoolean: isEstimatedElevateWeight"
+                        >
+                          {{ batch.elevateContextWeight | number: '1.3-3' }}
+                        </span>
+                        <!--}-->
+                      </mat-cell>
+                    </ng-container>
+                    <ng-container matColumnDef="rootTotalIndiv">
+                      <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end"></mat-cell>
+                    </ng-container>
+                    <ng-container matColumnDef="rootWeight">
+                      <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
+                        @if (!batch | asBoolean: hasElevationRatioInParent) {
+                          <span
+                            [class.computed]="batch | asBoolean: isComputedSampleWeight"
+                            [class.estimated]="batch | asBoolean: isEstimatedSampleWeight"
+                          >
+                            {{ ((batch.weight | isNotNilOrNaN) ? batch.weight : batch.indirectContextWeight) | number: '1.3-3' }}
+                          </span>
+                        }
+                      </mat-cell>
+                    </ng-container>
+                    <ng-container matColumnDef="rootNbIndiv">
+                      <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end"></mat-cell>
+                    </ng-container>
+                    <!-- landing batch columns -->
+                    <ng-container matColumnDef="taxonGroup">
+                      <mat-header-cell
+                        *matHeaderCellDef
+                        class="centred font-compact border-top"
+                        [style.--col-width]="pageDimensions.colWidthTaxonGroup"
+                      >
+                        {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.TAXON_GROUP' | translateContext: i18nContext.suffix }}
+                      </mat-header-cell>
+                      <mat-cell *matCellDef="let batch" class="padding-medium font-compact" [style.--col-width]="pageDimensions.colWidthTaxonGroup">
+                        {{ batch.taxonGroup | referentialToString: displayAttributes.taxonGroup }}
+                      </mat-cell>
+                    </ng-container>
+                    <ng-container matColumnDef="taxonName">
+                      <mat-header-cell
+                        *matHeaderCellDef
+                        class="centred font-compact border-top"
+                        [style.--col-width]="pageDimensions.colWidthTaxonName"
+                      >
+                        {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.TAXON_NAME' | translateContext: i18nContext.suffix }}
+                      </mat-header-cell>
+                      <mat-cell *matCellDef="let batch" class="padding-medium font-compact" [style.--col-width]="pageDimensions.colWidthTaxonName">
+                        {{ batch.taxonName | referentialToString: displayAttributes.taxonGroup }}
+                      </mat-cell>
+                    </ng-container>
+                    <ng-container matColumnDef="sortCriterions">
+                      <mat-header-cell
+                        *matHeaderCellDef
+                        class="centred font-compact border-top"
+                        [style.--col-width]="pageDimensions.colWidthSortCriterions"
+                      >
+                        {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.SORT_CRITERIONS' | translateContext: i18nContext.suffix }}
+                      </mat-header-cell>
+                      <mat-cell *matCellDef="let batch" class="font-compact" [style.--col-width]="pageDimensions.colWidthSortCriterions">
+                        <div class="tree-indent" [innerHtml]="batch.treeIndent"></div>
+                        <div class="denormalized-batch-sorting-values-text">
+                          @if (batch.qualityFlagId | qualityFlagInvalid) {
+                            <ion-icon [name]="batch.qualityFlagId | qualityFlagToIcon" color="danger"></ion-icon>
+                          }
+                          @if (batch.taxonName | isNotNil) {
+                            {{ batch.taxonName | referentialToString: displayAttributes.taxonGroup }}
+                            <br />
+                          }
+                          <b>
+                            {{ batch.sortingValuesText || (batch.taxonGroup | referentialToString: displayAttributes.taxonGroup) }}
+                          </b>
+                        </div>
+                      </mat-cell>
+                    </ng-container>
+                    <ng-container matColumnDef="totalWeight">
+                      <mat-header-cell *matHeaderCellDef class="centred font-compact border-top">
+                        {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.TOTAL_WEIGHT' | translateContext: i18nContext.suffix }}
+                      </mat-header-cell>
+                      <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
+                        @if (!(batch | denormalizeBatchIsIndividual)) {
+                          <span
+                            [class.computed]="batch | asBoolean: this.isComputedElevateWeight"
+                            [class.estimated]="batch | asBoolean: this.isEstimatedElevateWeight"
+                          >
+                            {{ batch.taxonElevateContextWeight | number: '1.3-3' }}
+                          </span>
+                        }
+                      </mat-cell>
+                    </ng-container>
+                    <ng-container matColumnDef="totalIndiv">
+                      <mat-header-cell *matHeaderCellDef class="centred font-compact border-top">
+                        {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.TOTAL_INDIV' | translateContext: i18nContext.suffix }}
+                      </mat-header-cell>
+                      <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
+                        @if (!(batch | denormalizeBatchIsIndividual)) {
+                          <span [class.computed]="batch | asBoolean: isComputedElevateIndividualCount">
+                            {{ batch.elevateIndividualCount }}
+                          </span>
+                        }
+                      </mat-cell>
+                    </ng-container>
+                    <ng-container matColumnDef="weight">
+                      <mat-header-cell *matHeaderCellDef class="centred font-compact border-top">
+                        {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.WEIGHT' | translateContext: i18nContext.suffix }}
+                      </mat-header-cell>
+                      <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
+                        <span
+                          [class.computed]="batch | asBoolean: isComputedElevateWeight"
+                          [class.estimated]="batch | asBoolean: isEstimatedSampleWeight"
+                        >
+                          {{ ((batch.weight | isNotNilOrNaN) ? batch.weight : batch.indirectContextWeight) | number: '1.3-3' }}
+                        </span>
+                      </mat-cell>
+                    </ng-container>
+                    <ng-container matColumnDef="nbIndiv">
+                      <mat-header-cell *matHeaderCellDef class="centred font-compact border-top">
+                        {{ 'SALE.BATCH.REPORT.TABLE.SELL_PART.NB_INDIV' | translateContext: i18nContext.suffix }}
+                      </mat-header-cell>
+                      <mat-cell *matCellDef="let batch" class="padding-medium font-compact ion-align-items-end">
+                        <span [class.computed]="batch | asBoolean: isComputedIndividualCount">
+                          {{ (batch.individualCount | isNotNilOrNaN) ? batch.individualCount : batch.indirectIndividualCount }}
+                        </span>
+                      </mat-cell>
+                    </ng-container>
+
+                    <mat-header-row *matHeaderRowDef="landingDisplayedColumns"></mat-header-row>
+                    <mat-row *matRowDef="let batch; columns: rootLandingDisplayedColumns; when: isRootBatch"></mat-row>
+                    <mat-row *matRowDef="let batch; columns: landingDisplayedColumns"></mat-row>
+                  </mat-table>
+                </ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col size="12">
+                  <p [innerHtml]="'SALE.BATCH.REPORT.TABLE.SELL_PART.LEGEND' | translate"></p>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+
+            <page-footer-from-report-chunk [footerText]="footerText"></page-footer-from-report-chunk>
           </section>
         }
       }
     }
   </app-reveal>
 }
-
-<ng-template #landingSection let-index="index" let-opId="opId" let-batchesChunk="batchesChunk">
-  <page-header-form-report-chunk
-    [i18nContext]="i18nContext"
-    [title]="'TRIP.REPORT.FORM.BATCH.TITLE_LANDING'"
-    [pageNumber]="index + 1"
-    [items]="stats.headerItems"
-    [logoRightUrl]="logoHeadRightUrl"
-    [logoLeftUrl]="logoHeadLeftUrl"
-  ></page-header-form-report-chunk>
-  <ion-grid class="report-section ion-no-padding">
-    <ion-row class="section-title ion-margin-bottom">
-      <ion-col size="auto">
-        <h3>{{ 'TRIP.REPORT.FORM.OP_NUM' | translate }}</h3>
-      </ion-col>
-      <ion-col class="title-value ion-text-center font-large" size="auto">
-        @if (!isBlankForm) {
-          {{ stats.operationRankOrderByOperationIds | mapGet: opId }}
-        }
-      </ion-col>
-    </ion-row>
-  </ion-grid>
-  <ng-component *ngTemplateOutlet="batchesTable; context: { batches: batchesChunk, opId: opId }"></ng-component>
-  <page-footer-from-report-chunk [footerText]="footerText" [helpText]="footerHelp"></page-footer-from-report-chunk>
-</ng-template>
-
-<ng-template
-  #discardSection
-  let-index="index"
-  let-opId="opId"
-  let-isFirstBatchesChunk="isFirstBatchesChunk"
-  let-batches="batches"
-  let-batchesChunk="batchesChunk"
-  let-isLastBatchesChunk="isLastBatchesChunk"
->
-  <page-header-form-report-chunk
-    [i18nContext]="i18nContext"
-    [title]="'TRIP.REPORT.FORM.BATCH.TITLE_DISCARD'"
-    [pageNumber]="index + 1"
-    [items]="stats.headerItems"
-    [logoRightUrl]="logoHeadRightUrl"
-    [logoLeftUrl]="logoHeadLeftUrl"
-  ></page-header-form-report-chunk>
-  <ion-grid class="report-section ion-no-padding">
-    <ion-row class="section-title ion-margin-bottom">
-      <ion-col size="auto">
-        <h3>{{ 'TRIP.REPORT.FORM.OP_NUM' | translate }}</h3>
-      </ion-col>
-      <ion-col class="title-value ion-text-center font-large" size="auto">
-        {{ stats.operationRankOrderByOperationIds | mapGet: opId }}
-      </ion-col>
-    </ion-row>
-    @if (isFirstBatchesChunk) {
-      <ion-row class="form-field">
-        <ion-col class="form-label" size="6">
-          {{ 'TRIP.REPORT.FORM.BATCH.PNR_TOTAL_WEIGHT' | translate }}
-        </ion-col>
-        <ion-col class="form-value no-border-bottom" size="2" [class.computed]="batches[0].elevateWeight | isNil">
-          {{ batches[0].elevateWeight || batches[0].indirectWeight }}
-        </ion-col>
-      </ion-row>
-      <ion-row class="form-field">
-        <ion-col class="form-label" size="6">
-          {{ 'TRIP.REPORT.FORM.BATCH.PNR_SAMPLING_WEIGHT' | translate }}
-        </ion-col>
-        <ion-col class="form-value no-border-bottom" size="2" [class.computed]="batches[0].elevateContextWeight | isNil">
-          {{ batches[0].elevateContextWeight || batches[0].indirectContextWeight }}
-        </ion-col>
-      </ion-row>
-      <ion-row class="form-field">
-        <ion-col class="form-label" size="6">
-          {{ 'TRIP.REPORT.FORM.BATCH.FRACTION_FIELD' | translate }}
-        </ion-col>
-        <ion-col class="form-value no-border-bottom" size="2"></ion-col>
-      </ion-row>
-    }
-  </ion-grid>
-  <ng-component
-    *ngTemplateOutlet="batchesTable; context: { batches: batchesChunk, opId: opId, isLastBatchesChunk: isLastBatchesChunk }"
-  ></ng-component>
-  <page-footer-from-report-chunk [footerText]="footerText" [helpText]="footerHelp"></page-footer-from-report-chunk>
-</ng-template>
-
-<!-- "type" can be 'landing' or 'discard' -->
-<ng-template #batchesTable let-batches="batches" let-opId="opId" let-isLastBatchesChunk="isLastBatchesChunk">
-  <table [style.--row-height]="'30px'">
-    <thead>
-      <tr class="group-head">
-        <th colspan="4" class="no-border">
-          <ion-grid class="ion-no-padding ion-no-margin">
-            <ion-row>
-              <ion-col size="6" class="vertical-centred-content">
-                {{ 'TRIP.REPORT.FORM.BATCH.EXCLUSIVE_SCIENTIFIC_SPECIES' | translate }}
-              </ion-col>
-              <ion-col size="3" class="vertical-centred-content">
-                <ion-icon [style.font-size]="'1.5em'" [name]="batches[0].exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
-                &nbsp;
-                {{ 'COMMON.YES' | translate }}
-              </ion-col>
-              <ion-col size="3" class="vertical-centred-content">
-                <ion-icon [style.font-size]="'1.5em'" [name]="!batches[0].exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
-                &nbsp;
-                {{ 'COMMON.NO' | translate }}
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-        </th>
-        <th colspan="2" class="col-small"></th>
-        <th colspan="3" class="col-small ion-text-center">
-          {{ 'TRIP.REPORT.FORM.BATCH.SUB_SAMPLING' | translate }}
-        </th>
-      </tr>
-      <tr>
-        <th class="col-tiny no-border ion-text-center no-margin no-padding">
-          <mat-icon class="mat-icon mat-icon-sm">arrow_downward</mat-icon>
-        </th>
-        <th class="col-medium ion-text-center">{{ 'TRIP.REPORT.FORM.BATCH.TAXON_GROUPS' | translate }}</th>
-        <th class="col-medium ion-text-center">{{ 'TRIP.REPORT.FORM.BATCH.TAXON_NAMES' | translate }}</th>
-        <th class="col-extra-large ion-text-center">{{ 'TRIP.REPORT.FORM.BATCH.SORT_CRITERIAS' | translate }}</th>
-        <th class="col-small ion-text-center">{{ 'TRIP.REPORT.FORM.BATCH.TOTAL_WEIGHT' | translate }}</th>
-        <th class="col-small ion-text-center">{{ 'TRIP.REPORT.FORM.BATCH.TOTAL_INDIV' | translate }}</th>
-        <th class="col-small ion-text-center">{{ 'TRIP.REPORT.FORM.BATCH.FRACTION' | translate }}</th>
-        <th class="col-small ion-text-center">{{ 'TRIP.REPORT.FORM.BATCH.WEIGHT' | translate }}</th>
-        <th class="col-small ion-text-center">{{ 'TRIP.REPORT.FORM.BATCH.NB_INDIV' | translate }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (batch of batches; track batch.id) {
-        <tr>
-          <td class="col-tiny no-margin no-padding ion-text-center font-large">
-            <ion-icon [style.font-size]="'1.1em'" [name]="batch.exhaustiveInventory ? 'checkbox-outline' : 'square-outline'"></ion-icon>
-          </td>
-          <td class="col-medium">{{ batch.taxonGroup | referentialToString }}</td>
-          <td class="col-medium">{{ batch.taxonName | referentialToString }}</td>
-          <td class="col-extra-large no-margin no-padding">
-            <div class="denormalized-batch-sorting-values">
-              <div class="denormalized-batch-tree-indent" [innerHtml]="batch.treeIndent"></div>
-              <div class="denormalized-batch-sorting-values-text">
-                @if (batch.qualityFlagId | qualityFlagInvalid) {
-                  <ion-icon [name]="batch.qualityFlagId | qualityFlagToIcon" color="danger"></ion-icon>
-                }
-                <b>
-                  @if (batch.individualCount === 1) {
-                    {{ batch.sortingValuesText }}
-                  } @else {
-                    @for (pmfmId of batch.measurementValues | mapKeys; track pmfmId; let last = $last) {
-                      {{
-                        batch.measurementValues
-                          | mapGet: pmfmId
-                          | pmfmValue
-                            : {
-                                pmfm: stats.pmfmsByIds | mapGet: pmfmId,
-                                propertyNames: ['label', 'name'],
-                              }
-                      }}
-                      @if (!last) {
-                        ,&nbsp;
-                      }
-                    }
-                  }
-                </b>
-              </div>
-            </div>
-          </td>
-          <td class="col-small ion-text-right">
-            @if (!(batch | denormalizeBatchIsIndividual)) {
-              {{ batch.elevateWeight | number: '1.2-2' }}
-            }
-          </td>
-          <td class="col-small ion-text-right">
-            @if (!(batch | denormalizeBatchIsIndividual)) {
-              {{ batch.elevateIndividualCount }}
-            }
-          </td>
-          <td class="col-small ion-text-right">{{ batch.samplingRatioText || (batch.samplingRatio | number: '1.2-2') }}</td>
-          <td class="col-small ion-text-right" [class.computed]="batch.weight | isNil">
-            {{ batch.weight || batch.indirectWeight | number: '1.2-2' }}
-          </td>
-          <td class="col-small ion-text-right" [class.computed]="batch.individualCount | isNil">
-            {{ batch.individualCount || batch.indirectIndividualCount }}
-          </td>
-        </tr>
-      }
-    </tbody>
-    <tfoot>
-      @if (isLastBatchesChunk) {
-        <tr>
-          <td colspan="4" class="ion-text-end">
-            <b>{{ 'TRIP.REPORT.FORM.BATCH.PNR_TOTAL_WEIGHT' | translate }}</b>
-          </td>
-          <td class="col-small total"></td>
-          <td colspan="4" class="col-small"></td>
-        </tr>
-      }
-    </tfoot>
-    <caption [innerHTML]="'TRIP.REPORT.FORM.BATCH.TABLE_LEGEND' | translate"></caption>
-  </table>
-</ng-template>

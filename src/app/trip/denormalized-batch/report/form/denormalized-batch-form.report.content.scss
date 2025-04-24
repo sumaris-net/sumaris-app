@@ -1,3 +1,61 @@
-caption {
-  caption-side: bottom;
+.slide {
+  section {
+    table.blank-table {
+      border-width: 2px;
+      th {
+        max-width: calc(var(--col-width) * 0.66 * 1px) !important;
+        min-width: calc(var(--col-width) * 0.66 * 1px) !important;
+        width: calc(var(--col-width) * 0.66 * 1px) !important;
+      }
+      td {
+        max-width: calc((var(--col-width) * 1.165) * 1px) !important;
+        min-width: calc((var(--col-width) * 1.165) * 1px) !important;
+        width: calc((var(--col-width) * 1.165) * 1px) !important;
+      }
+    }
+    .mat-mdc-table {
+      .mat-mdc-cell {
+        &.mat-column-sortCriterions {
+          display: flex;
+          flex-direction: row;
+          justify-content: flex-start;
+          align-items: center;
+        }
+        .tree-indent {
+          height: 100%;
+          padding-left: 0 !important;
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          justify-content: start;
+          div.tree-element {
+            margin-right: 5px;
+            height: 100%;
+            width: 10px;
+            &.leaf {
+              border-left: dotted 1px;
+              &:before {
+                content: '';
+                display: block;
+                height: 45%;
+                border-bottom: 1px dotted;
+              }
+            }
+            &.last-leaf {
+              &:before {
+                content: '';
+                display: block;
+                height: 45%;
+                border-left: dotted 1px;
+                border-bottom: 1px dotted;
+              }
+            }
+            &.trunc {
+              border-left: dotted 1px;
+            }
+          }
+        }
+      }
+    }
+  }
 }

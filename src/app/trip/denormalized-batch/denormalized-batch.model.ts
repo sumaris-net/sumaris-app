@@ -39,6 +39,8 @@ export class DenormalizedBatch<
   individualCount: number;
   indirectIndividualCount: number;
   elevateIndividualCount: number;
+  taxonElevateIndividualCount: number;
+  taxonElevateContextWeight: number;
   exhaustiveInventory: boolean;
   treeLevel: number;
   treeIndent: string;
@@ -48,12 +50,17 @@ export class DenormalizedBatch<
   measurementValues: MeasurementModelValues;
   samplingRatioText: string;
   samplingRatio: number;
+  saleId: number;
   parentId: ID;
   taxonGroup: ReferentialRef = null;
+  inheritedTaxonGroup: ReferentialRef = null;
+  calculatedTaxonGroup: ReferentialRef = null;
   taxonName: TaxonNameRef = null;
+  inheritedTaxonName: TaxonNameRef = null;
   operationId: number;
   children: T[];
   parent: T;
+  weightMethodId: number;
 
   static fromObject: (source: any, opts?: DenormalizedBatchFromObjectOptions) => DenormalizedBatch;
 
@@ -74,6 +81,8 @@ export class DenormalizedBatch<
     this.individualCount = source.individualCount;
     this.indirectIndividualCount = source.indirectIndividualCount;
     this.elevateIndividualCount = source.elevateIndividualCount;
+    this.taxonElevateIndividualCount = source.taxonElevateIndividualCount;
+    this.taxonElevateContextWeight = source.taxonElevateContextWeight;
     this.exhaustiveInventory = source.exhaustiveInventory;
     this.treeLevel = source.treeLevel;
     this.treeIndent = source.treeIndent;
@@ -83,10 +92,15 @@ export class DenormalizedBatch<
     this.sortingValuesText = source.sortingValuesText;
     this.samplingRatioText = source.samplingRatioText;
     this.samplingRatio = source.samplingRatio;
+    this.saleId = source.saleId;
     this.parentId = source.parentId;
     this.taxonGroup = ReferentialRef.fromObject(source.taxonGroup);
+    this.inheritedTaxonGroup = ReferentialRef.fromObject(source.inheritedTaxonGroup);
+    this.calculatedTaxonGroup = ReferentialRef.fromObject(source.calculatedTaxonGroup);
     this.taxonName = TaxonNameRef.fromObject(source.taxonName);
+    this.inheritedTaxonName = TaxonNameRef.fromObject(source.inheritedTaxonName);
     this.operationId = source.operationId;
+    this.weightMethodId = source.weightMethodId;
     // this.sortingValues = isNotEmptyArray(source.sortingValues)
     //   ? source.sortingValues.map(DenormalizedBatchSortingValue.fromObject)
     //   : undefined
@@ -107,6 +121,8 @@ export class DenormalizedBatch<
       individualCount: this.individualCount,
       indirectIndividualCount: this.indirectIndividualCount,
       elevateIndividualCount: this.elevateIndividualCount,
+      taxonElevateIndividualCount: this.taxonElevateIndividualCount,
+      taxonElevateContextWeight: this.taxonElevateContextWeight,
       exhaustiveInventory: this.exhaustiveInventory,
       treeLevel: this.treeLevel,
       treeIndent: this.treeIndent,
@@ -118,10 +134,14 @@ export class DenormalizedBatch<
       samplingRatio: this.samplingRatio,
       parentId: this.parentId,
       taxonGroup: this.taxonGroup?.asObject(opts),
+      inheritedTaxonGroup: this.inheritedTaxonGroup?.asObject(opts),
+      calculatedTaxonGroup: this.calculatedTaxonGroup?.asObject(opts),
       taxonName: this.taxonName?.asObject(opts),
+      inheritedTaxonName: this.inheritedTaxonName?.asObject(opts),
       operationId: this.operationId,
       children: null,
       parent: null,
+      weightMethodId: this.weightMethodId,
     };
   }
 }

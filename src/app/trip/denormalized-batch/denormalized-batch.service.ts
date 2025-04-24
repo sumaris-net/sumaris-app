@@ -21,6 +21,8 @@ export const DenormalizedBatchFragments = {
       individualCount
       indirectIndividualCount
       elevateIndividualCount
+      taxonElevateIndividualCount
+      taxonElevateContextWeight
       exhaustiveInventory
       treeLevel
       treeIndent
@@ -30,15 +32,26 @@ export const DenormalizedBatchFragments = {
       measurementValues
       samplingRatioText
       samplingRatio
+      saleId
       parentId
       taxonGroup {
+        ...LightReferentialFragment
+      }
+      inheritedTaxonGroup {
+        ...LightReferentialFragment
+      }
+      calculatedTaxonGroup {
         ...LightReferentialFragment
       }
       taxonName {
         ...TaxonNameFragment
       }
+      inheritedTaxonName {
+        ...TaxonNameFragment
+      }
       qualityFlagId
       operationId
+      weightMethodId
       __typename
     }
     ${ReferentialFragments.lightReferential}

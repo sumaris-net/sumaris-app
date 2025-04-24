@@ -2,11 +2,12 @@ import { Component, inject } from '@angular/core';
 import { AppCoreModule } from '@app/core/core.module';
 import { DataStrategyResolution, DataStrategyResolutions } from '@app/data/form/data-editor.utils';
 import { MeasurementFormValues, MeasurementValuesUtils } from '@app/data/measurement/measurement.model';
-import { BASE_REPORT, BaseReportStats, IComputeStatsOpts, IReportI18nContext } from '@app/data/report/base-report.class';
+import { BASE_REPORT, BaseReportStats, FILL_BLANK, IComputeStatsOpts, IReportI18nContext } from '@app/data/report/base-report.class';
 import { FormReportPageDimensions } from '@app/data/report/common-report.class';
 import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { IDenormalizedPmfm, IPmfm } from '@app/referential/services/model/pmfm.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
@@ -16,7 +17,10 @@ import { arrayPluck } from '@app/shared/functions';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { Batch } from '@app/trip/batch/common/batch.model';
-import { BatchFormReportComponent } from '@app/trip/batch/common/report/batch-form.report.content';
+import { DenormalizedBatchFilter } from '@app/trip/denormalized-batch/denormalized-batch.filter';
+import { DenormalizedBatch } from '@app/trip/denormalized-batch/denormalized-batch.model';
+import { DenormalizedBatchService } from '@app/trip/denormalized-batch/denormalized-batch.service';
+import { DenormalizedBatchUtils } from '@app/trip/denormalized-batch/denormalized-batch.utils';
 import { Landing } from '@app/trip/landing/landing.model';
 import { LandingService } from '@app/trip/landing/landing.service';
 import { ObservedLocation } from '@app/trip/observedlocation/observed-location.model';
@@ -24,13 +28,13 @@ import { SaleFormReportContent } from '@app/trip/sale/report/sale-form.report.co
 import { Sale } from '@app/trip/sale/sale.model';
 import { SaleService } from '@app/trip/sale/sale.service';
 import { environment } from '@environments/environment';
-import { EntityAsObjectOptions, ReferentialRef, isEmptyArray, isNil, isNotNil, splitById } from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, ReferentialRef, isEmptyArray, isNil, isNotNil, splitById, splitByProperty } from '@sumaris-net/ngx-components';
 import { ReportChunkModule } from '../../../../data/report/form/report-chunk.module';
 import { ReportAppendix } from '../../../../data/report/report-appendix';
 import { LandingFormReportContent } from '../../../landing/report/form/landing-form.report.content';
 import { ObservedLocationService } from '../../observed-location.service';
 import { ObservedLocationFormReportContent } from './observed-location-form.report.content';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { DenormalizedBatchFormReportContent } from '@app/trip/denormalized-batch/report/form/denormalized-batch-form.report.content';
 
 export class ObservedLocationFormReportStats extends BaseReportStats {
   options: {
@@ -73,32 +77,34 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
   landingTableDividerPmfm: IPmfm;
   observedSpecies: ReferentialRef[];
   observedSpeciesByIds: { [key: number]: ReferentialRef };
+  catchBatchBySaleId: { [saleId: number]: DenormalizedBatch };
 
   fromObject(source: any) {
     super.fromObject(source);
+    this.fieldsValues = source.fieldsValues;
     this.options = source.options;
     this.strategy = Strategy.fromObject(source.strategy);
-    this.fieldsValues = source.fieldsValues;
     this.pmfms = {
-      observedLocation: (source?.pmfms?.observedLocation || {}).map(DenormalizedPmfmStrategy.fromObject),
-      landing: (source?.pmfms?.landing || {}).map(DenormalizedPmfmStrategy.fromObject),
       catchBatch: (source?.pmfms?.catchBatch || {}).map(DenormalizedPmfmStrategy.fromObject),
+      landing: (source?.pmfms?.landing || {}).map(DenormalizedPmfmStrategy.fromObject),
+      observedLocation: (source?.pmfms?.observedLocation || {}).map(DenormalizedPmfmStrategy.fromObject),
+      sale: (source?.pmfms?.sale || {}).map(DenormalizedPmfmStrategy.fromObject),
       sortingBatch: (source?.pmfms?.sortingBatch || {}).map(DenormalizedPmfmStrategy.fromObject),
       sortingBatchIndividual: (source?.pmfms?.sortingBatchIndividual || {}).map(DenormalizedPmfmStrategy.fromObject),
-      sale: (source?.pmfms?.sale || {}).map(DenormalizedPmfmStrategy.fromObject),
     };
     this.pmfmsByIds = {
-      observedLocation: splitById(this.pmfms.observedLocation),
-      landing: splitById(this.pmfms.landing),
       catchBatch: splitById(this.pmfms.catchBatch),
+      landing: splitById(this.pmfms.landing),
+      observedLocation: splitById(this.pmfms.observedLocation),
       sortingBatch: splitById(this.pmfms.sortingBatch),
       sortingBatchIndividual: splitById(this.pmfms.sortingBatchIndividual),
     };
-    this.sales = source.sales.map(Sale.fromObject);
+    this.catchBatchBySaleId = splitByProperty(source.catchBatches.map(DenormalizedBatch.fromObject), 'saleId');
     this.landingTableDividerPmfm = this.pmfmsByIds.landing?.[this.options.landingTableDividerPmfmId];
+    this.mappings = source.mappings;
     this.observedSpecies = source.observedSpecies.map(ReferentialRef.fromObject);
     this.observedSpeciesByIds = splitById(this.observedSpecies);
-    this.mappings = source.mappings;
+    this.sales = source.sales.map(Sale.fromObject);
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -118,6 +124,7 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
       sales: this.sales.map((sale) => sale.asObject(opts)),
       observedSpecies: this.observedSpecies.map((source) => source.asObject(opts)),
       mappings: this.mappings,
+      catchBatches: Object.values(this.catchBatchBySaleId).map((catchBatch) => catchBatch.asObject(opts)),
     };
   }
 }
@@ -127,12 +134,12 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
   imports: [
     AppCoreModule,
     AppSharedReportModule,
-    ReportChunkModule,
-    ObservedLocationFormReportContent,
+    DenormalizedBatchFormReportContent,
     LandingFormReportContent,
-    SaleFormReportContent,
-    BatchFormReportComponent,
+    ObservedLocationFormReportContent,
     ReportAppendix,
+    ReportChunkModule,
+    SaleFormReportContent,
   ],
   selector: 'observed-location-form-report',
   templateUrl: './observed-location-form.report.html',
@@ -141,10 +148,12 @@ export class ObservedLocationFormReportStats extends BaseReportStats {
 })
 export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLocation, number, ObservedLocationFormReportStats> {
   protected logPrefix = '[observed-location-form-report]';
+  protected fillBlank = FILL_BLANK;
 
   protected readonly observedLocationService = inject(ObservedLocationService);
   protected readonly landingService = inject(LandingService);
   protected readonly saleService = inject(SaleService);
+  protected readonly denormalizedBatchService = inject(DenormalizedBatchService);
   protected readonly strategyRefService: StrategyRefService = inject(StrategyRefService);
   protected readonly referentialRefService = inject(ReferentialRefService);
 
@@ -188,6 +197,8 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
           .map((_, index) => Landing.fromObject({ id: (index + 1) * -1 })),
       });
     } else {
+      // Ensure sale batch are denormalized
+      await this.observedLocationService.denormalizeObservedLocation(id);
       data = await this.observedLocationService.load(id, { ...opts, withLanding: false });
       let loadResult = await this.landingService.loadAllByObservedLocation({ observedLocationId: data.id }, { withSaleIds: true });
       data.landings = loadResult.data;
@@ -300,6 +311,11 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
       stats.sales = await this.getSalesByLandings(data.landings);
     }
 
+    // Load denormalized batches
+    if (!this.isBlankForm) {
+      stats.catchBatchBySaleId = await this.computeStatsCatchBatchBySaleId(data.landings);
+    }
+
     return stats;
   }
 
@@ -390,6 +406,29 @@ export class ObservedLocationFormReport extends AppDataEntityReport<ObservedLoca
       const observedSpecieId = MeasurementValuesUtils.getFormValue(landing.measurementValues, landingPmfms, PmfmIds.TAXON_GROUP_ID);
       if (isNil(observedSpecieId)) return result;
       landing.saleIds.forEach((saleId) => (result[saleId] = observedSpecieId));
+      return result;
+    }, {});
+  }
+
+  private async computeStatsCatchBatchBySaleId(landings: Landing[]): Promise<{ [saleId: number]: DenormalizedBatch }> {
+    const saleIds = arrayPluck(landings, 'saleIds', true).flat() as number[];
+    const denormalizedBatch = (
+      await this.denormalizedBatchService.loadAllDenormalizedBatchQueries(0, 1000, null, null, DenormalizedBatchFilter.fromObject({ saleIds }))
+    ).data.map((batch) => {
+      batch.isLanding = true;
+      batch.isDiscard = false;
+      return batch;
+    });
+    // Group by sale id
+    const batchesBySale = denormalizedBatch.reduce((result, batch) => {
+      if (!batch.saleId) return result;
+      if (isNil(result[batch.saleId])) result[batch.saleId] = [];
+      result[batch.saleId].push(batch);
+      return result;
+    }, {});
+    // Return the catch batch
+    return Object.entries(batchesBySale).reduce((result, entry) => {
+      result[entry[0]] = DenormalizedBatchUtils.arrayToTree(entry[1] as DenormalizedBatch[])[0];
       return result;
     }, {});
   }

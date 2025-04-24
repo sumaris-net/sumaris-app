@@ -41,17 +41,18 @@ export class DenormalizedBatchUtils {
   }
 
   static filterTreeComponents(parent: DenormalizedBatch, filter: FilterFn<DenormalizedBatch>) {
-    // Skip flirted children
-    let reasignChildren = false;
+    // Skip filtered children
+    let reassignChildren = false;
     if (isNotNil(parent?.children) && parent.children.length === 1 && !filter(parent.children[0])) {
-      // Reafect children and parents to the not skiped parent
       // TODO get fractions
-      parent.children = parent.children[0].children;
-      reasignChildren = true;
+      const samplingBatch = parent.children[0];
+      parent.children = samplingBatch.children;
+      parent.samplingRatioText = parent.samplingRatioText || samplingBatch.samplingRatioText;
+      reassignChildren = true;
     }
     // Do the same on children
     parent?.children.forEach((child) => {
-      if (reasignChildren) child.parent = parent;
+      if (reassignChildren) child.parent = parent;
       this.filterTreeComponents(child, filter);
     });
   }
@@ -63,13 +64,13 @@ export class DenormalizedBatchUtils {
     const initializeTree = indentComponents.length === 0;
     if (initializeTree) {
       // Indents always start with a blank
-      parent.treeIndent = opts?.html ? '<div class="blank"></div>' : '  ';
+      parent.treeIndent = opts?.html ? '<div class="tree-element blank"></div>' : '  ';
       indentComponents.push(parent.treeIndent);
     } else {
       // Set the leaf depending on if the element is the last of the slicing or not
       parent.treeIndent = indentComponents
         .join('')
-        .concat(opts?.html ? `<div class="${isLast ? 'last-leaf' : 'leaf'}"></div>` : isLast ? '|_' : '|-');
+        .concat(opts?.html ? `<div class="tree-element ${isLast ? 'last-leaf' : 'leaf'}"></div>` : isLast ? '|_' : '|-');
     }
 
     // If we are on the end of the tree
@@ -83,7 +84,9 @@ export class DenormalizedBatchUtils {
 
     if (!initializeTree) {
       // Append new indentComponents depending on the element is the last of the sibling
-      indentComponents.push(opts?.html ? (isLast ? '<div class="blank"></div>' : '<div class="trunc"></div>') : isLast ? '  ' : '| ');
+      indentComponents.push(
+        opts?.html ? (isLast ? '<div class="tree-element blank"></div>' : '<div class="tree-element trunc"></div>') : isLast ? '  ' : '| '
+      );
     }
     children.forEach((child) => {
       const isLast = child.equals(lastChild);
