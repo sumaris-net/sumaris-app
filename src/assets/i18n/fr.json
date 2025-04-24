@@ -1289,6 +1289,7 @@
         "CHILD_GEAR": "Sous-engin",
         "SORTING_START_DATE_TIME": "Début de tri",
         "SORTING_END_DATE_TIME": "Fin de tri",
+        "SEX": "Sexe",
         "TRAWL_SELECTIVITY": {
           "BATCH_MEASURED_WEIGHT": "Poids total (kg)",
           "BATCH_ESTIMATED_WEIGHT": "Poids total (kg)",

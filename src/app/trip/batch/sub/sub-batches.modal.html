@@ -409,7 +409,7 @@
           <!-- Pmfms columns -->
           <ng-container *ngFor="let pmfm of pmfms$ | async; trackBy: trackPmfmFn; index as index" [matColumnDef]="pmfm?.id || index | toString">
             <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-mdc-cell-date-time]="pmfm | isDatePmfm" class="mat-column-pmfm">
-              <ion-label [innerHTML]="pmfm | pmfmName: { html: true }"></ion-label>
+              <ion-label [innerHTML]="pmfm | pmfmName: { html: true, i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix }"></ion-label>
             </th>
             @let computed = pmfm | isComputedPmfm;
             <td
@@ -636,6 +636,8 @@
           allowIndividualCountOnly: {{ allowIndividualCountOnly }}
           <br />
           showIndividualCountOnly: {{ showIndividualCountOnly }}
+          <br />
+          i18nPmfmPrefix: {{ i18nPmfmPrefix }}
           <br />
           i18nSuffix: {{ i18nSuffix }}
           <br />

@@ -1293,6 +1293,7 @@
         "CHILD_GEAR": "Sub-gear",
         "SORTING_START_DATE_TIME": "Start of sorting",
         "SORTING_END_DATE_TIME": "End of sorting",
+        "SEX": "Sex",
         "TRAWL_SELECTIVITY": {
           "BATCH_MEASURED_WEIGHT": "Total weight (kg)",
           "BATCH_ESTIMATED_WEIGHT": "Total weight (kg)",

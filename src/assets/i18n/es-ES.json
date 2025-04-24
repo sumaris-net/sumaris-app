@@ -1272,6 +1272,7 @@
         "CHILD_GEAR": "Subequipo",
         "SORTING_START_DATE_TIME": "Inicio del triaje",
         "SORTING_END_DATE_TIME": "Fin del triaje",
+        "SEX": "Sexo",
         "TRAWL_SELECTIVITY": {
           "BATCH_MEASURED_WEIGHT": "Peso total (kg)",
           "BATCH_ESTIMATED_WEIGHT": "Peso total (kg)",

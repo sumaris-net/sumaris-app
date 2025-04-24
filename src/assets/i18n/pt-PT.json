@@ -1257,6 +1257,7 @@
         "CHILD_GEAR": "Subarte de pesca",
         "SORTING_START_DATE_TIME": "Início da triagem",
         "SORTING_END_DATE_TIME": "Fim da triagem",
+        "SEX": "Sexo",
         "TRAWL_SELECTIVITY": {
           "BATCH_MEASURED_WEIGHT": "Peso total (kg)",
           "BATCH_ESTIMATED_WEIGHT": "Peso total (kg)",
