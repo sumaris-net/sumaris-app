@@ -169,13 +169,15 @@
     <ion-label translate>COMMON.BTN_SORT_BY_DOTS</ion-label>
   </button>
 
-  <mat-divider></mat-divider>
+  @if (!mobile) {
+    <mat-divider></mat-divider>
 
-  <!-- Compact mode -->
-  <button mat-menu-item (click)="toggleCompactMode()">
-    <mat-icon>{{ compact ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
-    <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
-  </button>
+    <!-- Compact mode -->
+    <button mat-menu-item (click)="toggleCompactMode()">
+      <mat-icon>{{ compact ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+      <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
+    </button>
+  }
 </mat-menu>
 
 <!-- display mode menu-->
@@ -519,6 +521,7 @@
       [matSortActive]="defaultSortBy"
       [matSortDirection]="defaultSortDirection"
       [trackBy]="trackByFn"
+      [class.compact]="compact"
     >
       <ng-container matColumnDef="select">
         <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || !canEdit">
@@ -671,14 +674,7 @@
             <mat-icon>more_vert</mat-icon>
           </button>
         </th>
-        <td mat-cell *matCellDef="let row">
-          <!-- Delete row button -->
-          <!--<button mat-icon-button *ngIf="canDelete" class="visible-hover-row"
-                  [title]="'COMMON.BTN_DELETE'|translate"
-                  (click)="deleteRow($event, row)">
-            <mat-icon>delete</mat-icon>
-          </button>-->
-        </td>
+        <td mat-cell *matCellDef="let row"></td>
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: !cardView" [class.cdk-visually-hidden]="cardView"></tr>

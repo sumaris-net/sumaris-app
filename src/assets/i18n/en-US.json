@@ -1690,6 +1690,7 @@
       "TAB_NEW_VESSEL": "Create new vessel"
     },
     "TABLE": {
+      "ID": "Identifier",
       "PROGRAM": "Program",
       "DATE_TIME": "Date/Time",
       "START_DATE_TIME": "Start date",

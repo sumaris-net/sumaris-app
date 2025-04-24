@@ -137,6 +137,49 @@
   </mat-menu>
 }
 
+<!-- Table options menu -->
+<mat-menu #tableOptionsMenu="matMenu" xPosition="after">
+  <!-- display columns -->
+  <button mat-menu-item (click)="openSelectColumnsModal($event)" [disabled]="cardView">
+    <mat-icon>view_column</mat-icon>
+    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
+  </button>
+
+  <!-- sort by -->
+  <button mat-menu-item [matMenuTriggerFor]="sortByMenu">
+    <mat-icon>sort</mat-icon>
+    <ion-label translate>COMMON.BTN_SORT_BY_DOTS</ion-label>
+  </button>
+
+  @if (!mobile) {
+    <mat-divider></mat-divider>
+
+    <!-- Compact mode -->
+    <button mat-menu-item (click)="toggleCompactMode()">
+      <mat-icon>{{ compact ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+      <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
+    </button>
+  }
+</mat-menu>
+
+<!-- sort by menu -->
+<mat-menu #sortByMenu="matMenu">
+  <!-- lazy rendering -->
+  <ng-template matMenuContent>
+    @for (col of getSortableColumns(); track col.id) {
+      @let selected = sortActive === col.id;
+      <button mat-menu-item (click)="selected ? sort.sort(col) : sort.sort({ id: col.id, start: defaultSortDirection, disableClear: false })">
+        @if (selected) {
+          <mat-icon style="color: var(--ion-color-primary)">{{ sortDirection === 'asc' ? 'arrow_drop_up' : 'arrow_drop_down' }}</mat-icon>
+        } @else {
+          <mat-icon></mat-icon>
+        }
+        <ion-label [color]="selected ? 'primary' : 'dark'">{{ getI18nColumnName(col.id) | translate }}</ion-label>
+      </button>
+    }
+  </ng-template>
+</mat-menu>
+
 <ion-content class="ion-no-padding ion-flex-direction-column" scroll-y="false">
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)" *ngIf="mobile">
     <ion-refresher-content></ion-refresher-content>
@@ -468,6 +511,7 @@
       [matSortActive]="defaultSortBy"
       [matSortDirection]="defaultSortDirection"
       [trackBy]="trackByFn"
+      [class.compact]="compact"
     >
       <ng-container matColumnDef="select" [sticky]="sticky && !mobile && (allowMultipleSelection || canEdit)">
         <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile || (!allowMultipleSelection && !canEdit)">
@@ -596,8 +640,8 @@
       <!-- Actions buttons column -->
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef>
-          <!-- display columns -->
-          <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS_DOTS' | translate" (click)="openSelectColumnsModal($event)">
+          <!-- table options menu -->
+          <button mat-icon-button [title]="'COMMON.BTN_OPTIONS' | translate" [matMenuTriggerFor]="tableOptionsMenu">
             <mat-icon>more_vert</mat-icon>
           </button>
         </th>

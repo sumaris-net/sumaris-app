@@ -1815,6 +1815,7 @@
       "TAB_NEW_VESSEL": "Nouveau navire"
     },
     "TABLE": {
+      "ID": "Identifiant",
       "PROGRAM": "Programme",
       "DATE_TIME": "Date/Heure",
       "START_DATE_TIME": "Date de début",

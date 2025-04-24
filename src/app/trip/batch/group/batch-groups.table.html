@@ -29,6 +29,7 @@
       [dataSource]="dataSource"
       [trackBy]="trackByFn"
       [style.--mat-column-actions-button-count]="allowSubBatches && !qvPmfm ? 2 : 1"
+      [class.compact]="compact"
     >
       <!-- Group header: start -->
       <ng-container matColumnDef="top-start" [sticky]="sticky">
@@ -199,9 +200,9 @@
           </th>
 
           <ng-container *matCellDef="let row">
+            @let computed = isComputed(col, row);
             <td
               mat-cell
-              *ngVar="isComputed(col, row) as computed"
               class="mat-mdc-cell-content-start-padding"
               [class]="col.classList"
               [class.mat-mdc-cell-computed]="computed"
@@ -329,6 +330,17 @@
               <mat-icon>view_column</mat-icon>
               <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
             </button>
+
+            <!-- Compact mode -->
+            @if (!mobile) {
+              <button mat-menu-item (click)="toggleCompactMode()">
+                <mat-icon *ngIf="compact; else disabledIcon">check_box</mat-icon>
+                <ng-template #disabledIcon>
+                  <mat-icon>check_box_outline_blank</mat-icon>
+                </ng-template>
+                <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
+              </button>
+            }
           </ng-template>
         </mat-menu>
       </app-actions-column>
@@ -477,13 +489,9 @@
           </th>
 
           <ng-container *matCellDef="let row">
-            <td
-              mat-cell
-              class="mat-mdc-cell-content-start-padding"
-              [class]="col.classList"
-              [class.mat-mdc-cell-computed]="isComputed(col, row)"
-              *ngVar="row.currentData | propertyGet: col.path as colValue"
-            >
+            @let computed = isComputed(col, row);
+            <td mat-cell class="mat-mdc-cell-content-start-padding" [class]="col.classList" [class.mat-mdc-cell-computed]="computed">
+              @let colValue = row.currentData | propertyGet: col.path;
               @if (colValue != null) {
                 @switch (col.type) {
                   @case ('pmfm') {
