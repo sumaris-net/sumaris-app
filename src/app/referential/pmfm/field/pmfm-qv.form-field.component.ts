@@ -27,6 +27,7 @@ import {
   focusInput,
   InputElement,
   IReferentialRef,
+  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -202,9 +203,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     // Hide label column, if not need - see issue #1016
     if (attributes.includes('label') && attributes.length > 1) {
       // Check if always equals to the name or always empty - see issue #1016
-      const skipLabelAttribute =
-        (attributes.includes('name') && !this._qualitativeValues.some((qv) => qv.label != qv.name)) ||
-        !this._qualitativeValues.some((qv) => !qv.label);
+      const skipLabelAttribute = attributes.includes('name') && this._qualitativeValues.every((qv) => qv.label === qv.name || isNilOrBlank(qv.label));
 
       // Remove the label column
       if (skipLabelAttribute) {
