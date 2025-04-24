@@ -107,7 +107,7 @@ export const ProgramProperties = Object.freeze({
   DATA_FAVORITES_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.data.favorites.enable',
     label: 'PROGRAM.OPTIONS.DATA_FAVORITES_ENABLE',
-    defaultValue: 'false',
+    defaultValue: 'false', // TODO change to true, when favorites will be well tested
     type: 'boolean',
   },
 
@@ -1257,7 +1257,7 @@ export const ProgramProperties = Object.freeze({
     type: 'boolean',
   },
   SALE_FAVORITES_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.sale.favorite.enable',
+    key: 'sumaris.sale.favorites.enable',
     label: 'PROGRAM.OPTIONS.SALE_FAVORITES_ENABLE',
     defaultValue: 'true',
     type: 'boolean',
