@@ -350,6 +350,12 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     this.registerSubscription(
       this.modalForm.get('showSubBatchForm').valueChanges.subscribe((value) => {
         const disable = !value && this.showIndividualCount;
+
+        if (this.hasRowsErrors()) {
+          this.modalForm.get('showSubBatchForm').setValue(true, { emitEvent: false });
+          return;
+        }
+
         this.isRequiredIndividualCount = !disable;
 
         if (disable) {
@@ -527,6 +533,8 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
 
   async close(event?: Event) {
     if (this.loading) return; // avoid many call
+
+    if (this.hasRowsErrors()) return;
 
     // Form is dirty
     if (this.form.dirty) {
@@ -1584,6 +1592,12 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     if (individualCount.dirty) this.updateFooter(this.dataSource.getRows());
 
     await this.mergeSameRows(row);
+
+    if (this.hasRowsErrors()) {
+      this.setError(this.translate.instant('ERROR.TABLE_INVALID_ROW_ERROR'));
+    } else if (isNotNil(this.error)) {
+      this.resetError();
+    }
   }
 
   private async mergeSameRows(row: TableElement<SubBatch>) {
@@ -1708,7 +1722,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
       ...chartData,
     };
 
-    this.chart.updateChart();
+    if (this.chart) this.chart.updateChart();
   }
 
   private getFilteredData(subBatches: SubBatch[], taxonNameId?: number): SubBatch[] {
@@ -1721,6 +1735,28 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
     }
 
     return data;
+  }
+
+  getErrorsInRows(): string[] {
+    const rows = this.dataSource.getRows();
+    const listErrors = [];
+
+    rows.forEach((row) => {
+      if (!row.valid) {
+        listErrors.push(row.validator.errors);
+      }
+    });
+
+    this.cd.detectChanges();
+
+    console.log(listErrors.length);
+
+    return listErrors.filter(isNotNil);
+  }
+
+  hasRowsErrors(): boolean {
+    const error = this.getErrorsInRows();
+    return isNotEmptyArray(error);
   }
 
   getFormErrors = AppFormUtils.getFormErrors;

@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControlOptions, FormGroup, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import {
   DateUtils,
+  equals,
   isEmptyArray,
   isNil,
   isNilOrBlank,
@@ -41,6 +42,7 @@ import { PositionUtils } from '@app/data/position/position.utils';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { PmfmUtils } from '@app/referential/services/model/pmfm-utils';
+import { FORM_VALIDATOR_OPTIONS_PROPERTY } from '@app/shared/service/base.validator.service';
 
 export interface BatchContext extends DataContext {
   parentGroup?: BatchGroup;
@@ -113,11 +115,12 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
         })
       );
     }
-
     return form;
   }
 
   updateFormGroup(form: UntypedFormGroup, opts?: SubBatchValidatorValidatorOptions) {
+    // Update form group validators
+    const previousOpts = form[FORM_VALIDATOR_OPTIONS_PROPERTY];
     // Add/remove weight form group, if need
     if (opts?.withWeight) {
       if (!form.controls.weight) {
@@ -133,6 +136,18 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     } else if (form.controls.weight) {
       form.removeControl('weight');
     }
+
+    // Update form group validators (if changes)
+    if (!equals(previousOpts, opts)) {
+      const formValidators = this.getFormGroupOptions(null, opts)?.validators;
+      form.setValidators(formValidators);
+    }
+  }
+
+  getFormGroupOptions(data?: SubBatch, opts?: any): AbstractControlOptions {
+    return <AbstractControlOptions>{
+      validators: [subBatchesValidators.isValidRow],
+    };
   }
 
   getWeightLengthPmfm(opts: { pmfms?: IPmfm[]; required?: boolean }) {
@@ -549,5 +564,15 @@ export class SubBatchValidators {
     }
 
     return undefined;
+  }
+}
+export class subBatchesValidators {
+  static isValidRow(formGroup: FormGroup) {
+    if (!formGroup) return null;
+    const hasErrors = Object.values(formGroup.controls).some((control) => control.errors && Object.keys(control.errors).length > 0);
+    if (hasErrors) {
+      console.warn('[sub-batch-validator] Invalid sub-batch form group', formGroup);
+    }
+    return hasErrors ? { errorTestMorgan: hasErrors } : null;
   }
 }
