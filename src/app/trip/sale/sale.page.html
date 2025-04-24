@@ -95,6 +95,7 @@
                 [showError]="false"
                 [showEndDateTime]="false"
                 [showFavorites]="showFavorites$ | async"
+                [allowMultipleFavorites]="false"
                 (onSubmit)="save($event)"
                 [debug]="debug"
               >
@@ -208,13 +209,15 @@
           editor.parentAcquisitionLevel: {{ parentAcquisitionLevel }}
           <br />
           editor.showParent: {{ showParent }}
+          <br />
+          editor.showFavorites: {{ showFavorites }}
         </ion-col>
         <ion-col>
-          form.observedLocationId: {{ form | formGetValue: 'observedLocationId' }}
+          form.startDateTime: {{ form | formGetValue: 'startDateTime' | dateFormat: { time: true } }}
           <br />
-          form.dateTime: {{ form | formGetValue: 'dateTime' | dateFormat: { time: true } }}
+          form.endDateTime: {{ form | formGetValue: 'endDateTime' | dateFormat: { time: true } }}
           <br />
-          form.location: {{ form | formGetValue: 'location' | propertyGet: 'label' }}
+          form.saleLocation: {{ form | formGetValue: 'saleLocation' | propertyGet: 'label' }}
           <br />
         </ion-col>
         <ion-col>

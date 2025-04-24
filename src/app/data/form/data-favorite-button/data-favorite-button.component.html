@@ -4,11 +4,24 @@
   mat-icon-button
   type="button"
   tabindex="-1"
-  [title]="(favorite ? 'COMMON.BTN_DELETE_FAVORITE' : allowMultiple ? 'COMMON.BTN_ADD_TO_FAVORITES' : 'COMMON.BTN_SET_AS_FAVORITE') | translate"
+  [title]="
+    (allowMultiple
+      ? favorite
+        ? 'COMMON.BTN_DELETE_FAVORITE'
+        : 'COMMON.BTN_ADD_TO_FAVORITES'
+      : favorite
+        ? 'COMMON.BTN_UNPIN_ITEM'
+        : 'COMMON.BTN_PIN_ITEM'
+    ) | translate
+  "
   (click)="toggleFavorite($event)"
   [color]="favorite ? 'primary' : undefined"
   [disabled]="control.invalid"
   [hidden]="hidden"
 >
-  <mat-icon>{{ favorite ? 'star' : 'star_outline' }}</mat-icon>
+  @if (allowMultiple) {
+    <mat-icon>{{ favorite ? 'star' : 'star_outline' }}</mat-icon>
+  } @else {
+    <mat-icon>push_pin</mat-icon>
+  }
 </button>

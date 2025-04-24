@@ -31,8 +31,8 @@ import { ObservedLocation } from './observed-location.model';
 import { Landing } from '../landing/landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { Observable, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, first, map, mergeMap, startWith, tap } from 'rxjs/operators';
+import { from, merge, Observable, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, first, map, mergeMap, startWith, tap, throttleTime } from 'rxjs/operators';
 import { AggregatedLandingsTable } from '../aggregated-landing/aggregated-landings.table';
 import { Program } from '@app/referential/services/model/program.model';
 import { ObservedLocationsPageSettingsEnum } from './table/observed-locations.page';
@@ -187,6 +187,16 @@ export class ObservedLocationPage
           .subscribe(() => this.onMeasurementsFormReady())
       );
     }
+
+    // Update the data context
+    this.registerSubscription(
+      merge(
+        this.selectedTabIndexChange.pipe(filter((tabIndex) => tabIndex === ObservedLocationPage.TABS.LANDINGS && this.showLandingTab)),
+        from(this.ready())
+      )
+        .pipe(debounceTime(500), throttleTime(500))
+        .subscribe(() => this.updateDataContext())
+    );
   }
 
   ngOnDestroy() {
@@ -259,6 +269,21 @@ export class ObservedLocationPage
           })
       );
     }
+  }
+
+  /**
+   * Update data context
+   *
+   * @protected
+   */
+  protected updateDataContext() {
+    console.debug(this.logPrefix + 'Updating data context...');
+
+    // Program
+    this.observedLocationContext.program = this.program;
+
+    // Strategy
+    this.observedLocationContext.strategy = this.strategy;
   }
 
   updateView(data: ObservedLocation | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }): Promise<void> {
@@ -691,7 +716,7 @@ export class ObservedLocationPage
   }
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
-    console.debug(this.logPrefix + 'Computing strategy filter, using resolution: ' + this.strategyResolution);
+    if (this.debug) console.debug(this.logPrefix + 'Computing strategy filter, using resolution: ' + this.strategyResolution);
 
     switch (this.strategyResolution) {
       // Spatio-temporal
@@ -764,7 +789,7 @@ export class ObservedLocationPage
     const pageFavorites = this.getPageFavorites();
     if (pageFavorites) {
       // Program
-      const program = this.getFirstControlFavorite('program', {
+      const program = this.getSingleControlFavorite('program', {
         pageFavorites,
       });
       if (!data.program && EntityUtils.isNotEmpty(program)) {
@@ -775,7 +800,7 @@ export class ObservedLocationPage
       // Location
       const location =
         this.showFavorites &&
-        this.getFirstControlFavorite('location', {
+        this.getSingleControlFavorite('location', {
           pageFavorites,
         });
       if (!data.location && EntityUtils.isNotEmpty(location)) {

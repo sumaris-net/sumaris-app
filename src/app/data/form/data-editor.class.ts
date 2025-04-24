@@ -527,7 +527,7 @@ export abstract class AppDataEntityEditor<
     };
   }
 
-  protected getFirstControlFavorite(
+  protected getSingleControlFavorite(
     controlName: string | keyof Omit<Omit<T, 'fromObject'>, 'asObject'>,
     options?: {
       pageId?: string;
@@ -535,7 +535,8 @@ export abstract class AppDataEntityEditor<
       sortBy?: string;
     }
   ): any {
-    return this.getControlFavorites(controlName, { ...options, allowMultiple: false });
+    const values = this.getControlFavorites(controlName, { ...options, allowMultiple: false });
+    return values?.length === 1 ? values[0] : undefined;
   }
 
   protected getControlFavorites(

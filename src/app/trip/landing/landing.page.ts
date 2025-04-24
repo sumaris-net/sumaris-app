@@ -228,24 +228,28 @@ export class LandingPage<ST extends LandingPageState = LandingPageState>
   }
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
-    console.debug(this.logPrefix + 'watchStrategyFilter', this.acquisitionLevel);
-    if (this.strategyResolution === 'user-select') {
-      return this._state
-        .select(['acquisitionLevel', 'strategyLabel'], (s) => s)
-        .pipe(
-          // DEBUG
-          tap((s) => console.debug(this.logPrefix + 'Received strategy label: ', s)),
-          map(({ acquisitionLevel, strategyLabel }) => {
-            return <Partial<StrategyFilter>>{
-              acquisitionLevel,
-              programId: program.id,
-              label: strategyLabel,
-            };
-          })
-        );
-    }
+    if (this.debug) console.debug(this.logPrefix + 'Computing strategy filter, using resolution: ' + this.strategyResolution);
 
-    return super.watchStrategyFilter(program);
+    switch (this.strategyResolution) {
+      // User select
+      case DataStrategyResolutions.USER_SELECT: {
+        return this._state
+          .select(['acquisitionLevel', 'strategyLabel'], (s) => s)
+          .pipe(
+            // DEBUG
+            tap((s) => console.debug(this.logPrefix + 'Received strategy label: ', s)),
+            map(({ acquisitionLevel, strategyLabel }) => {
+              return <Partial<StrategyFilter>>{
+                acquisitionLevel,
+                programId: program.id,
+                label: strategyLabel,
+              };
+            })
+          );
+      }
+      default:
+        return super.watchStrategyFilter(program);
+    }
   }
 
   onPrepareSampleForm({ form, pmfms }) {

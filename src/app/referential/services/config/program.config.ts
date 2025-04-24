@@ -1218,7 +1218,12 @@ export const ProgramProperties = Object.freeze({
     },
     defaultValue: LocationLevelIds.PORT.toString(),
   },
-
+  SALE_REPORT_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.sale.report.enable',
+    label: 'PROGRAM.OPTIONS.SALE_REPORT_ENABLE',
+    defaultValue: 'false', // TODO enable by default ?
+    type: 'boolean',
+  },
   SALE_FAVORITES_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.sale.favorite.enable',
     label: 'PROGRAM.OPTIONS.SALE_FAVORITES_ENABLE',

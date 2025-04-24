@@ -208,7 +208,7 @@
                     [required]="false"
                     [tabindex]="showSaleForm ? 10 : -1"
                     [minDate]="returnDateTime$ | async"
-                    [showFavorites]="false"
+                    [showFavorites]="showFavorites"
                     [debug]="debug"
                   ></app-form-sale>
                 </div>

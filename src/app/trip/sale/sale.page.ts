@@ -178,7 +178,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
   }
 
   protected watchStrategyFilter(program: Program): Observable<Partial<StrategyFilter>> {
-    console.debug(this.logPrefix + 'watchStrategyFilter', this.acquisitionLevel);
+    if (this.debug) console.debug(this.logPrefix + 'Computing strategy filter, using resolution: ' + this.strategyResolution);
     switch (this.strategyResolution) {
       // User select
       case DataStrategyResolutions.USER_SELECT:
@@ -195,7 +195,8 @@ export class SalePage<ST extends SalePageState = SalePageState>
               };
             })
           );
-      // User select
+
+      // Spatial temporal
       case DataStrategyResolutions.SPATIO_TEMPORAL:
         return this._state
           .select(['acquisitionLevel', 'parent'], (_) => _, {
@@ -261,7 +262,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
     else {
       // If show parent
       if (this.showParent) {
-        console.warn('[sale-page] Sale without parent: show parent field');
+        console.warn(this.logPrefix + 'Sale without parent: show parent field');
         this.saleForm.showProgram = false;
         this.saleForm.showVessel = true;
         // this.saleForm.showLocation = false;
@@ -271,7 +272,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
       }
       // Sale is root
       else {
-        console.warn('[sale-page] Sale as ROOT has not been tested !');
+        console.warn(this.logPrefix + 'Sale as ROOT has not been tested !');
         this.saleForm.showProgram = true;
         this.saleForm.showVessel = true;
         this.saleForm.showLocation = true;
@@ -335,7 +336,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
     if (pageFavorites) {
       // Program
       if (!(this.parent || this.showParent)) {
-        const program = this.getFirstControlFavorite('program', {
+        const program = this.getSingleControlFavorite('program', {
           pageFavorites,
         });
         if (!data.program && EntityUtils.isNotEmpty(program)) {
@@ -344,7 +345,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
       }
 
       // Vessel
-      const vesselSnapshot = this.getFirstControlFavorite('vesselSnapshot', {
+      const vesselSnapshot = this.getSingleControlFavorite('vesselSnapshot', {
         pageFavorites,
         sortBy: this.saleForm.autocompleteFields.vesselSnapshot.attributes?.[0],
       });
@@ -353,7 +354,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
       }
 
       // Sale type
-      let saleType = this.getFirstControlFavorite('saleType', {
+      let saleType = this.getSingleControlFavorite('saleType', {
         pageFavorites,
         sortBy: this.saleForm.autocompleteFields.saleType.attributes?.[0],
       });
@@ -364,7 +365,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
       // Sale location{
       let saleLocation =
         this.saleForm.showLocation &&
-        this.getFirstControlFavorite('saleLocation', {
+        this.getSingleControlFavorite('saleLocation', {
           pageFavorites,
           sortBy: this.saleForm.autocompleteFields.location.attributes?.[0],
         });
@@ -478,7 +479,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
   protected async fillPropertiesFromParent(data: Sale, parent: Trip | Landing) {
     // DEBUG
-    console.debug('[sale-page] Fill some properties from parent', parent);
+    console.debug(this.logPrefix + 'Fill some properties from parent', parent);
 
     const queryParams = this.route.snapshot.queryParams;
 
@@ -505,7 +506,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
         // Load the vessel, if any
         if (isNotNil(queryParams['vessel']) && !data.vesselSnapshot) {
           const vesselId = +queryParams['vessel'];
-          console.debug(`[sale-page] Loading vessel {${vesselId}}...`);
+          console.debug(this.logPrefix + `Loading vessel {${vesselId}}...`);
           data.vesselSnapshot = await this.vesselSnapshotService.load(vesselId, { fetchPolicy: 'cache-first' });
         }
       }
@@ -550,26 +551,15 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
     await super.setProgram(program);
 
-    const showStrategy =
-      program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE) ||
-      program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION) === 'user-select';
     const isNewData = this.isNewData;
-    const requiredStrategy = showStrategy && !isNewData;
-
+    const requiredStrategy = !isNewData;
     this.requiredStrategy = requiredStrategy;
-    this.strategyResolution = showStrategy ? 'user-select' : program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION);
+    this.strategyResolution = program.getProperty<DataStrategyResolution>(ProgramProperties.DATA_STRATEGY_RESOLUTION);
     this.showFavorites = this.showFavoritesByProgram && program.getPropertyAsBoolean(ProgramProperties.SALE_FAVORITES_ENABLE);
 
     // Customize the UI, using program options
     this.saleForm.showFavorites = this.showFavorites;
     this.saleForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.SALE_LOCATION_LEVEL_IDS);
-    // this.saleForm.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
-    // this.saleForm.showStrategy = showStrategy;
-    // this.saleForm.requiredStrategy = requiredStrategy;
-    // this.saleForm.canEditStrategy = showStrategy && isNewData;
-    // this.saleForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.SALE_OBSERVERS_ENABLE);
-    // this.saleForm.showDateTime = program.getPropertyAsBoolean(ProgramProperties.SALE_DATE_TIME_ENABLE);
-    // this.saleForm.showLocation = program.getPropertyAsBoolean(ProgramProperties.SALE_LOCATION_ENABLE);
 
     // Compute i18n prefix
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
@@ -577,8 +567,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
     this.i18nContext.suffix = i18nSuffix;
     this.saleForm.i18nSuffix = i18nSuffix;
 
-    // TODO Implement a sale report ?
-    this.enableReport = false; // program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_REPORT_ENABLE);
+    this.enableReport = program.getPropertyAsBoolean(ProgramProperties.SALE_REPORT_ENABLE);
     this.showBatchTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.SALE_BATCH_ENABLE);
 
     if (this.strategyCard) {
@@ -605,40 +594,32 @@ export class SalePage<ST extends SalePageState = SalePageState>
     await super.setStrategy(strategy);
 
     const program = this.program;
-    if (!strategy || !program) return; // Skip if empty
 
-    // Configure batch tree - TODO
-    // if (this.samplesTable && this.samplesTable.acquisitionLevel) {
-    //   this.samplesTable.strategyLabel = strategy.label;
-    //   const taxonNameStrategy = firstArrayValue(strategy.taxonNames);
-    //   this.samplesTable.defaultTaxonName = taxonNameStrategy && taxonNameStrategy.taxonName;
-    //   this.samplesTable.showTaxonGroupColumn = false;
-    //
-    //   // Load strategy's pmfms
-    //   await this.setTablePmfms(this.samplesTable, program.label, strategy.label);
-    // }
-
-    this.markAsReady();
-    this.markForCheck();
+    // Mark as ready
+    if (strategy && program) {
+      this.markAsReady();
+      this.markForCheck();
+    }
   }
 
   protected async loadParent(data: Sale): Promise<Landing | Trip> {
     let parent: Landing | Trip;
 
     if (isNotNilOrNaN(data.tripId)) {
-      console.debug(`[sale-page] Loading parent trip #${data.tripId} ...`);
+      console.debug(this.logPrefix + `Loading parent trip #${data.tripId} ...`);
       parent = await this.tripService.load(data.tripId, { fetchPolicy: 'cache-first' });
     } else if (isNotNilOrNaN(data.landingId)) {
-      console.debug(`[sale-page] Loading parent landing #${data.landingId} ...`);
+      console.debug(this.logPrefix + `Loading parent landing #${data.landingId} ...`);
       const landing = await this.landingService.load(data.landingId, { fetchPolicy: 'cache-first' });
       parent = landing;
 
       // Load default taxon group (if exists in parent landing)
-      const landingTaxonGroupId = landing && toNumber(landing.measurementValues?.[PmfmIds.TAXON_GROUP_ID]);
-      if (isNotNil(landingTaxonGroupId)) {
-        const landingTaxonGroup = await this.taxonGroupRefService.load(landingTaxonGroupId, { fetchPolicy: 'cache-first' });
-        console.log('TODO landingTaxonGroup=', landingTaxonGroup);
-        this.defaultTaxonGroup = landingTaxonGroup;
+      const parentTaxonGroupId = landing && toNumber(landing.measurementValues?.[PmfmIds.TAXON_GROUP_ID]);
+      if (isNotNil(parentTaxonGroupId)) {
+        const parentTaxonGroup = await this.taxonGroupRefService.load(parentTaxonGroupId, { fetchPolicy: 'cache-first' });
+
+        console.debug(this.logPrefix + 'Using parent taxonGroup as default taxonGroup:', parentTaxonGroup);
+        this.defaultTaxonGroup = parentTaxonGroup;
       }
     }
 
@@ -730,7 +711,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
 
   async getValue(): Promise<Sale> {
     // DEBUG
-    //console.debug('[sale-page] getValue()');
+    //console.debug(this.logPrefix + 'getValue()');
 
     const data = await super.getValue();
 
@@ -751,7 +732,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
     }
 
     // DEBUG
-    //console.debug('[sale-page] DEV check getValue() result:', data);
+    //console.debug(this.logPrefix + 'DEV check getValue() result:', data);
 
     return data;
   }
@@ -774,7 +755,7 @@ export class SalePage<ST extends SalePageState = SalePageState>
    * @protected
    */
   protected updateDataContext() {
-    console.debug(`[sale-page] Updating sale context#${this.saleContext.id} ...`);
+    console.debug(this.logPrefix + `Updating sale context#${this.saleContext.id} ...`);
 
     // Date
     const date = this.saleForm.startDateTimeControl?.value;

@@ -39,11 +39,10 @@
     </ion-row>
 
     <!-- Vessel -->
-    <ion-row *ngIf="showVessel">
+    <ion-row [@expansionAnimation]="showVessel">
       <ion-col offset="0" offset-md="2" offset-lg="3" class="has-form-field">
-        @if (autocompleteFields.vesselSnapshot) {
+        @if (showVessel && autocompleteFields.vesselSnapshot) {
           <mat-autocomplete-field
-            *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
             [placeholder]="'SALE.VESSEL' | translate"
             formControlName="vesselSnapshot"
             [config]="autocompleteFields.vesselSnapshot"
@@ -55,11 +54,14 @@
               <app-data-favorite-button
                 matSuffix
                 controlName="vesselSnapshot"
-                pageId="sale"
+                [pageId]="settingsId"
                 [equals]="autocompleteFields.vesselSnapshot.equals"
+                [allowMultiple]="allowMultipleFavorites"
               ></app-data-favorite-button>
             }
           </mat-autocomplete-field>
+        } @else {
+          <ng-container *ngTemplateOutlet="fieldSkeleton"></ng-container>
         }
       </ion-col>
     </ion-row>
@@ -82,8 +84,9 @@
             <app-data-favorite-button
               matSuffix
               controlName="saleType"
-              pageId="sale"
+              [pageId]="settingsId"
               [equals]="autocompleteFields.saleType.equals"
+              [allowMultiple]="allowMultipleFavorites"
             ></app-data-favorite-button>
           }
         </mat-autocomplete-field>
@@ -102,7 +105,15 @@
             [tabindex]="tabindex === -1 ? -1 : tabindex + 6"
           >
             <mat-icon matPrefix>room</mat-icon>
-            <app-data-favorite-button matSuffix controlName="saleLocation" [equals]="autocompleteFields.location.equals"></app-data-favorite-button>
+            @if (showFavorites) {
+              <app-data-favorite-button
+                matSuffix
+                controlName="saleLocation"
+                [equals]="autocompleteFields.location.equals"
+                [pageId]="settingsId"
+                [allowMultiple]="allowMultipleFavorites"
+              ></app-data-favorite-button>
+            }
           </mat-autocomplete-field>
         </ion-col>
       </ion-row>
@@ -145,7 +156,15 @@
             [required]="required || (form | formGetValue: 'saleType' | isNotEmptyReferential)"
           >
             <mat-icon matPrefix>room</mat-icon>
-            <app-data-favorite-button matSuffix controlName="saleLocation" [equals]="autocompleteFields.location.equals"></app-data-favorite-button>
+            @if (showFavorites) {
+              <app-data-favorite-button
+                matSuffix
+                controlName="saleLocation"
+                [equals]="autocompleteFields.location.equals"
+                [pageId]="settingsId"
+                [allowMultiple]="allowMultipleFavorites"
+              ></app-data-favorite-button>
+            }
           </mat-autocomplete-field>
         </ion-col>
         <ion-col size="12" size-sm="auto">
@@ -222,6 +241,8 @@
           form.showVessel: {{ showVessel }}
           <br />
           form.showParent: {{ showParent }}
+          <br />
+          form.showFavorites: {{ showFavorites }}
         </ion-col>
       </ion-row>
     </ion-grid>

@@ -526,6 +526,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
   }
 
   protected canLoadStrategy(program: Program, strategyFilter: Partial<StrategyFilter>): boolean {
+    if (this.debug) console.debug(this.logPrefix + 'Computing strategy filter, using resolution: ' + this.strategyResolution);
+
     switch (this.strategyResolution) {
       case DataStrategyResolutions.SPATIO_TEMPORAL:
         return (
@@ -576,7 +578,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     const pageFavorites = this.getPageFavorites();
     if (pageFavorites) {
       // Program
-      const program = this.getFirstControlFavorite('program', {
+      const program = this.getSingleControlFavorite('program', {
         pageFavorites,
       });
       if (!data.program && EntityUtils.isNotEmpty(program)) {
@@ -587,7 +589,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       const samplingStrata =
         this.showFavorites &&
         this.tripForm?.showSamplingStrata &&
-        this.getFirstControlFavorite('samplingStrata', {
+        this.getSingleControlFavorite('samplingStrata', {
           pageFavorites,
         });
       if (!data.samplingStrata && EntityUtils.isNotEmpty(samplingStrata)) {
@@ -597,7 +599,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       // Vessel
       const vesselSnapshot =
         this.showFavorites &&
-        this.getFirstControlFavorite('vesselSnapshot', {
+        this.getSingleControlFavorite('vesselSnapshot', {
           pageFavorites,
         });
       if (!data.vesselSnapshot && EntityUtils.isNotEmpty(vesselSnapshot)) {
@@ -607,7 +609,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
       // Departure location
       let departureLocation =
         this.showFavorites &&
-        this.getFirstControlFavorite('departureLocation', {
+        this.getSingleControlFavorite('departureLocation', {
           pageFavorites,
           sortBy: this.tripForm.autocompleteFields.location.attributes?.[0],
         });
@@ -1075,16 +1077,10 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     console.debug(this.logPrefix + 'Updating data context...');
 
     // Program
-    const program = this.program;
-    if (this.tripContext.program !== program) {
-      this.tripContext.setValue('program', program);
-    }
+    this.tripContext.program = this.program;
 
     // Strategy
-    const strategy = this.strategy;
-    if (this.tripContext.strategy !== strategy) {
-      this.tripContext.setValue('strategy', strategy);
-    }
+    this.tripContext.strategy = this.strategy;
   }
 
   protected async downloadAsJson(event?: UIEvent) {

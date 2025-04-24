@@ -1,8 +1,8 @@
 import { booleanAttribute, ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnDestroy, OnInit, Optional } from '@angular/core';
-import { Entity, equals, EqualsFn, isNil, isNilOrBlank, isNotNil } from '@sumaris-net/ngx-components';
+import { Entity, equals, EqualsFn, filterFalse, isNil, isNilOrBlank, isNotNil, MatAutocompleteField } from '@sumaris-net/ngx-components';
 import { FormGroupDirective, UntypedFormControl } from '@angular/forms';
-import { filter, mergeMap, takeUntil } from 'rxjs/operators';
-import { distinctUntilChanged, of, Subject } from 'rxjs';
+import { debounceTime, filter, mergeMap, takeUntil } from 'rxjs/operators';
+import { distinctUntilChanged, merge, of, Subject, tap } from 'rxjs';
 import { APP_DATA_ENTITY_EDITOR } from '@app/data/form/data-editor.utils';
 import { AppDataEntityEditor } from '@app/data/form/data-editor.class';
 import { FavoriteService } from '@app/data/form/data-favorite-button/data-favorite.service';
@@ -28,11 +28,12 @@ export class AppDataFavoriteButton implements OnInit, OnDestroy {
   private _logPrefix = '[data-favorite-button] ';
 
   protected _hidden: boolean = false;
+  protected _autocompleteFavoritesDirty: boolean = false;
 
   @Input() pageId: string;
   @Input() control: UntypedFormControl;
   @Input() controlName: string;
-  @Input({ transform: booleanAttribute }) allowMultiple = false;
+  @Input({ transform: booleanAttribute }) allowMultiple = true;
   @Input() equals: EqualsFn;
   @Input() visibility: AppDataFavoriteButtonVisibility;
 
@@ -52,7 +53,8 @@ export class AppDataFavoriteButton implements OnInit, OnDestroy {
     private favoriteService: FavoriteService,
     private cd: ChangeDetectorRef,
     @Optional() @Inject(APP_DATA_ENTITY_EDITOR) protected editor: AppDataEntityEditor<any, any, any>,
-    @Optional() private formGroupDir: FormGroupDirective
+    @Optional() private formGroupDir: FormGroupDirective,
+    @Optional() private autocompleteField: MatAutocompleteField
   ) {}
 
   ngOnInit() {
@@ -71,8 +73,8 @@ export class AppDataFavoriteButton implements OnInit, OnDestroy {
     this.visibility = this.visibility ?? (this.editor && this.controlName !== 'program' ? 'auto' : true);
 
     // Load default value, from local settings
-    const favorites = this.favoriteService.getPageFavorites(this.pageId);
-    this._favoriteValue = favorites?.[this.controlName];
+    const favorites = this.favoriteService.getPageFavorites(this.pageId)?.[this.controlName];
+    this._favoriteValue = favorites;
 
     // Subscribe to editor state
     if (this.editor) {
@@ -106,6 +108,34 @@ export class AppDataFavoriteButton implements OnInit, OnDestroy {
     this.control.valueChanges.pipe(takeUntil(this._destroy$), distinctUntilChanged()).subscribe((value) => {
       this.cd.markForCheck();
     });
+
+    // If inside an autocomplete
+    if (this.autocompleteField && this.allowMultiple) {
+      // Init autocomplete field favorites
+      this.updateAutocompleteFavorites(favorites);
+
+      // Listen favorite icon click
+      this.autocompleteField.toggleFavorite.pipe(takeUntil(this._destroy$)).subscribe(({ value }) => {
+        this.toggleFavorite(null, value);
+      });
+
+      // Force reload items, when panel closed (if favorites changed)
+      merge(filterFalse(this.autocompleteField.openedChange))
+        .pipe(
+          takeUntil(this._destroy$),
+
+          // DEBUG
+          //tap(() => console.info('[sampling-strata-combo] dirty: ' + this._autocompleteFavoritesDirty)),
+
+          filter(() => this._autocompleteFavoritesDirty),
+          tap(() => (this._autocompleteFavoritesDirty = false)), // Reset dirty marker
+          debounceTime(500)
+        )
+        .subscribe(() => {
+          this.updateAutocompleteFavorites();
+          this.autocompleteField.reloadItems();
+        });
+    }
   }
 
   ngOnDestroy() {
@@ -113,7 +143,14 @@ export class AppDataFavoriteButton implements OnInit, OnDestroy {
     this._destroy$.complete();
   }
 
-  toggleFavorite(event: UIEvent) {
+  /**
+   * Toggles the favorite state of a given control value.
+   *
+   * @param {Event | undefined} event - The event that triggers the toggle action. Prevents the default behavior and stops propagation if provided.
+   * @param {*} [value=this.control.value] - The value associated with the control. Defaults to the current control value. It can be an instance of `Entity` or any other serializable value.
+   * @return {void} This method does not return anything. It performs side effects such as updating favorite states and triggering change detection.
+   */
+  toggleFavorite(event: Event | undefined, value: any = this.control.value): void {
     // DEBUG
     console.debug(`${this._logPrefix}toggleFavorite`);
 
@@ -122,7 +159,6 @@ export class AppDataFavoriteButton implements OnInit, OnDestroy {
       event.stopImmediatePropagation();
     }
 
-    let value: any = this.control.value;
     if (isNilOrBlank(value)) return; // Skip if empty
 
     // Serialize as JSON
@@ -132,11 +168,18 @@ export class AppDataFavoriteButton implements OnInit, OnDestroy {
       pageId: this.pageId,
       allowMultiple: this.allowMultiple,
     });
-
     this.cd.markForCheck();
-  }
 
-  /* -- protected functions -- */
+    // Update autocomplete favorites
+    if (this.autocompleteField && this.allowMultiple) {
+      if (this.autocompleteField.isOpen) {
+        // Mark as dirty, but keep panel unchanged
+        this._autocompleteFavoritesDirty = true;
+      } else {
+        this.updateAutocompleteFavorites();
+      }
+    }
+  }
 
   /**
    * Applies a favorite value to the control if certain conditions are met.
@@ -146,9 +189,9 @@ export class AppDataFavoriteButton implements OnInit, OnDestroy {
    * @param {any} [value=this._favoriteValue] The value to apply to the control. Defaults to the favorite value stored internally.
    * @return {void} No return value.
    */
-  protected applyFavoriteToControl(value: any = this._favoriteValue) {
+  protected applyFavoriteToControl(value: any = this._favoriteValue): void {
     // DEBUG
-    //console.debug(`${this._logPrefix}Check if can apply value (controlName: ${this.controlName})`, value);
+    console.debug(`${this._logPrefix}Check if can apply value (controlName: ${this.controlName})`, value);
 
     // If visible and has a single favorite
     // And is new data, and control enabled and empty, then fill control value
@@ -164,6 +207,26 @@ export class AppDataFavoriteButton implements OnInit, OnDestroy {
       console.debug(`${this._logPrefix}Set '${this.controlName}' control value from favorite:`, value);
 
       this.control.setValue(value, { emitEvent: this.editor?.loaded ?? false /* avoid to set the editor to dirty*/ });
+    }
+  }
+
+  protected updateAutocompleteFavorites(favorites?: any, opts?: { emitEvent?: boolean }) {
+    if (!this.autocompleteField) return; // Ski^p if not autocomplete
+
+    // DEBUG
+    console.debug(`${this._logPrefix}Refresh autocomplete favorites`);
+
+    favorites =
+      favorites ??
+      this.favoriteService.getControlFavorites(this.controlName, {
+        pageId: this.pageId,
+        allowMultiple: this.allowMultiple,
+      });
+    this.autocompleteField.favoriteItems = Array.isArray(favorites) ? favorites : favorites ? [favorites] : [];
+
+    // Force reloading items
+    if (opts?.emitEvent !== false) {
+      this.autocompleteField.reloadItems();
     }
   }
 }

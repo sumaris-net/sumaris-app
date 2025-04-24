@@ -593,7 +593,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         }
 
         this.catchBatchForm.requiredStrategy = this.requiredStrategy;
-        this.catchBatchForm.strategyId = strategyId;
+        this.catchBatchForm.strategyId = strategyId ?? this.catchBatchForm.strategyId; // Keep existing value (e.g. when observable 'strategyId$ | async' has already sent a value
         this.catchBatchForm.gearId = this.gearId;
         this.catchBatchForm.markAsReady();
         await this.catchBatchForm.setValue(target);
@@ -606,7 +606,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
         // Apply to table
         this.batchGroupsTable.requiredStrategy = this.requiredStrategy;
-        this.batchGroupsTable.strategyId = strategyId;
+        this.batchGroupsTable.strategyId = strategyId ?? this.batchGroupsTable.strategyId;
         this.batchGroupsTable.gearId = this.gearId;
         this.batchGroupsTable.labelPrefix = childrenLabelPrefix;
         this.batchGroupsTable.markAsReady();

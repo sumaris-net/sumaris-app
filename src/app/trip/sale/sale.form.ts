@@ -48,6 +48,8 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
   @Input() showParent = false;
   @Input() locationLevelIds: number[];
   @Input() showFavorites = false;
+  @Input() allowMultipleFavorites = true;
+  @Input() settingsId: string;
 
   @Input() set required(value: boolean) {
     if (this._required !== value) {
