@@ -542,7 +542,7 @@ export class SubBatchValidators {
           );
         }
         if (weightMeasurementControl && +weightMeasurementControl.value !== +valueStr) {
-          weightMeasurementControl?.setValue(valueStr, opts);
+          weightMeasurementControl?.setValue(parseFloat(valueStr), opts);
         }
       } else {
         if (!weight || (weight.computed === true && isNotNil(weight.value))) {
@@ -573,6 +573,6 @@ export class subBatchesValidators {
     if (hasErrors) {
       console.warn('[sub-batch-validator] Invalid sub-batch form group', formGroup);
     }
-    return hasErrors ? { errorTestMorgan: hasErrors } : null;
+    return hasErrors ? { error: hasErrors } : null;
   }
 }
