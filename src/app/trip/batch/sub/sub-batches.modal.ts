@@ -115,6 +115,7 @@ export interface ISubBatchesModalOptions {
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = [...SUB_BATCH_RESERVED_END_COLUMNS, 'images'];
+const SUB_BATCH_MODAL_BASIC_COLUMNS: string[] = ['select', 'id', 'taxonName', 'actions'];
 
 export interface SubBatchesModalState extends SubBatchesTableState {
   temporarySubBatchesImages: Map<string, ImageAttachment[]>;
@@ -1542,7 +1543,7 @@ export class SubBatchesModal extends SubBatchesTable<SubBatchesModalState> imple
   private hideAllColumns() {
     this.virtualPmfms?.forEach((pmfm) => this.setShowColumn(pmfm.id.toString(), false));
     this.getDisplayColumns().forEach((displayColumn) => {
-      if (displayColumn !== 'actions') this.setShowColumn(displayColumn, false);
+      if (!SUB_BATCH_MODAL_BASIC_COLUMNS.includes(displayColumn)) this.setShowColumn(displayColumn, false);
     });
   }
 
