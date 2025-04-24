@@ -1,0 +1,44 @@
+<app-toolbar [title]="'MENU.PHOTOS' | translate" color="primary" [canGoBack]="false"></app-toolbar>
+
+<ion-content>
+  <app-image-attachment-gallery
+    #gallery
+    [mobile]="mobile"
+    [disabled]="disabled"
+    [readOnly]="readOnly || disabled"
+    [mode]="mode"
+    [cardColor]="cardColor"
+    [showToolbar]="showToolbar"
+    [showAddCardButton]="!disabled && showAddCardButton"
+    [showFabButton]="showFabButton"
+    [cardTemplate]="cardTemplate"
+    (onAfterAddRows)="onAfterAddRows($event)"
+    (onAfterEditRow)="onAfterEditRow($event)"
+    [debug]="debug"
+  >
+    <ng-template #cardTemplate let-image let-mode="mode">
+      <app-taxon-card [imageUrl]="image.dataUrl" [species]="image.title" [showIcons]="true" (click)="onCardClick(image)"></app-taxon-card>
+    </ng-template>
+  </app-image-attachment-gallery>
+</ion-content>
+
+<ion-modal [isOpen]="isModalOpen" (willDismiss)="closeModal()" [backdropDismiss]="true">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Analysis Results</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeModal()" [strong]="true">OK</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <app-taxon-card
+        [imageUrl]="currentImage"
+        [species]="analysisResult?.species"
+        [confidence]="analysisResult?.confidence"
+        [details]="analysisResult?.details"
+      ></app-taxon-card>
+    </ion-content>
+  </ng-template>
+</ion-modal>

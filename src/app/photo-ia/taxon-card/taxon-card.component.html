@@ -1,0 +1,58 @@
+<ion-card>
+  <div class="image-container">
+    <ion-img *ngIf="imageUrl" [src]="imageUrl" alt="Taxon image"></ion-img>
+
+    <!-- Icones pour la gallerie -->
+    <div *ngIf="showIcons" class="image-overlay-buttons">
+      <div class="left-button">
+        <ion-icon slot="icon-only" name="cloud-offline-outline"></ion-icon>
+        <ion-button fill="clear" color="light">
+          <ion-icon name="location-outline"></ion-icon>
+        </ion-button>
+      </div>
+
+      <div class="right-menu">
+        <ion-button fill="clear" color="light" (click)="toggleMenu()">
+          <ion-icon slot="icon-only" name="ellipsis-vertical"></ion-icon>
+        </ion-button>
+
+        <div class="menu-actions" [class.show]="menuOpen">
+          <ion-button fill="clear" color="light" class="menu-action">
+            <ion-icon slot="icon-only" name="pencil"></ion-icon>
+          </ion-button>
+          <ion-button fill="clear" color="light" class="menu-action">
+            <ion-icon slot="icon-only" name="trash"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="isLoading" class="loading-overlay">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Analyzing...</p>
+    </div>
+  </div>
+
+  <!-- Détails pour l'analyse -->
+  <ion-card-header *ngIf="species">
+    <ion-card-title>{{ species }}</ion-card-title>
+    <ion-card-subtitle *ngIf="confidence">Confidence: {{ confidence }}%</ion-card-subtitle>
+  </ion-card-header>
+
+  <ion-card-content *ngIf="details">
+    <ion-list lines="none">
+      <ion-item *ngIf="details.family">
+        <ion-label>Family</ion-label>
+        <ion-text>{{ details.family }}</ion-text>
+      </ion-item>
+      <ion-item *ngIf="details.habitat">
+        <ion-label>Habitat</ion-label>
+        <ion-text>{{ details.habitat }}</ion-text>
+      </ion-item>
+      <ion-item *ngIf="details.size">
+        <ion-label>Size</ion-label>
+        <ion-text>{{ details.size }}</ion-text>
+      </ion-item>
+    </ion-list>
+  </ion-card-content>
+</ion-card>
