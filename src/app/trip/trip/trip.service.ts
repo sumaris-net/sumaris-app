@@ -164,9 +164,6 @@ export const TripFragments = {
     returnLocation {
       ...LocationFragment
     }
-    sale {
-      ...TripSaleFragment
-    }
     sales { 
       ...TripSaleFragment
     }
