@@ -25,6 +25,7 @@ import {
   AccountService,
   Alerts,
   AppErrorWithDetails,
+  AppFormArray,
   AppFormUtils,
   DateUtils,
   EntitiesStorage,
@@ -37,6 +38,7 @@ import {
   fromDateISOString,
   HistoryPageReference,
   InMemoryEntitiesService,
+  isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -81,7 +83,6 @@ import { StrategyFilter } from '@app/referential/services/filter/strategy.filter
 import { RxState } from '@rx-angular/state';
 import { ExpenseForm } from '@app/trip/expense/expense.form';
 import { OperationType } from '@app/trip/operation/operation.form';
-import { AppFormArray } from 'ngx-sumaris-components/public_api';
 
 export const TripPageSettingsEnum = {
   PAGE_ID: 'trip',
@@ -770,6 +771,8 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
 
       // Set data to form
       jobs.push(this.tripForm.setValue(data));
+
+      if (isEmptyArray(data?.sales)) data.sales.push(new Sale());
 
       console.debug(this.logPrefix + 'setValue() [OK] tripForm', data);
 
