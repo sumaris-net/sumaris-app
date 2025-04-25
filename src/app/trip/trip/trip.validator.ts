@@ -23,7 +23,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { FishingArea } from '@app/data/fishing-area/fishing-area.model';
 import { Sale } from '../sale/sale.model';
 import { FocusMonitor } from '@angular/cdk/a11y';
-import { FocusMonitor } from '@angular/cdk/a11y';
 
 export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withSamplingStrata?: boolean;
