@@ -7,8 +7,8 @@ android {
         applicationId "net.sumaris.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 20923
-        versionName "2.8.23"
+        versionCode 20924
+        versionName "2.8.24"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
