@@ -288,6 +288,7 @@ export class TripPage extends AppRootDataEntityEditor<Trip, TripService, number,
     console.debug(this.logPrefix + 'removeSale()');
     if (this.data?.sales && index >= 0 && index < this.data.sales.length) {
       this.data.sales.splice(index, 1);
+      this.saleAppFormArray.removeAt(index); //TODO OLM Prevent :ObjectUnsubscribedErrorImpl ObjectUnsubscribedErrorImpl
       this.markForCheck();
     }
     console.debug(this.logPrefix + 'removeSale() sales', this.data.sales);
