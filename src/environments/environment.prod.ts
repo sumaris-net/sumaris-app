@@ -51,7 +51,7 @@ export const environment = Object.freeze(<AppEnvironment>{
     },
 
     // -- Tests instances --
-    {
+    /*{
       host: 'adap-test.pecheursdebretagne.eu',
       port: 443,
       useSsl: true,
@@ -59,7 +59,7 @@ export const environment = Object.freeze(<AppEnvironment>{
     {
       host: 'test.sumaris.net',
       port: 443,
-    },
+    },*/
   ],
 
   defaultAppName: 'SUMARiS',
