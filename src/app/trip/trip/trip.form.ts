@@ -60,6 +60,7 @@ import { Moment } from 'moment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { SortDirection } from '@angular/material/sort';
 import { TRIP_FEATURE_DEFAULT_PROGRAM_FILTER } from '@app/trip/trip.config';
+import { Sale } from '../sale/sale.model';
 
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
 
